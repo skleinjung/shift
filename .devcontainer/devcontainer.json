@@ -1,0 +1,9 @@
+{
+	"image": "ghcr.io/twin-digital/devcontainer-nodejs:latest",
+
+	"extensions": [
+		"arcanis.vscode-zipfs",
+		"dbaeumer.vscode-eslint",
+		"hashicorp.terraform"
+	]
+}
