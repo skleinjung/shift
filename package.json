@@ -64,12 +64,15 @@
   "build": {
     "appId": "com.thrashplay.shift-prelude",
     "productName": "Shift: Prelude",
+    "directories": {
+      "buildResources": "public"
+    },
     "files": [
       "build/**/*",
       "node_modules/**/*"
     ],
-    "directories": {
-      "buildResources": "public"
+    "publish": {
+      "provider": "github"
     }
   },
   "files": [
