@@ -61,8 +61,8 @@ The player's character has the following attributes:
 
 * **Health**: Health of the Shifter's avatar. The avatar is destroyed if this is depleted.
 * **Link**: Strength of the connection to the world being visited. The Shifter will be pulled back to their home if this is depleted. The strength of the link dissipates over time, but can be increased by *anchoring* to key elements of the world.
-* **Armor**: A measure of a character's resistance to physical damage, typically from worn armor or natural defenses.
-* **Melee**: A combination of combat skill and physical attributes such as strength and speed. This attribute is used to determine effectiveness of offensive and defensive actions at close range.
+* **Defense**: A measure of a character's resistance to physical damage and overall ability to avoid harm. This reduces the amount of damage a character takes from both melee and missile attacks.
+* **Melee**: A combination of combat skill and physical attributes such as strength and speed. This attribute is used to determine effectiveness of offensive actions at close range.
 * **Missile**: A combination of skill, hand-eye coordination, and reflexes. This attribute is used to determine the effectiveness of ranged attacks.
 * **Focus**: A measure of concentration and tactical awareness. Focus determines how capable a character is in turning a combat situation to their advantage and dictates how effectively they employ tactics.
 
@@ -81,7 +81,7 @@ Combat in Shift is resolved using a combination of dice and cards. Combat dice a
 
 ### Attack and Defense Rolls
 
-Whenever an attack is made, the attacker rolls a number of *combat dice* equal to their `melee` or `missile` attribute (whichever applies). This determines the base strength for the attack. The defender rolls a number of combat dice equal to their defense strength against the attack. The defense strength against ranged attacks is equal to the defender's `armor` attribute, and against melee attacks it is equal to the sum of their `melee` and `armor` attributes.
+Whenever an attack is made, the attacker rolls a number of *combat dice* equal to their `melee` or `missile` attribute (whichever applies). This determines the base strength for the attack. The defender rolls a number of combat dice equal to their `defense` attribute.
 
 Combat dice are six-sided. Each face is either blank, or contains a number of 🗡️ symbols (for attack rolls) or 🛡️ symbols (for defense rolls). The number of symbols is totalled to determine the strength of the character's attack or defense.
 
