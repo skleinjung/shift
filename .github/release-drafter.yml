@@ -17,6 +17,7 @@ template: |
 
   $CHANGES
 version-resolver:
+  major:
     labels:
       - major
   minor:
