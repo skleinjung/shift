@@ -1,6 +1,7 @@
 const path = require('path')
 
 const { app, BrowserWindow } = require('electron')
+const isDev = require('electron-is-dev')
 
 function createWindow () {
   // Create the browser window.
@@ -9,25 +10,22 @@ function createWindow () {
     height: 600,
     webPreferences: {
       nodeIntegration: true,
-      preload: path.join(__dirname, 'preload.js'),
+      preload: path.join(__dirname, '..', 'build', 'preload.js'),
     },
   })
 
   // In production, set the initial browser path to the local bundle generated
   // by the Create React App build process.
   // In development, set it to localhost to allow live/hot-reloading.
-  const appURL = app.isPackaged
-    ? url.format({
-      pathname: path.join(__dirname, 'index.html'),
-      protocol: 'file:',
-      slashes: true,
-    })
-    : 'http://localhost:3000'
-  mainWindow.loadURL(appURL)
+  mainWindow.loadURL(
+    isDev
+      ? 'http://localhost:3000'
+      : `file://${path.join(__dirname, '../build/index.html')}`
+  )
 
-  // Automatically open Chrome's DevTools in development mode.
-  if (!app.isPackaged) {
-    mainWindow.webContents.openDevTools()
+  // Open the DevTools.
+  if (isDev) {
+    mainWindow.webContents.openDevTools({ mode: 'detach' })
   }
 }
 
@@ -39,7 +37,7 @@ function setupLocalFilesNormalizerProxy () {
     (request, callback) => {
       const url = request.url.substr(8)
       // eslint-disable-next-line node/no-callback-literal
-      callback({ path: path.normalize(`${__dirname}/${url}`) })
+      callback({ path: path.normalize(`${__dirname}/../build/${url}`) })
     },
     (error) => {
       // eslint-disable-next-line no-console
