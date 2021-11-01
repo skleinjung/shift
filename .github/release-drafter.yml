@@ -9,9 +9,8 @@ autolabeler:
     title:
       - '/perf/i'
 change-template: '- $TITLE (#$NUMBER)'
-name-template: '$RESOLVED_VERSION'
-prerelease: true
-tag-template: 'v$RESOLVED_VERSION'
+name-template: $RESOLVED_VERSION
+tag-template: v$RESOLVED_VERSION
 template: |
   ## What’s Changed
 
