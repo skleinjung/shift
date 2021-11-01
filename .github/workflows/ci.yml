@@ -1,0 +1,30 @@
+name: CI
+
+on: 
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    env:
+      SKIP_PREFLIGHT_CHECK: true
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-node@v2
+      with: 
+        node-version: 14
+    - run: |
+        yarn install
+        yarn test
+        yarn build
+
+  update-release-draft:
+    needs: [ci]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: release-drafter/release-drafter@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

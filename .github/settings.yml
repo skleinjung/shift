@@ -1,0 +1,19 @@
+repository:
+  allow_auto_merge: true
+  allow_merge_commit: false
+  allow_rebase_merge: false
+  allow_squash_merge: true
+  default_branch: main
+  delete_branch_on_merge: true
+  description: Uncover a story of loss and revenge while exploring procedurally generated dungeons in this hack-and-slash RPG.
+
+branches:
+  - name: main
+    protection:
+      required_pull_request_reviews: null
+      required_status_checks:
+        strict: true
+        contexts: [ci, validate-pr]
+      enforce_admins: false
+      required_linear_history: true
+      restrictions: null
