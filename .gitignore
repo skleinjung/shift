@@ -122,5 +122,6 @@ dist
 /exported-data
 catalog.csv
 import-records/*
+build
 lib
 .local
