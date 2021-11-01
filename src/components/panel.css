@@ -1,0 +1,25 @@
+.container {
+  align-self: flex-start;
+  border: 1px solid #333;
+  flex: 0;
+  margin: 8px 0;
+}
+
+.container.active {
+  border-color: #999;
+}
+
+.content {
+  overflow: hidden;
+  margin: 8px;
+}
+
+.container.dynamic-height {
+  flex: 1;
+  min-height: 48px;
+  overflow: hidden;
+}
+
+.container.dynamic-width {
+  align-self: stretch;
+}
