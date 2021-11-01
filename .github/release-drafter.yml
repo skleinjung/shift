@@ -1,0 +1,28 @@
+autolabeler:
+  - label: bug
+    title:
+      - '/fix/i'
+  - label: enhancement
+    title:
+      - '/feat/i'
+  - label: enhancement
+    title:
+      - '/perf/i'
+change-template: '- $TITLE (#$NUMBER)'
+name-template: 'v$RESOLVED_VERSION'
+prerelease: true
+tag-template: 'v$RESOLVED_VERSION'
+template: |
+  ## What’s Changed
+
+  $CHANGES
+version-resolver:
+    labels:
+      - major
+  minor:
+    labels:
+      - enhancement
+  patch:
+    labels:
+      - bug
+  default: patch
