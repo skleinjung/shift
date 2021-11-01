@@ -27,7 +27,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  electron-build: 
+  electron-build-linux: 
     needs: [test, update-release-draft]
     runs-on: ubuntu-latest
     env:
@@ -46,12 +46,32 @@ jobs:
         yarn install
         yarn dist:linux ${ELECTRON_BUILD_ARGS}
 
+  electron-build-windows: 
+    needs: [test, update-release-draft]
+    runs-on: windows-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      SKIP_PREFLIGHT_CHECK: true
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-node@v2
+      with: 
+        node-version: 12
+    - name: Skip publish if pull_request
+      run: |
+        echo "ELECTRON_BUILD_ARGS=--publish never" >> $GITHUB_ENV
+      if: github.event_name != 'push'
+    - run: |
+        yarn install
+        yarn dist:windows ${ELECTRON_BUILD_ARGS}
+
   # 'ci' check is required for mergeability, wait for other jobs
   ci:
     needs: 
       - test
       - update-release-draft
-      - electron-build
+      - electron-build-linux
+      - electron-build-windows
     runs-on: ubuntu-latest
     steps:
       - run: echo CI checks complete
