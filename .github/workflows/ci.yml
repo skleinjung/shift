@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 jobs:
-  build-and-test:
+  test:
     runs-on: ubuntu-latest
     env:
       SKIP_PREFLIGHT_CHECK: true
@@ -18,7 +18,6 @@ jobs:
         node-version: 12
     - run: |
         yarn install
-        yarn build
         yarn test
 
   update-release-draft:
@@ -28,9 +27,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  electron-build-no-publish: 
-    needs: [update-release-draft]
-    if: github.event_name != 'push'
+  electron-build: 
+    needs: [test, update-release-draft]
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -40,33 +38,20 @@ jobs:
     - uses: actions/setup-node@v2
       with: 
         node-version: 12
+    - name: Skip publish if pull_request
+      run: |
+        echo "ELECTRON_BUILD_ARGS=--publish never" >> $GITHUB_ENV
+      if: github.event_name != 'push'
     - run: |
         yarn install
-        yarn dist:linux --publish never
-
-  electron-build-and-publish: 
-    needs: [update-release-draft]
-    if: github.event_name == 'push'
-    runs-on: ubuntu-latest
-    env:
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      SKIP_PREFLIGHT_CHECK: true
-    steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-node@v2
-      with: 
-        node-version: 12
-    - run: |
-        yarn install
-        yarn dist:linux
+        yarn dist:linux ${ELECTRON_BUILD_ARGS}
 
   # 'ci' check is required for mergeability, wait for other jobs
   ci:
     needs: 
-      - build-and-test
+      - test
       - update-release-draft
-      - electron-build-no-publish
-      - electron-build-and-publish
+      - electron-build
     runs-on: ubuntu-latest
     steps:
       - run: echo CI checks complete
