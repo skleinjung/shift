@@ -64,14 +64,3 @@ jobs:
     - run: |
         yarn install
         yarn dist:windows ${ELECTRON_BUILD_ARGS}
-
-  # 'ci' check is required for mergeability, wait for other jobs
-  ci:
-    needs: 
-      - test
-      - update-release-draft
-      - electron-build-linux
-      - electron-build-windows
-    runs-on: ubuntu-latest
-    steps:
-      - run: echo CI checks complete
