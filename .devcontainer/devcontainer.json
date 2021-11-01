@@ -1,9 +1,14 @@
 {
-	"image": "ghcr.io/twin-digital/devcontainer-nodejs:latest",
-
+	"build": {
+		"dockerfile": "Dockerfile"
+	},
 	"extensions": [
 		"arcanis.vscode-zipfs",
 		"dbaeumer.vscode-eslint",
 		"hashicorp.terraform"
+	],
+	"runArgs": [
+		"--env=DISPLAY",
+		"--net=host"
 	]
 }
