@@ -1,6 +1,6 @@
 {
   "name": "shift-prelude",
-  "version": "0.1.0",
+  "version": "0.0.1",
   "description": "Uncover a story of loss and revenge while exploring procedurally generated dungeons in this hack-and-slash RPG.",
   "private": true,
   "license": "ISC",
@@ -17,8 +17,8 @@
     "lint": "run-p 'lint:*'",
     "lint:packageJson": "npmPkgJsonLint --ignorePath .gitignore .",
     "lint:src": "eslint --cache --fix --report-unused-disable-directives --ext '.ts,.js,.tsx,.jsx,.json' .",
-    "postversion": "npm run test && git push && git push --tags && npm run release:web-edit",
-    "release": "git checkout master && git pull && npm version --preid=alpha minor",
+    "postversion": "yarn test --watchAll=false && git push && git push --tags && yarn release:web-edit",
+    "release": "git checkout main && git pull && npm version --preid=alpha minor",
     "release:web-edit": "open \"$(node -e 'console.log(`${require(\"./package.json\").repository}/releases`)')\"",
     "start": "react-scripts start",
     "test": "react-scripts test"
