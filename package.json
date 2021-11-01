@@ -71,8 +71,8 @@
       "build/**/*",
       "node_modules/**/*"
     ],
-    "publish": {
-      "provider": "github"
+    "linux": {
+      "category": "Game"
     }
   },
   "files": [

@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 jobs:
-  ci:
+  build-and-test:
     runs-on: ubuntu-latest
     env:
       SKIP_PREFLIGHT_CHECK: true
@@ -18,20 +18,19 @@ jobs:
         node-version: 12
     - run: |
         yarn install
+        yarn build
         yarn test
-        yarn dist:linux --publish never
 
   update-release-draft:
-    needs: [ci]
     runs-on: ubuntu-latest
     steps:
       - uses: release-drafter/release-drafter@v5
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  publish-app: 
+  add-artifacts-to-release: 
+    needs: [update-release-draft]
     if: github.event_name == 'push'
-    needs: [ci, update-release-draft]
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -45,4 +44,12 @@ jobs:
         yarn install
         yarn dist:linux
 
-
+  # 'ci' check is required for mergeability, wait for other jobs
+  ci:
+    needs: 
+      - build-and-test
+      - update-release-draft
+      - add-artifacts-to-release
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo CI checks complete
