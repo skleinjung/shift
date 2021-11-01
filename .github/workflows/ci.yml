@@ -19,11 +19,22 @@ jobs:
     - run: |
         yarn install
         yarn test
-        yarn build
+        yarn dist:linux --publish never
 
-  package:
+  update-release-draft:
+    needs: [ci]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: release-drafter/release-drafter@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  publish-app: 
+    if: github.event_name == 'push'
+    needs: [ci, update-release-draft]
     runs-on: ubuntu-latest
     env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       SKIP_PREFLIGHT_CHECK: true
     steps:
     - uses: actions/checkout@v2
@@ -34,10 +45,4 @@ jobs:
         yarn install
         yarn dist:linux
 
-  update-release-draft:
-    needs: [ci]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: release-drafter/release-drafter@v5
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
