@@ -28,7 +28,23 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  add-artifacts-to-release: 
+  electron-build-no-publish: 
+    needs: [update-release-draft]
+    if: github.event_name != 'push'
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      SKIP_PREFLIGHT_CHECK: true
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-node@v2
+      with: 
+        node-version: 12
+    - run: |
+        yarn install
+        yarn dist:linux --publish never
+
+  electron-build-and-publish: 
     needs: [update-release-draft]
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
@@ -49,7 +65,8 @@ jobs:
     needs: 
       - build-and-test
       - update-release-draft
-      - add-artifacts-to-release
+      - electron-build-no-publish
+      - electron-build-and-publish
     runs-on: ubuntu-latest
     steps:
       - run: echo CI checks complete
