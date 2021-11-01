@@ -4,23 +4,32 @@
   "description": "Uncover a story of loss and revenge while exploring procedurally generated dungeons in this hack-and-slash RPG.",
   "private": true,
   "license": "ISC",
+  "main": "public/electron.js",
   "scripts": {
     "build": "react-scripts build",
+    "dev": "electron --no-sandbox .",
+    "dist": "run-s build dist:electron",
+    "dist:electron": "electron-builder -c.extraMetadata.main=build/electron.js",
     "eject": "react-scripts eject",
+    "electron:package:mac": "yarn build && electron-builder -m -c.extraMetadata.main=build/electron.js",
+    "electron:package:win": "yarn build && electron-builder -w -c.extraMetadata.main=build/electron.js",
+    "electron:package:linux": "yarn build && electron-builder -l -c.extraMetadata.main=build/electron.js",
     "lint": "run-p 'lint:*'",
     "lint:packageJson": "npmPkgJsonLint --ignorePath .gitignore .",
     "lint:src": "eslint --cache --fix --report-unused-disable-directives --ext '.ts,.js,.tsx,.jsx,.json' .",
+    "main": "public/electron.js",
     "start": "react-scripts start",
     "test": "react-scripts test"
   },
   "dependencies": {
-    "@testing-library/jest-dom": "^5.11.4",
-    "@testing-library/react": "^11.1.0",
-    "@testing-library/user-event": "^12.1.10",
-    "react": "^17.0.2",
-    "react-dom": "^17.0.2",
+    "@testing-library/jest-dom": "5.11.4",
+    "@testing-library/react": "11.1.0",
+    "@testing-library/user-event": "12.1.10",
+    "electron-is-dev": "2.0.0",
+    "react": "17.0.2",
+    "react-dom": "17.0.2",
     "react-scripts": "4.0.3",
-    "web-vitals": "^1.0.1"
+    "web-vitals": "1.0.1"
   },
   "devDependencies": {
     "@twindigital/eslint-config": "1.0.5",
@@ -28,6 +37,8 @@
     "@types/node-fetch": "3.0.2",
     "@typescript-eslint/eslint-plugin": "5.2.0",
     "@typescript-eslint/parser": "5.2.0",
+    "electron": "15.3.0",
+    "electron-builder": "22.10.5",
     "eslint": "8.1.0",
     "eslint-import-resolver-node": "0.3.6",
     "eslint-plugin-import": "2.25.2",
@@ -45,10 +56,24 @@
   "bugs": {
     "url": "https://github.com/skleinjung/shift/issues"
   },
+  "build": {
+    "appId": "com.thrashplay.shift-prelude",
+    "productName": "Shift: Prelude",
+    "files": ["build/**/*", "node_modules/**/*"],
+    "directories": {
+      "buildResources": "public"
+    },
+    "mac": {
+      "target": "dmg"
+    },
+    "win": {
+      "target": "nsis"
+    }
+  },
   "files": [
     "lib"
   ],
-  "homepage": "https://github.com/skleinjung/shift",
+  "homepage": "./",
   "keywords": [
     "spawn-point",
     "configuration"
