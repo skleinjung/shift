@@ -1,6 +1,5 @@
 import { ShaderSystem } from '@pixi/core'
 import { install } from '@pixi/unsafe-eval'
-import useSize from '@react-hook/size'
 import { FontNames } from 'fonts'
 import { times } from 'lodash'
 import { map, slice } from 'lodash/fp'
@@ -34,23 +33,21 @@ const lines = generateLines()
 export const MapPanel = () => {
   const canvasRef = useRef<HTMLDivElement>(null)
   const appRef = useRef<PIXI.Application | null>(null)
-  const [width, height] = useSize(canvasRef)
 
   const [x, setX] = useState(0)
   const [y, setY] = useState(0)
 
   useEffect(() => {
-    // eslint-disable-next-line no-console
-    console.log('resize!', width, height)
-  }, [width, height])
-
-  useEffect(() => {
-    setTimeout(() => {
+    const timeout = setTimeout(() => {
       setX((x + 1) % 4500)
       if (x % 2 === 0) {
         setY((y + 1) % 4500)
       }
     }, 1000 / 20)
+
+    return () => {
+      clearTimeout(timeout)
+    }
   })
 
   const rowSelection = slice(y, y + 250, lines)
