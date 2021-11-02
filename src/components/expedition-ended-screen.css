@@ -1,0 +1,24 @@
+.screen-container {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.screen-content-container {
+  margin-top: 64px;
+}
+
+.screen-footer {
+  font-size: 2em;
+  margin-bottom: 32px;
+  margin-top: auto;
+}
+
+.screen-title {
+  font-family: VT323;
+  font-size: 5em;
+  letter-spacing: 0.05em;
+  margin: 64px 0 32px 0;
+  text-align: center;
+}
