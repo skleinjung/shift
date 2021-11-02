@@ -1,6 +1,8 @@
 .container {
   align-self: flex-start;
   border: 1px solid #333;
+  display: flex;
+  align-content: stretch;
   flex: 0;
   margin: 8px 0;
 }
@@ -10,8 +12,9 @@
 }
 
 .content {
-  overflow: hidden;
+  flex: 1;
   margin: 8px;
+  overflow: hidden;
 }
 
 .container.dynamic-height {

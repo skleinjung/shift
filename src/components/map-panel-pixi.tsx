@@ -1,11 +1,12 @@
 import { ShaderSystem } from '@pixi/core'
 import { install } from '@pixi/unsafe-eval'
+import useSize from '@react-hook/size'
 import { times } from 'lodash'
-import { map, noop, slice } from 'lodash/fp'
+import { map, slice } from 'lodash/fp'
 import * as PIXI from 'pixi.js'
 import { useEffect, useRef, useState } from 'react'
 
-import dragon from '../assets/dragon.png'
+import { Panel } from './panel'
 
 // Apply the patch to PIXI
 install({ ShaderSystem })
@@ -30,8 +31,17 @@ const generateLines = () => {
 const lines = generateLines()
 
 export const MapPanel = () => {
+  const canvasRef = useRef<HTMLDivElement>(null)
+  const appRef = useRef<PIXI.Application | null>(null)
+  const [width, height] = useSize(canvasRef)
+
   const [x, setX] = useState(0)
   const [y, setY] = useState(0)
+
+  useEffect(() => {
+    // eslint-disable-next-line no-console
+    console.log('resize!', width, height)
+  }, [width, height])
 
   useEffect(() => {
     setTimeout(() => {
@@ -52,53 +62,73 @@ export const MapPanel = () => {
   //   return <span key={key++} style={{ color: randomColor }}>{c}</span>
   // })
 
-  // const colored = map(colorizeRow, rows)
-  const ref = useRef<HTMLDivElement>(null)
-
   useEffect(() => {
-    if (ref.current !== null) {
-      // On first render create our application
-      const app = new PIXI.Application({
-        width: 800,
-        height: 600,
-        backgroundColor: 0x5BBA6F,
+    if (canvasRef.current !== null) {
+      appRef.current = new PIXI.Application({
+        backgroundColor: 0x000000,
+        resizeTo: canvasRef.current,
       })
+      const app = appRef.current
 
       // Add app to DOM
-      ref.current.appendChild(app.view)
+      canvasRef.current.appendChild(app.view)
       app.start()
 
-      const sprite = PIXI.Sprite.from(dragon)
-      app.stage.addChild(sprite)
+      const fontName = 'Nova Mono'
 
-      // Add a variable to count up the seconds our demo has been running
-      let elapsed = 0.0
-      // Tell our application's ticker to run a new callback every frame, passing
-      // in the amount of time that has passed since the last tick
-      app.ticker.add((delta) => {
-        // Add the time to our total elapsed time
-        elapsed += delta
-        // Update the sprite's X position based on the cosine of our elapsed time.  We divide
-        // by 50 to slow the animation down a bit...
-        sprite.x = 100.0 + Math.cos(elapsed / 50.0) * 100.0
+      PIXI.BitmapFont.from(fontName, {
+        fill: '#ffffff',
+        fontSize: 16,
+        fontWeight: 'bold',
+        dropShadow: false,
       })
 
-      return () => {
-        // On unload completely destroy the application and all of it's children
-        app.destroy(true, true)
+      const cells: PIXI.BitmapText[][] = []
+
+      let xOffset = 0
+      let yOffset = 0
+
+      for (let y = 0; y < 88; y++) {
+        cells[y] = []
+
+        for (let x = 0; x < 150; x++) {
+          const cell = new PIXI.BitmapText(lines[y].charAt(x), { fontName })
+          cell.anchor.set(0.5)
+          cell.position.set(x * 12 + 6, y * 16 + 8)
+          app.stage.addChild(cell)
+
+          cells[y][x] = cell
+        }
       }
-    } else {
-      return noop
+
+      let timeSinceScroll = 0.0
+      app.ticker.add((delta) => {
+        timeSinceScroll += delta
+
+        if (timeSinceScroll > (1000 / 100)) {
+          xOffset = (xOffset + 1) % 2000
+          yOffset = (yOffset + 1) % 2000
+          for (let y = 0; y < 88; y++) {
+            for (let x = 0; x < 150; x++) {
+              cells[y][x].text = lines[yOffset + y][xOffset + x]
+              cells[y][x].tint = Math.floor(Math.random() * 16777215)
+            }
+          }
+          timeSinceScroll -= (1000 / 100)
+        }
+      })
+    }
+
+    return () => {
+      if (appRef.current !== null) {
+        appRef.current.destroy()
+      }
     }
   }, [])
 
   return (<>
-    <img
-      src={dragon}
-      width={218}
-      height={181}
-    />
-
-    <div ref={ref} />
+    <Panel>
+      <div style={{ flex: 1, height: '100%' }} ref={canvasRef} />
+    </Panel>
   </>)
 }
