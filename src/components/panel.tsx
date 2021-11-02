@@ -13,6 +13,12 @@ export interface PanelProps {
    **/
   columns?: number | undefined
 
+  /** additional CSS classes to apply to the container element */
+  containerClass?: string
+
+  /** additional CSS classes to apply to the content element */
+  className?: string
+
   /** fixed height of the panel (in text rows), or undefined if it should expand vertically */
   rows?: number | undefined
 }
@@ -20,7 +26,9 @@ export interface PanelProps {
 export const Panel = ({
   active,
   children,
+  className,
   columns,
+  containerClass,
   rows,
 }: PropsWithChildren<PanelProps>) => {
   const containerClasses = ['container']
@@ -35,20 +43,26 @@ export const Panel = ({
     containerClasses.push('active')
   }
 
+  if (containerClass !== undefined) {
+    containerClasses.push(containerClass)
+  }
+
   const height = rows !== undefined ? rows * 16 : undefined
   const width = columns !== undefined ? `${columns}ch` : undefined
 
   return (
     <>
       <div className={join(' ', containerClasses)}>
-        <div className="content" style={{
-          height,
-          maxHeight: height,
-          maxWidth: width,
-          minHeight: height,
-          minWidth: width,
-          width,
-        }}>
+        <div
+          className={className === undefined ? 'content' : `content ${className}`}
+          style={{
+            height,
+            maxHeight: height,
+            maxWidth: width,
+            minHeight: height,
+            minWidth: width,
+            width,
+          }}>
           {children}
         </div>
       </div>
