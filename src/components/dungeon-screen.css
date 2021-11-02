@@ -1,0 +1,19 @@
+.dungeon-screen {
+  background-color: black;
+  display: flex;
+  height: 100vh;
+}
+
+.main-content {
+  display: flex;
+  flex-direction: column;
+  margin: 16px 16px 16px 0;
+  width: 100%;
+}
+
+.sidebar {
+  display: flex;
+  justify-self: flex-start;
+  flex-direction: column;
+  margin: 16px;
+}
