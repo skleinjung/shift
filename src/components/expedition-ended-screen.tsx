@@ -1,6 +1,6 @@
 import { PropsWithChildren, useCallback } from 'react'
 import { useRecoilValue } from 'recoil'
-import { expeditionState } from 'state/expedition'
+import { useExpedition } from 'state/expedition'
 import { playerState } from 'state/player'
 
 import { ScreenName } from './app'
@@ -17,7 +17,7 @@ const MultiLineText = ({ children }: PropsWithChildren<Record<string, unknown>>)
 )
 
 export const ExpeditionEndedScreen = ({ navigateTo }: ExpeditionEndedScreenProps) => {
-  const expedition = useRecoilValue(expeditionState)
+  const expedition = useExpedition()
   const player = useRecoilValue(playerState)
 
   // update the focus when a new UL element is created
@@ -32,13 +32,14 @@ export const ExpeditionEndedScreen = ({ navigateTo }: ExpeditionEndedScreenProps
   }, [])
 
   const returnToTitle = useCallback(() => {
+    expedition.reset()
     navigateTo('title')
-  }, [navigateTo])
+  }, [expedition, navigateTo])
 
   const expeditionSummary =
     `${player.name}
     
-    Turn: ${expedition.turn}`
+    Turns: ${expedition.turn - 1}`
 
   return (
     <div
