@@ -39,9 +39,17 @@ export const MapPanel = () => {
   const rowSelection = slice(y, y + 250, lines)
   const rows = map((row) => row.substring(x, x + 250), rowSelection)
 
+  // let key = 0
+  // const colorizeRow = (row: string) => row.split('').map((c) => {
+  //   const randomColor = `#${Math.floor(Math.random() * 16777215).toString(16)}`
+  //   return <span key={key++} style={{ color: randomColor }}>{c}</span>
+  // })
+
+  // const colored = map(colorizeRow, rows)
+
   return (
     <Panel className="map-content" active={true}>
-      {join('\n', rows)}<br />
+      {join('\n', rows)}
     </Panel>
   )
 }

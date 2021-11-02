@@ -1,6 +1,6 @@
 /* eslint-disable max-len */
 import './dungeon-screen.css'
-import { MapPanel } from './map-panel'
+import { MapPanel } from './map-panel-pixi'
 import { Panel } from './panel'
 
 const SidebarColumns = 30
