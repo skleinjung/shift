@@ -1,6 +1,7 @@
 import './app.css'
 import { loadFonts } from 'fonts'
 import { useCallback, useState } from 'react'
+import { RecoilRoot } from 'recoil'
 
 import { DungeonScreen } from './dungeon-screen'
 import { ExpeditionEndedScreen } from './expedition-ended-screen'
@@ -31,7 +32,13 @@ function App () {
     }
   }
 
-  return ready ? getActiveScreen() : <div>Loading...</div>
+  return (
+    <RecoilRoot>{
+      ready
+        ? getActiveScreen()
+        : <div>Loading...</div>
+    }</RecoilRoot>
+  )
 }
 
 export default App
