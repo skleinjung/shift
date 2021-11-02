@@ -1,5 +1,5 @@
 import { findIndex, map, noop } from 'lodash/fp'
-import { useCallback, useState } from 'react'
+import React, { useCallback, useState } from 'react'
 import './title-screen.css'
 
 interface MenuProps {
@@ -26,6 +26,12 @@ const Menu = ({
   // update the focus when a new UL element is created
   const refCallback = useCallback((ul: HTMLUListElement) => {
     ul?.focus()
+  }, [])
+
+  // handle blur events by taking focus back
+  // works on this screen, because we only have one element that we want to handle input
+  const handleBlur = useCallback((event: React.FocusEvent<HTMLUListElement>) => {
+    event.target.focus()
   }, [])
 
   // notify listeners of a selection change, and update UI
@@ -75,6 +81,7 @@ const Menu = ({
 
   return (
     <ul
+      onBlur={handleBlur}
       onKeyDown={handleKeyPress}
       ref={refCallback}
       tabIndex={0}
