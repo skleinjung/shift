@@ -11,7 +11,7 @@ export type ScreenName = 'dungeon' | 'expedition-ended' | 'title'
 
 function App () {
   const [ready, setReady] = useState(false)
-  const [activeScreen, setActiveScreen] = useState<ScreenName>('expedition-ended')
+  const [activeScreen, setActiveScreen] = useState<ScreenName>('title')
 
   loadFonts().then(() => setReady(true))
 
@@ -22,7 +22,7 @@ function App () {
   const getActiveScreen = () => {
     switch (activeScreen) {
       case 'dungeon':
-        return <DungeonScreen />
+        return <DungeonScreen navigateTo={setActiveScreen}/>
 
       case 'expedition-ended':
         return <ExpeditionEndedScreen navigateTo={setActiveScreen} />
