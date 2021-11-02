@@ -1,15 +1,17 @@
 import './app.css'
 import { loadFonts } from 'fonts'
 import { useCallback, useState } from 'react'
+import { RecoilRoot } from 'recoil'
 
 import { DungeonScreen } from './dungeon-screen'
+import { ExpeditionEndedScreen } from './expedition-ended-screen'
 import { TitleScreen } from './title-screen'
 
-export type ScreenName = 'dungeon' | 'exit' | 'game-over' | 'title'
+export type ScreenName = 'dungeon' | 'expedition-ended' | 'title'
 
 function App () {
   const [ready, setReady] = useState(false)
-  const [activeScreen, setActiveScreen] = useState<ScreenName>('title')
+  const [activeScreen, setActiveScreen] = useState<ScreenName>('expedition-ended')
 
   loadFonts().then(() => setReady(true))
 
@@ -22,12 +24,21 @@ function App () {
       case 'dungeon':
         return <DungeonScreen />
 
+      case 'expedition-ended':
+        return <ExpeditionEndedScreen navigateTo={setActiveScreen} />
+
       default:
         return <TitleScreen exit={handleExit} navigateTo={setActiveScreen} />
     }
   }
 
-  return ready ? getActiveScreen() : <div>Loading...</div>
+  return (
+    <RecoilRoot>{
+      ready
+        ? getActiveScreen()
+        : <div>Loading...</div>
+    }</RecoilRoot>
+  )
 }
 
 export default App

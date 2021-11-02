@@ -1,4 +1,4 @@
-h1 {
+.game-title {
   font-family: VT323;
   font-size: 20em;
   letter-spacing: 0.05em;
@@ -6,7 +6,7 @@ h1 {
   text-align: center;
 }
 
-ul {
+.screen-menu {
   border-top: 2px solid gray;
   margin-left: auto;
   margin-right: auto;
@@ -14,9 +14,9 @@ ul {
   text-align: center;
   width: 450px;
 }
-ul:focus { outline: none; }
+.screen-menu:focus { outline: none; }
 
-li {
+.screen-menu li {
   font-size: 72px;
   list-style-type: none;
   margin: 0 0 48px 0;
@@ -34,21 +34,6 @@ li {
   }
 }
 
-li.selected:after { 
-  content: ' <'; 
-}
-li.selected:before { 
-  content: '> '; 
-}
-li.selected {
-  animation-direction: alternate;
-  animation-duration: 650ms;
-  animation-timing-function: linear;
-  animation-name: breathing;
-  animation-iteration-count: infinite;
-  color: red;
-}
-
-li:last-child {
+.screen-menu li:last-child {
   margin-bottom: 0;
 }

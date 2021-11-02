@@ -8,3 +8,17 @@ body {
   color: white;
 }
 
+.animated-option:after { 
+  content: ' <'; 
+}
+.animated-option:before { 
+  content: '> '; 
+}
+.animated-option {
+  animation-direction: alternate;
+  animation-duration: 650ms;
+  animation-timing-function: linear;
+  animation-name: breathing;
+  animation-iteration-count: infinite;
+  color: red;
+}

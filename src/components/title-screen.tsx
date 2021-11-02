@@ -91,6 +91,7 @@ const Menu = ({
 
   return (
     <ul
+      className="screen-menu"
       onBlur={handleBlur}
       onKeyDown={handleKeyPress}
       ref={refCallback}
@@ -99,7 +100,7 @@ const Menu = ({
       {map((name: string) => (
         <li
           key={name}
-          className={selectedItem === name ? 'selected' : ''}
+          className={selectedItem === name ? 'animated-option' : ''}
           onMouseEnter={handleHover(name)}
           onClick={handleClick(name)}
         >
@@ -113,7 +114,7 @@ const Menu = ({
 export const TitleScreen = ({ exit, navigateTo }: TitleScreenProps) => {
   return (
     <>
-      <h1>Shift</h1>
+      <h1 className="game-title">Shift</h1>
       <Menu
         items={['New Game', 'Exit']}
         onSelectionConfirmed={(item) => {
