@@ -1,6 +1,7 @@
 const path = require('path')
 
 const { app, BrowserWindow, protocol } = require('electron')
+const { ipcMain } = require('electron')
 const isDev = require('electron-is-dev')
 
 function createWindow () {
@@ -79,4 +80,10 @@ app.on('web-contents-created', (_event, contents) => {
       event.preventDefault()
     }
   })
+})
+
+// custom IPC event handlers
+
+ipcMain.on('exit', () => {
+  app.quit()
 })
