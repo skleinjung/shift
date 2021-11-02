@@ -1,5 +1,5 @@
 import './app.css'
-import FontFaceObserver from 'fontfaceobserver'
+import { loadFonts } from 'fonts'
 import { useState } from 'react'
 
 import { DungeonScreen } from './dungeon-screen'
@@ -7,9 +7,7 @@ import { DungeonScreen } from './dungeon-screen'
 function App () {
   const [ready, setReady] = useState(false)
 
-  const fontName = 'Nova Mono'
-  new FontFaceObserver(fontName, {}).load()
-    .then(() => setReady(true))
+  loadFonts().then(() => setReady(true))
 
   return ready ? (
     <DungeonScreen />

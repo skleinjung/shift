@@ -1,6 +1,7 @@
 import { ShaderSystem } from '@pixi/core'
 import { install } from '@pixi/unsafe-eval'
 import useSize from '@react-hook/size'
+import { FontNames } from 'fonts'
 import { times } from 'lodash'
 import { map, slice } from 'lodash/fp'
 import * as PIXI from 'pixi.js'
@@ -74,9 +75,7 @@ export const MapPanel = () => {
       canvasRef.current.appendChild(app.view)
       app.start()
 
-      const fontName = 'Nova Mono'
-
-      PIXI.BitmapFont.from(fontName, {
+      PIXI.BitmapFont.from(FontNames.Map, {
         fill: '#ffffff',
         fontSize: 16,
         fontWeight: 'bold',
@@ -92,7 +91,7 @@ export const MapPanel = () => {
         cells[y] = []
 
         for (let x = 0; x < 150; x++) {
-          const cell = new PIXI.BitmapText(lines[y].charAt(x), { fontName })
+          const cell = new PIXI.BitmapText(lines[y].charAt(x), { fontName: FontNames.Map })
           cell.anchor.set(0.5)
           cell.position.set(x * 12 + 6, y * 16 + 8)
           app.stage.addChild(cell)
