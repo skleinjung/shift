@@ -20,7 +20,7 @@
     "postversion": "git add package.json && git commit -m \"Bump version [skip ci]\" && git push",
     "release": "git checkout main && git pull && npm version --no-git-tag-version patch",
     "start": "react-scripts start",
-    "test": "react-scripts test"
+    "test": "react-scripts test --passWithNoTests"
   },
   "dependencies": {
     "@testing-library/jest-dom": "5.11.4",
