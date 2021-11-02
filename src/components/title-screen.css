@@ -1,0 +1,54 @@
+h1 {
+  font-family: VT323;
+  font-size: 20em;
+  letter-spacing: 0.05em;
+  margin: 64px 0 32px 0;
+  text-align: center;
+}
+
+ul {
+  border-top: 2px solid gray;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 64px 0 0 0;
+  text-align: center;
+  width: 450px;
+}
+ul:focus { outline: none; }
+
+li {
+  font-size: 72px;
+  list-style-type: none;
+  margin: 0 0 48px 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+
+@keyframes breathing {
+  from {
+    letter-spacing: 0;
+  }
+  to {
+    letter-spacing: 0.75px;
+  }
+}
+
+li.selected:after { 
+  content: ' <'; 
+}
+li.selected:before { 
+  content: '> '; 
+}
+li.selected {
+  animation-direction: alternate;
+  animation-duration: 650ms;
+  animation-timing-function: linear;
+  animation-name: breathing;
+  animation-iteration-count: infinite;
+  color: red;
+}
+
+li:last-child {
+  margin-bottom: 0;
+}

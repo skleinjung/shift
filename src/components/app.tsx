@@ -2,7 +2,7 @@ import './app.css'
 import { loadFonts } from 'fonts'
 import { useState } from 'react'
 
-import { DungeonScreen } from './dungeon-screen'
+import { TitleScreen } from './title-screen'
 
 function App () {
   const [ready, setReady] = useState(false)
@@ -10,7 +10,7 @@ function App () {
   loadFonts().then(() => setReady(true))
 
   return ready ? (
-    <DungeonScreen />
+    <TitleScreen />
   ) : <div>Loading...</div>
 }
 

@@ -7,6 +7,7 @@ export const FontNames = {
   Map: 'Nova Mono',
   Panel: 'VT323',
   Runic: 'Nova Mono',
+  Title: 'VT323',
 }
 
 export const loadFonts = async () => {
