@@ -5,8 +5,11 @@ import { times } from 'lodash'
 import * as PIXI from 'pixi.js'
 import { useCallback, useRef } from 'react'
 import { useRecoilCallback } from 'recoil'
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { endTurn as endExpeditionTurn, expeditionState } from 'state/expedition'
 import { gameState } from 'state/game'
+import { getColorAt, getSymbolAt, mapState } from 'state/map'
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { dealDamage, endTurn, playerState } from 'state/player'
 
 import { Panel } from './panel'
@@ -43,14 +46,15 @@ export const MapPanel = () => {
   const timeSinceScrollRef = useRef<number>(0)
   const renderStateRef = useRef<RenderState>({
     cells: [],
-    xOffset: 0,
-    yOffset: 0,
+    xOffset: -30,
+    yOffset: -30,
   })
 
   const appRef = useRef<PIXI.Application | null>(null)
 
-  const handleTick = useRecoilCallback(({ set, snapshot }) => (delta: number) => {
+  const handleTick = useRecoilCallback(({ snapshot }) => (delta: number) => {
     const paused = snapshot.getLoadable(gameState).valueOrThrow().paused
+    const map = snapshot.getLoadable(mapState).valueOrThrow()
 
     if (paused) {
       return
@@ -65,19 +69,24 @@ export const MapPanel = () => {
     const renderState = renderStateRef.current
     const cells = renderState.cells
 
-    if (Math.random() * 100 < 20) {
-      set(playerState, dealDamage(1))
-    }
+    // if (Math.random() * 100 < 20) {
+    //   set(playerState, dealDamage(1))
+    // }
 
-    set(playerState, endTurn)
-    set(expeditionState, endExpeditionTurn)
+    // set(playerState, endTurn)
+    // set(expeditionState, endExpeditionTurn)
 
-    renderState.xOffset = (renderState.xOffset + 1) % 2000
-    renderState.yOffset = (renderState.yOffset + 1) % 2000
-    for (let y = 0; y < 88; y++) {
-      for (let x = 0; x < 150; x++) {
-        cells[y][x].text = lines[renderState.yOffset + y][renderState.xOffset + x]
-        cells[y][x].tint = Math.floor(Math.random() * 16777215)
+    if (cells[0] !== undefined) {
+      for (let y = 0; y < cells.length; y++) {
+        for (let x = 0; x < cells[y].length; x++) {
+          // cells[y][x].text = lines[renderState.yOffset + y][renderState.xOffset + x]
+          // cells[y][x].tint = Math.floor(Math.random() * 16777215)
+          const mapX = x + renderState.xOffset
+          const mapY = y + renderState.yOffset
+
+          cells[y][x].text = getSymbolAt(map, mapX, mapY)
+          cells[y][x].tint = getColorAt(map, mapX, mapY)
+        }
       }
     }
     timeSinceScrollRef.current -= (1000 / 100)
@@ -93,12 +102,18 @@ export const MapPanel = () => {
     container.appendChild(app.view)
     app.start()
 
-    PIXI.BitmapFont.from(FontNames.Map, {
-      fill: '#ffffff',
-      fontSize: 16,
-      fontWeight: 'bold',
-      dropShadow: false,
-    })
+    PIXI.BitmapFont.from(
+      FontNames.Map,
+      {
+        fill: '#ffffff',
+        fontSize: 16,
+        fontWeight: 'bold',
+        dropShadow: false,
+      },
+      {
+        chars: PIXI.BitmapFont.ASCII,
+      }
+    )
 
     const renderState = renderStateRef.current
 
