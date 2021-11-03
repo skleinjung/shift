@@ -1,10 +1,13 @@
 /* eslint-disable max-len */
 import { useEffect } from 'react'
-import { useExpedition } from 'state/expedition'
+import { endTurn as endExpeditionTurn, expeditionState } from 'state/expedition'
+import { useModel } from 'state/hooks'
+import { endTurn, playerState } from 'state/player'
 
 import { ScreenName } from './app'
 import { MapPanel } from './map-panel-pixi'
 import { Panel } from './panel'
+
 import './expedition-screen.css'
 
 const SidebarColumns = 30
@@ -15,27 +18,29 @@ export interface ExpeditionScreenProps {
 }
 
 export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
-  const expedition = useExpedition()
+  const player = useModel(playerState)
+  const expedition = useModel(expeditionState)
 
   useEffect(() => {
     const timeout = setTimeout(() => {
-      expedition.nextTurn()
+      player.dispatch(endTurn)
+      expedition.dispatch(endExpeditionTurn)
     }, 100)
 
-    if (expedition.link < 1) {
+    if (player.link < 1) {
       navigateTo('expedition-ended')
     }
 
     return () => {
       clearTimeout(timeout)
     }
-  }, [expedition, navigateTo])
+  }, [expedition, navigateTo, player])
 
   return (
     <div className="dungeon-screen">
       <div className="sidebar">
         <Panel columns={SidebarColumns} rows={3}>
-          Link: {expedition.link}
+          Link: {player.link}
         </Panel>
 
         <Panel columns={SidebarColumns}>
