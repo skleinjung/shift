@@ -1,4 +1,4 @@
-import { PropsWithChildren, useCallback } from 'react'
+import { useCallback } from 'react'
 import { useRecoilValue, useResetRecoilState } from 'recoil'
 import { expeditionState } from 'state/expedition'
 import { playerState } from 'state/player'
@@ -6,15 +6,12 @@ import { playerState } from 'state/player'
 import { ScreenName } from './app'
 import './expedition-ended-screen.css'
 import { Panel } from './panel'
+import { PreFormattedText } from './pre-formatted-text'
 
 export interface ExpeditionEndedScreenProps {
   /** function that allows inter-screen navigation */
   navigateTo: (screen: ScreenName) => void
 }
-
-const MultiLineText = ({ children }: PropsWithChildren<Record<string, unknown>>) => (
-  <div style={{ whiteSpace: 'pre-line' }}>{children}</div>
-)
 
 export const ExpeditionEndedScreen = ({ navigateTo }: ExpeditionEndedScreenProps) => {
   const expedition = useRecoilValue(expeditionState)
@@ -39,10 +36,12 @@ export const ExpeditionEndedScreen = ({ navigateTo }: ExpeditionEndedScreenProps
     navigateTo('title')
   }, [resetExpedition, resetPlayer, navigateTo])
 
+  const fate = player.health < 1 ? 'was killed' : 'lost his connection to this world'
+
   const expeditionSummary =
-    `${player.name}
+    `${player.name} ${fate}.
     
-    Turns: ${expedition.turn - 1}`
+Turns: ${expedition.turn - 1}`
 
   return (
     <div
@@ -59,10 +58,10 @@ export const ExpeditionEndedScreen = ({ navigateTo }: ExpeditionEndedScreenProps
           rows={25}
           columns={90}
         >
-          <MultiLineText>{expeditionSummary}</MultiLineText>
+          <PreFormattedText>{expeditionSummary}</PreFormattedText>
         </Panel>
       </div>
-      <p className="screen-footer animated-option">Press any key to continue </p>
+      <p className="screen-footer animated-option" style={{ cursor: 'pointer' }}>Press any key to continue </p>
     </div>
   )
 }

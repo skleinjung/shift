@@ -1,12 +1,14 @@
 /* eslint-disable max-len */
 import { useEffect } from 'react'
+import { useRecoilValue } from 'recoil'
 import { endTurn as endExpeditionTurn, expeditionState } from 'state/expedition'
 import { useModel } from 'state/hooks'
-import { endTurn, playerState } from 'state/player'
+import { dealDamage, endTurn, isExpeditionComplete, playerState } from 'state/player'
 
 import { ScreenName } from './app'
 import { MapPanel } from './map-panel-pixi'
 import { Panel } from './panel'
+import { PreFormattedText } from './pre-formatted-text'
 
 import './expedition-screen.css'
 
@@ -18,29 +20,37 @@ export interface ExpeditionScreenProps {
 }
 
 export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
+  const isComplete = useRecoilValue(isExpeditionComplete)
   const player = useModel(playerState)
   const expedition = useModel(expeditionState)
 
   useEffect(() => {
     const timeout = setTimeout(() => {
       player.dispatch(endTurn)
+
+      if (Math.random() * 100 < 20) {
+        player.dispatch(dealDamage(1))
+      }
       expedition.dispatch(endExpeditionTurn)
     }, 100)
 
-    if (player.link < 1) {
+    if (isComplete) {
       navigateTo('expedition-ended')
     }
 
     return () => {
       clearTimeout(timeout)
     }
-  }, [expedition, navigateTo, player])
+  }, [expedition, isComplete, navigateTo, player])
+
+  const status = `Health: ${player.health}/${player.healthMax}
+Link  : ${player.link}`
 
   return (
     <div className="dungeon-screen">
       <div className="sidebar">
         <Panel columns={SidebarColumns} rows={3}>
-          Link: {player.link}
+          <PreFormattedText>{status}</PreFormattedText>
         </Panel>
 
         <Panel columns={SidebarColumns}>

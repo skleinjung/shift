@@ -1,4 +1,4 @@
-import { atom } from 'recoil'
+import { atom, selector } from 'recoil'
 
 const InitialLinkValue = 50
 
@@ -28,7 +28,20 @@ export const playerState = atom<Player>({
   default: newPlayer(),
 })
 
+export const isExpeditionComplete = selector({
+  key: 'isExpeditionComplete',
+  get: ({ get }) => {
+    const player = get(playerState)
+    return player.link < 1 || player.health < 1
+  },
+})
+
 export const endTurn = (player: Player): Player => ({
   ...player,
   link: player.link - 1,
+})
+
+export const dealDamage = (amount: number) => (player: Player): Player => ({
+  ...player,
+  health: player.health - amount,
 })
