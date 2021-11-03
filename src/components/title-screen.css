@@ -2,38 +2,6 @@
   font-family: VT323;
   font-size: 20em;
   letter-spacing: 0.05em;
-  margin: 64px 0 32px 0;
+  margin: 64px 0 96px 0;
   text-align: center;
-}
-
-.screen-menu {
-  border-top: 2px solid gray;
-  margin-left: auto;
-  margin-right: auto;
-  padding: 64px 0 0 0;
-  text-align: center;
-  width: 450px;
-}
-.screen-menu:focus { outline: none; }
-
-.screen-menu li {
-  font-size: 72px;
-  list-style-type: none;
-  margin: 0 0 48px 0;
-  padding: 0;
-  cursor: pointer;
-}
-
-
-@keyframes breathing {
-  from {
-    letter-spacing: 0;
-  }
-  to {
-    letter-spacing: 0.75px;
-  }
-}
-
-.screen-menu li:last-child {
-  margin-bottom: 0;
 }
