@@ -49,10 +49,16 @@ export const MapPanel = () => {
 
   const appRef = useRef<PIXI.Application | null>(null)
 
-  const handleTick = useRecoilCallback(({ set, snapshot }) => () => {
+  const handleTick = useRecoilCallback(({ set, snapshot }) => (delta: number) => {
     const paused = snapshot.getLoadable(gameState).valueOrThrow().paused
 
     if (paused) {
+      return
+    }
+
+    timeSinceScrollRef.current += delta
+
+    if (timeSinceScrollRef.current < (1000 / 100)) {
       return
     }
 
@@ -110,13 +116,7 @@ export const MapPanel = () => {
       }
     }
 
-    app.ticker.add((delta) => {
-      timeSinceScrollRef.current += delta
-
-      if (timeSinceScrollRef.current > (1000 / 100)) {
-        handleTick()
-      }
-    })
+    app.ticker.add(handleTick)
 
     appRef.current = app
   }, [handleTick])

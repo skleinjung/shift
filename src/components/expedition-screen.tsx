@@ -1,14 +1,16 @@
 /* eslint-disable max-len */
 import { useKeyHandler } from 'hooks/use-key-handler'
-import { useCallback, useEffect } from 'react'
-import { useRecoilValue } from 'recoil'
-import { gameState, pause } from 'state/game'
+import { useCallback, useEffect, useState } from 'react'
+import { useRecoilState, useRecoilValue, useResetRecoilState } from 'recoil'
+import { expeditionState } from 'state/expedition'
+import { gameState, pause, unpause } from 'state/game'
 import { useModel } from 'state/hooks'
 import { isExpeditionComplete, playerState } from 'state/player'
 
 import { ScreenName } from './app'
 import { MapPanel } from './map-panel-pixi'
 import { Panel } from './panel'
+import { PopupMenu } from './popup-menu'
 import { PreFormattedText } from './pre-formatted-text'
 
 import './expedition-screen.css'
@@ -21,16 +23,45 @@ export interface ExpeditionScreenProps {
 }
 
 export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
+  const [ready, setReady] = useState(false)
+
+  const resetExpedition = useResetRecoilState(expeditionState)
+  const resetGame = useResetRecoilState(gameState)
+  const resetPlayer = useResetRecoilState(playerState)
+
   const isComplete = useRecoilValue(isExpeditionComplete)
-  const game = useModel(gameState)
+  const [game, updateGame] = useRecoilState(gameState)
   const player = useModel(playerState)
 
-  const onPause = useCallback(() => {
-    game.dispatch(pause)
-  }, [game])
+  useEffect(() => {
+    resetExpedition()
+    resetGame()
+    resetPlayer()
+    setReady(true)
+  }, [resetExpedition, resetGame, resetPlayer])
+
+  const handlePause = useCallback(() => {
+    updateGame(pause)
+  }, [updateGame])
+
+  const handleUnpause = useCallback(() => {
+    updateGame(unpause)
+  }, [updateGame])
+
+  const handlePauseMenuSelection = useCallback((item: string) => {
+    switch (item) {
+      case 'Resume':
+        handleUnpause()
+        break
+
+      case 'Quit Expedition':
+        navigateTo('title')
+        break
+    }
+  }, [handleUnpause, navigateTo])
 
   useKeyHandler({
-    Escape: onPause,
+    Escape: handlePause,
   })
 
   useEffect(() => {
@@ -39,11 +70,19 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
     }
   }, [isComplete, navigateTo])
 
-  const status = `Health: ${player.health}/${player.healthMax}
-Link  : ${player.link}
-Paused: ${game.paused}`
+  const renderPauseMenu = () => {
+    return (
+      <PopupMenu
+        items={['Resume', 'Quit Expedition']}
+        onSelectionConfirmed={handlePauseMenuSelection}
+      />
+    )
+  }
 
-  return (
+  const status = `Health: ${player.health}/${player.healthMax}
+Link  : ${player.link}`
+
+  return ready ? (
     <div className="dungeon-screen">
       <div className="sidebar">
         <Panel columns={SidebarColumns} rows={3}>
@@ -66,6 +105,8 @@ Paused: ${game.paused}`
       <div className="main-content">
         <MapPanel />
       </div>
+
+      {game.paused ? renderPauseMenu() : null}
     </div>
-  )
+  ) : null
 }
