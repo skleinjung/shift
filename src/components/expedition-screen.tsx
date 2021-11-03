@@ -1,11 +1,16 @@
 /* eslint-disable max-len */
 import { useEffect } from 'react'
-import { useExpedition } from 'state/expedition'
+import { useRecoilValue } from 'recoil'
+import { endTurn as endExpeditionTurn, expeditionState } from 'state/expedition'
+import { useModel } from 'state/hooks'
+import { dealDamage, endTurn, isExpeditionComplete, playerState } from 'state/player'
 
 import { ScreenName } from './app'
-import './dungeon-screen.css'
 import { MapPanel } from './map-panel-pixi'
 import { Panel } from './panel'
+import { PreFormattedText } from './pre-formatted-text'
+
+import './expedition-screen.css'
 
 const SidebarColumns = 30
 
@@ -14,28 +19,38 @@ export interface ExpeditionScreenProps {
   navigateTo: (screen: ScreenName) => void
 }
 
-export const DungeonScreen = ({ navigateTo }: ExpeditionScreenProps) => {
-  const expedition = useExpedition()
+export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
+  const isComplete = useRecoilValue(isExpeditionComplete)
+  const player = useModel(playerState)
+  const expedition = useModel(expeditionState)
 
   useEffect(() => {
     const timeout = setTimeout(() => {
-      expedition.nextTurn()
+      player.dispatch(endTurn)
+
+      if (Math.random() * 100 < 20) {
+        player.dispatch(dealDamage(1))
+      }
+      expedition.dispatch(endExpeditionTurn)
     }, 100)
 
-    if (expedition.link < 1) {
+    if (isComplete) {
       navigateTo('expedition-ended')
     }
 
     return () => {
       clearTimeout(timeout)
     }
-  }, [expedition, navigateTo])
+  }, [expedition, isComplete, navigateTo, player])
+
+  const status = `Health: ${player.health}/${player.healthMax}
+Link  : ${player.link}`
 
   return (
     <div className="dungeon-screen">
       <div className="sidebar">
         <Panel columns={SidebarColumns} rows={3}>
-          Link: {expedition.link}
+          <PreFormattedText>{status}</PreFormattedText>
         </Panel>
 
         <Panel columns={SidebarColumns}>
