@@ -17,7 +17,7 @@
     "lint": "run-p 'lint:*'",
     "lint:packageJson": "npmPkgJsonLint --ignorePath .gitignore .",
     "lint:src": "eslint --cache --fix --report-unused-disable-directives --ext '.ts,.js,.tsx,.jsx,.json' .",
-    "postversion": "git add package.json && git commit -m \"Bump version [skip ci]\" && git push",
+    "postversion": "git add package.json && git commit -m \"chore: bump version\" && git push",
     "release": "git checkout main && git pull && npm version --no-git-tag-version patch",
     "start": "react-scripts start",
     "test": "react-scripts test --passWithNoTests"
