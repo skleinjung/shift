@@ -3,8 +3,8 @@ import { loadFonts } from 'fonts'
 import { useCallback, useState } from 'react'
 import { RecoilRoot } from 'recoil'
 
-import { DungeonScreen } from './dungeon-screen'
 import { ExpeditionEndedScreen } from './expedition-ended-screen'
+import { ExpeditionScreen } from './expedition-screen'
 import { TitleScreen } from './title-screen'
 
 export type ScreenName = 'dungeon' | 'expedition-ended' | 'title'
@@ -22,7 +22,7 @@ function App () {
   const getActiveScreen = () => {
     switch (activeScreen) {
       case 'dungeon':
-        return <DungeonScreen navigateTo={setActiveScreen}/>
+        return <ExpeditionScreen navigateTo={setActiveScreen}/>
 
       case 'expedition-ended':
         return <ExpeditionEndedScreen navigateTo={setActiveScreen} />

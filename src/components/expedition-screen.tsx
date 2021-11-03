@@ -3,9 +3,9 @@ import { useEffect } from 'react'
 import { useExpedition } from 'state/expedition'
 
 import { ScreenName } from './app'
-import './dungeon-screen.css'
 import { MapPanel } from './map-panel-pixi'
 import { Panel } from './panel'
+import './expedition-screen.css'
 
 const SidebarColumns = 30
 
@@ -14,7 +14,7 @@ export interface ExpeditionScreenProps {
   navigateTo: (screen: ScreenName) => void
 }
 
-export const DungeonScreen = ({ navigateTo }: ExpeditionScreenProps) => {
+export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
   const expedition = useExpedition()
 
   useEffect(() => {
