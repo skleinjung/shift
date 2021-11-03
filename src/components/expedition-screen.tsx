@@ -1,9 +1,10 @@
 /* eslint-disable max-len */
-import { useEffect } from 'react'
+import { useKeyHandler } from 'hooks/use-key-handler'
+import { useCallback, useEffect } from 'react'
 import { useRecoilValue } from 'recoil'
-import { endTurn as endExpeditionTurn, expeditionState } from 'state/expedition'
+import { gameState, pause } from 'state/game'
 import { useModel } from 'state/hooks'
-import { dealDamage, endTurn, isExpeditionComplete, playerState } from 'state/player'
+import { isExpeditionComplete, playerState } from 'state/player'
 
 import { ScreenName } from './app'
 import { MapPanel } from './map-panel-pixi'
@@ -21,30 +22,26 @@ export interface ExpeditionScreenProps {
 
 export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
   const isComplete = useRecoilValue(isExpeditionComplete)
+  const game = useModel(gameState)
   const player = useModel(playerState)
-  const expedition = useModel(expeditionState)
+
+  const onPause = useCallback(() => {
+    game.dispatch(pause)
+  }, [game])
+
+  useKeyHandler({
+    Escape: onPause,
+  })
 
   useEffect(() => {
-    const timeout = setTimeout(() => {
-      player.dispatch(endTurn)
-
-      if (Math.random() * 100 < 20) {
-        player.dispatch(dealDamage(1))
-      }
-      expedition.dispatch(endExpeditionTurn)
-    }, 100)
-
     if (isComplete) {
       navigateTo('expedition-ended')
     }
-
-    return () => {
-      clearTimeout(timeout)
-    }
-  }, [expedition, isComplete, navigateTo, player])
+  }, [isComplete, navigateTo])
 
   const status = `Health: ${player.health}/${player.healthMax}
-Link  : ${player.link}`
+Link  : ${player.link}
+Paused: ${game.paused}`
 
   return (
     <div className="dungeon-screen">
