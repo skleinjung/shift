@@ -8,6 +8,14 @@ body {
   color: white;
 }
 
+@keyframes breathing {
+  from {
+    letter-spacing: 0;
+  }
+  to {
+    letter-spacing: 0.75px;
+  }
+}
 .animated-option:after { 
   content: ' <'; 
 }

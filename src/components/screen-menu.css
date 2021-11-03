@@ -1,0 +1,18 @@
+.screen-menu {
+  margin: 0;
+  padding: 0;
+  text-align: center;
+}
+.screen-menu:focus { outline: none; }
+
+.screen-menu li {
+  font-size: 72px;
+  list-style-type: none;
+  margin: 0 0 48px 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+.screen-menu li:last-child {
+  margin-bottom: 0;
+}
