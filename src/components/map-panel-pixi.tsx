@@ -2,9 +2,12 @@ import { ShaderSystem } from '@pixi/core'
 import { install } from '@pixi/unsafe-eval'
 import { FontNames } from 'fonts'
 import { times } from 'lodash'
-import { map, slice } from 'lodash/fp'
 import * as PIXI from 'pixi.js'
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useRef } from 'react'
+import { useRecoilCallback } from 'recoil'
+import { endTurn as endExpeditionTurn, expeditionState } from 'state/expedition'
+import { gameState } from 'state/game'
+import { dealDamage, endTurn, playerState } from 'state/player'
 
 import { Panel } from './panel'
 
@@ -30,101 +33,109 @@ const generateLines = () => {
 
 const lines = generateLines()
 
+interface RenderState {
+  cells: PIXI.BitmapText[][]
+  xOffset: number
+  yOffset: number
+}
+
 export const MapPanel = () => {
-  const canvasRef = useRef<HTMLDivElement>(null)
-  const appRef = useRef<PIXI.Application | null>(null)
-
-  const [x, setX] = useState(0)
-  const [y, setY] = useState(0)
-
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      setX((x + 1) % 4500)
-      if (x % 2 === 0) {
-        setY((y + 1) % 4500)
-      }
-    }, 1000 / 20)
-
-    return () => {
-      clearTimeout(timeout)
-    }
+  const timeSinceScrollRef = useRef<number>(0)
+  const renderStateRef = useRef<RenderState>({
+    cells: [],
+    xOffset: 0,
+    yOffset: 0,
   })
 
-  const rowSelection = slice(y, y + 250, lines)
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const rows = map((row) => row.substring(x, x + 250), rowSelection)
+  const appRef = useRef<PIXI.Application | null>(null)
 
-  // let key = 0
-  // const colorizeRow = (row: string) => row.split('').map((c) => {
-  //   const randomColor = `#${Math.floor(Math.random() * 16777215).toString(16)}`
-  //   return <span key={key++} style={{ color: randomColor }}>{c}</span>
-  // })
+  const handleTick = useRecoilCallback(({ set, snapshot }) => () => {
+    const paused = snapshot.getLoadable(gameState).valueOrThrow().paused
 
-  useEffect(() => {
-    if (canvasRef.current !== null) {
-      appRef.current = new PIXI.Application({
-        backgroundColor: 0x000000,
-        resizeTo: canvasRef.current,
-      })
-      const app = appRef.current
-
-      // Add app to DOM
-      canvasRef.current.appendChild(app.view)
-      app.start()
-
-      PIXI.BitmapFont.from(FontNames.Map, {
-        fill: '#ffffff',
-        fontSize: 16,
-        fontWeight: 'bold',
-        dropShadow: false,
-      })
-
-      const cells: PIXI.BitmapText[][] = []
-
-      let xOffset = 0
-      let yOffset = 0
-
-      for (let y = 0; y < 88; y++) {
-        cells[y] = []
-
-        for (let x = 0; x < 150; x++) {
-          const cell = new PIXI.BitmapText(lines[y].charAt(x), { fontName: FontNames.Map })
-          cell.anchor.set(0.5)
-          cell.position.set(x * 12 + 6, y * 16 + 8)
-          app.stage.addChild(cell)
-
-          cells[y][x] = cell
-        }
-      }
-
-      let timeSinceScroll = 0.0
-      app.ticker.add((delta) => {
-        timeSinceScroll += delta
-
-        if (timeSinceScroll > (1000 / 100)) {
-          xOffset = (xOffset + 1) % 2000
-          yOffset = (yOffset + 1) % 2000
-          for (let y = 0; y < 88; y++) {
-            for (let x = 0; x < 150; x++) {
-              cells[y][x].text = lines[yOffset + y][xOffset + x]
-              cells[y][x].tint = Math.floor(Math.random() * 16777215)
-            }
-          }
-          timeSinceScroll -= (1000 / 100)
-        }
-      })
+    if (paused) {
+      return
     }
 
-    return () => {
-      if (appRef.current !== null) {
-        appRef.current.destroy()
+    const renderState = renderStateRef.current
+    const cells = renderState.cells
+
+    if (Math.random() * 100 < 20) {
+      set(playerState, dealDamage(1))
+    }
+
+    set(playerState, endTurn)
+    set(expeditionState, endExpeditionTurn)
+
+    renderState.xOffset = (renderState.xOffset + 1) % 2000
+    renderState.yOffset = (renderState.yOffset + 1) % 2000
+    for (let y = 0; y < 88; y++) {
+      for (let x = 0; x < 150; x++) {
+        cells[y][x].text = lines[renderState.yOffset + y][renderState.xOffset + x]
+        cells[y][x].tint = Math.floor(Math.random() * 16777215)
       }
     }
+    timeSinceScrollRef.current -= (1000 / 100)
   }, [])
+
+  const initializePixiApp = useCallback((container: HTMLDivElement) => {
+    const app = new PIXI.Application({
+      backgroundColor: 0x000000,
+      resizeTo: container,
+    })
+
+    // Add app to DOM
+    container.appendChild(app.view)
+    app.start()
+
+    PIXI.BitmapFont.from(FontNames.Map, {
+      fill: '#ffffff',
+      fontSize: 16,
+      fontWeight: 'bold',
+      dropShadow: false,
+    })
+
+    const renderState = renderStateRef.current
+
+    const cells = renderState.cells
+    for (let y = 0; y < 88; y++) {
+      cells[y] = []
+
+      for (let x = 0; x < 150; x++) {
+        const cell = new PIXI.BitmapText(lines[y].charAt(x), { fontName: FontNames.Map })
+        cell.anchor.set(0.5)
+        cell.position.set(x * 12 + 6, y * 16 + 8)
+        app.stage.addChild(cell)
+
+        cells[y][x] = cell
+      }
+    }
+
+    app.ticker.add((delta) => {
+      timeSinceScrollRef.current += delta
+
+      if (timeSinceScrollRef.current > (1000 / 100)) {
+        handleTick()
+      }
+    })
+
+    appRef.current = app
+  }, [handleTick])
+
+  const pixiRefCallback = useCallback((container: HTMLDivElement) => {
+    if (container === null) {
+      // destroy any pre-existing Pixi app
+      if (appRef.current !== null) {
+        appRef.current.destroy(true)
+      }
+    } else {
+      // if our ref is set, initialize the app
+      initializePixiApp(container)
+    }
+  }, [initializePixiApp])
 
   return (<>
     <Panel>
-      <div style={{ flex: 1, height: '100%' }} ref={canvasRef} />
+      <div style={{ flex: 1, height: '100%' }} ref={pixiRefCallback} />
     </Panel>
   </>)
 }
