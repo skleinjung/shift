@@ -3,15 +3,16 @@ import { atom } from 'recoil'
 class TerrainType {
   constructor (
     public readonly symbol: string,
-    public readonly color: number
+    public readonly color: number,
+    public readonly background = 0
   ) { }
 }
 
 export const Terrain = {
   Default: new TerrainType(' ', 0xff00ff),
   Floor: new TerrainType('.', 0x222222),
-  Water: new TerrainType('~', 0x0000ff),
-  Wall: new TerrainType('x', 0x999999),
+  Water: new TerrainType('`', 0x0096FF, 0x0000cc),
+  Wall: new TerrainType('#', 0x555555, 0x333333),
 }
 
 export interface MapCell {
@@ -76,8 +77,17 @@ const getSymbol = (cell: MapCell | undefined): string =>
 const getColor = (cell: MapCell | undefined): number =>
   (cell?.terrain ?? Terrain.Default).color
 
+/**
+* Given a (possibly undefined) MapCell, return the background color that should be used to render that cell.
+*/
+const getBackground = (cell: MapCell | undefined): number =>
+  (cell?.terrain ?? Terrain.Default).background
+
 export const getSymbolAt = (map: MapCell[][], x: number, y: number) =>
   getSymbol(map[y]?.[x])
 
 export const getColorAt = (map: MapCell[][], x: number, y: number) =>
   getColor(map[y]?.[x])
+
+export const getBackgroundAt = (map: MapCell[][], x: number, y: number) =>
+  getBackground(map[y]?.[x])

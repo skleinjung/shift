@@ -8,7 +8,7 @@ import { useRecoilCallback } from 'recoil'
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { endTurn as endExpeditionTurn, expeditionState } from 'state/expedition'
 import { gameState } from 'state/game'
-import { getColorAt, getSymbolAt, mapState } from 'state/map'
+import { getBackgroundAt, getColorAt, getSymbolAt, mapState } from 'state/map'
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { dealDamage, endTurn, playerState } from 'state/player'
 
@@ -36,8 +36,13 @@ const generateLines = () => {
 
 const lines = generateLines()
 
+interface MapCell {
+  background: PIXI.Graphics
+  symbol: PIXI.BitmapText
+}
+
 interface RenderState {
-  cells: PIXI.BitmapText[][]
+  cells: MapCell[][]
   xOffset: number
   yOffset: number
 }
@@ -79,13 +84,12 @@ export const MapPanel = () => {
     if (cells[0] !== undefined) {
       for (let y = 0; y < cells.length; y++) {
         for (let x = 0; x < cells[y].length; x++) {
-          // cells[y][x].text = lines[renderState.yOffset + y][renderState.xOffset + x]
-          // cells[y][x].tint = Math.floor(Math.random() * 16777215)
           const mapX = x + renderState.xOffset
           const mapY = y + renderState.yOffset
 
-          cells[y][x].text = getSymbolAt(map, mapX, mapY)
-          cells[y][x].tint = getColorAt(map, mapX, mapY)
+          cells[y][x].background.tint = getBackgroundAt(map, mapX, mapY)
+          cells[y][x].symbol.text = getSymbolAt(map, mapX, mapY)
+          cells[y][x].symbol.tint = getColorAt(map, mapX, mapY)
         }
       }
     }
@@ -117,17 +121,28 @@ export const MapPanel = () => {
 
     const renderState = renderStateRef.current
 
+    const rectangle = new PIXI.Graphics()
+    rectangle.beginFill(0xffffff)
+    rectangle.drawRect(0, 0, 12, 16)
+
     const cells = renderState.cells
     for (let y = 0; y < 88; y++) {
       cells[y] = []
 
       for (let x = 0; x < 150; x++) {
-        const cell = new PIXI.BitmapText(lines[y].charAt(x), { fontName: FontNames.Map })
-        cell.anchor.set(0.5)
-        cell.position.set(x * 12 + 6, y * 16 + 8)
-        app.stage.addChild(cell)
+        const background = new PIXI.Graphics(rectangle.geometry)
+        background.position.set(x * 12, y * 16)
+        app.stage.addChild(background)
 
-        cells[y][x] = cell
+        const symbol = new PIXI.BitmapText(lines[y].charAt(x), { fontName: FontNames.Map })
+        symbol.anchor.set(0.5)
+        symbol.position.set(x * 12 + 6, y * 16 + 8)
+        app.stage.addChild(symbol)
+
+        cells[y][x] = {
+          background,
+          symbol,
+        }
       }
     }
 
