@@ -2,9 +2,10 @@
 import { useKeyHandler } from 'hooks/use-key-handler'
 import { useCallback, useEffect, useState } from 'react'
 import { useRecoilState, useRecoilValue, useResetRecoilState, useSetRecoilState } from 'recoil'
+import { moveBy } from 'state/creature'
 import { expeditionState } from 'state/expedition'
 import { gameState, pause, unpause } from 'state/game'
-import { isExpeditionComplete, moveBy, playerState } from 'state/player'
+import { isExpeditionComplete, playerState } from 'state/player'
 
 import { ScreenName } from './app'
 import { MapPanel } from './map-panel-pixi'
@@ -60,8 +61,8 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
     updateGame(unpause)
   }, [updateGame])
 
-  const movePlayer = useCallback((x: number, y: number) => () => {
-    updatePlayer(moveBy(x, y))
+  const movePlayer = useCallback((byX: number, byY: number) => () => {
+    updatePlayer(moveBy(byX, byY))
   }, [updatePlayer])
 
   const handlePauseMenuSelection = useCallback((item: string) => {

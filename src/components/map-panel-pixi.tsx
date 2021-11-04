@@ -3,8 +3,10 @@ import { install } from '@pixi/unsafe-eval'
 import { FontNames } from 'fonts'
 import * as PIXI from 'pixi.js'
 import { useCallback, useEffect, useRef } from 'react'
-import { useRecoilValue } from 'recoil'
-import { MapCell, mapState, selectOffsetX, selectOffsetY, Terrain } from 'state/map'
+import { useRecoilState, useRecoilValue } from 'recoil'
+import { getMap, MapCell, selectOffsetX, selectOffsetY } from 'state/map'
+import { playerState } from 'state/player'
+import { Terrain } from 'world/terrain'
 
 import { Panel } from './panel'
 
@@ -12,17 +14,25 @@ import { Panel } from './panel'
 install({ ShaderSystem })
 
 const CellFontSize = 16
-const CellHeight = CellFontSize
-const CellWidth = 12
+const CellHeight = 16
+const CellWidth = 16
+
+const getRenderable = (cell: MapCell | undefined) => {
+  return cell?.creature !== undefined
+    ? cell.creature
+    : cell?.terrain !== undefined
+      ? cell.terrain
+      : Terrain.Default
+}
 
 const getBackgroundAt = (map: MapCell[][], x: number, y: number) =>
-  (map[y]?.[x]?.terrain ?? Terrain.Default).background
+  getRenderable(map[y]?.[x]).background ?? 0
 
 const getColorAt = (map: MapCell[][], x: number, y: number) =>
-  (map[y]?.[x]?.terrain ?? Terrain.Default).color
+  getRenderable(map[y]?.[x]).color
 
 const getSymbolAt = (map: MapCell[][], x: number, y: number) =>
-  (map[y]?.[x]?.terrain ?? Terrain.Default).symbol
+  getRenderable(map[y]?.[x]).symbol
 
 interface RenderCell {
   background: PIXI.Graphics
@@ -32,10 +42,14 @@ interface RenderCell {
 export const MapPanel = () => {
   const timeSinceScrollRef = useRef<number>(0)
   const mapCellsRef = useRef<RenderCell[][]>([])
-  const map = useRecoilValue(mapState)
+  // making the map immutable was too much of a performance hit, so we access a global
+  // something else must notify us of map changes, then
+  const map = getMap()
   const offsetX = useRecoilValue(selectOffsetX)
   const offsetY = useRecoilValue(selectOffsetY)
-
+  // we only subscribe to player because it's the easiest way to rerender currently
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [player, updatePlayer] = useRecoilState(playerState)
   const appRef = useRef<PIXI.Application | null>(null)
 
   useEffect(() => {
@@ -54,7 +68,7 @@ export const MapPanel = () => {
       }
     }
     timeSinceScrollRef.current -= (1000 / 100)
-  }, [map, offsetX, offsetY])
+  })
 
   const initializePixiApp = useCallback((container: HTMLDivElement) => {
     const app = new PIXI.Application({
@@ -94,7 +108,7 @@ export const MapPanel = () => {
 
         const symbol = new PIXI.BitmapText(' ', { fontName: FontNames.Map })
         symbol.anchor.set(0.5)
-        symbol.position.set(x * CellWidth + (CellWidth / 2), y * CellHeight + (CellHeight / 2))
+        symbol.position.set(x * CellWidth + (CellWidth / 2), y * CellHeight + (CellHeight / 2) - 2)
         app.stage.addChild(symbol)
 
         cells[y][x] = {

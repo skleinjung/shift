@@ -1,27 +1,17 @@
-import { atom, selector } from 'recoil'
+import { selector } from 'recoil'
+import { Terrain, TerrainType } from 'world/terrain'
 
+import { Creature } from './creature'
 import { playerState } from './player'
 
-class TerrainType {
-  constructor (
-    public readonly symbol: string,
-    public readonly color: number,
-    public readonly background = 0
-  ) { }
-}
-
-export const Terrain = {
-  Default: new TerrainType(' ', 0xff00ff),
-  Floor: new TerrainType('.', 0x222222),
-  Water: new TerrainType('`', 0x0096FF, 0x0000cc),
-  Wall: new TerrainType('#', 0x555555, 0x333333),
-}
-
 export interface MapCell {
+  creature?: Creature
   terrain: TerrainType
 }
 
-const createDefaultMap = () => {
+export type Map = MapCell[][]
+
+const createDefaultMap = (): Map => {
   const inside = (x1: number, y1: number, x2: number, y2: number) => (x: number, y: number) => {
     return x >= x1 && x < x2 && y >= y1 && y < y2
   }
@@ -47,38 +37,38 @@ const createDefaultMap = () => {
     }
   }
 
-  const result: MapCell[][] = []
+  const map: MapCell[][] = []
 
   for (let y = -200; y < 200; y++) {
-    result[y] = []
+    map[y] = []
 
     for (let x = -200; x < 200; x++) {
-      result[y][x] = {
+      map[y][x] = {
         terrain: getTerrain(x, y),
       }
     }
   }
 
-  return result
+  return map
 }
-
-export const mapState = atom<MapCell[][]>({
-  key: 'mapState',
-  default: createDefaultMap(),
-})
 
 export const selectOffsetX = selector({
   key: 'mapOffsetX',
   get: ({ get }) => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const player = get(playerState)
-    return player.position.x
+    return -20 // player.x
   },
 })
 
 export const selectOffsetY = selector({
   key: 'mapOffsetY',
   get: ({ get }) => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const player = get(playerState)
-    return player.position.y
+    return -20 // player.y
   },
 })
+
+const map = createDefaultMap()
+export const getMap = () => map
