@@ -1,12 +1,12 @@
 import { ShaderSystem } from '@pixi/core'
 import { install } from '@pixi/unsafe-eval'
+import { Terrain } from 'db/terrain'
 import { FontNames } from 'fonts'
 import * as PIXI from 'pixi.js'
 import { useCallback, useEffect, useRef } from 'react'
-import { useRecoilState, useRecoilValue } from 'recoil'
-import { getMap, MapCell, selectOffsetX, selectOffsetY } from 'state/map'
+import { useRecoilState } from 'recoil'
 import { playerState } from 'state/player'
-import { Terrain } from 'world/terrain'
+import { World } from 'world/world'
 
 import { Panel } from './panel'
 
@@ -17,36 +17,43 @@ const CellFontSize = 16
 const CellHeight = 16
 const CellWidth = 16
 
-const getRenderable = (cell: MapCell | undefined) => {
-  return cell?.creature !== undefined
-    ? cell.creature
-    : cell?.terrain !== undefined
-      ? cell.terrain
-      : Terrain.Default
+const getRenderable = (world: World, x: number, y: number) => {
+  const cell = world.map.getCell(x, y)
+  if (cell?.creatureId !== undefined) {
+    return world.getCreature(cell.creatureId).type
+  }
+
+  return cell?.terrain !== undefined
+    ? cell.terrain
+    : Terrain.Default
 }
 
-const getBackgroundAt = (map: MapCell[][], x: number, y: number) =>
-  getRenderable(map[y]?.[x]).background ?? 0
+const getBackgroundAt = (world: World, x: number, y: number) =>
+  getRenderable(world, x, y).background ?? 0
 
-const getColorAt = (map: MapCell[][], x: number, y: number) =>
-  getRenderable(map[y]?.[x]).color
+const getColorAt = (world: World, x: number, y: number) =>
+  getRenderable(world, x, y).color
 
-const getSymbolAt = (map: MapCell[][], x: number, y: number) =>
-  getRenderable(map[y]?.[x]).symbol
+const getSymbolAt = (world: World, x: number, y: number) =>
+  getRenderable(world, x, y).symbol
 
 interface RenderCell {
   background: PIXI.Graphics
   symbol: PIXI.BitmapText
 }
 
-export const MapPanel = () => {
+export interface MapPanelProps {
+  /** the whole world */
+  world: World
+}
+
+export const MapPanel = ({ world }: MapPanelProps) => {
   const timeSinceScrollRef = useRef<number>(0)
   const mapCellsRef = useRef<RenderCell[][]>([])
   // making the map immutable was too much of a performance hit, so we access a global
   // something else must notify us of map changes, then
-  const map = getMap()
-  const offsetX = useRecoilValue(selectOffsetX)
-  const offsetY = useRecoilValue(selectOffsetY)
+  const offsetX = -20
+  const offsetY = -20
   // we only subscribe to player because it's the easiest way to rerender currently
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [player, updatePlayer] = useRecoilState(playerState)
@@ -61,9 +68,9 @@ export const MapPanel = () => {
           const mapX = x + offsetX
           const mapY = y + offsetY
 
-          cells[y][x].background.tint = getBackgroundAt(map, mapX, mapY)
-          cells[y][x].symbol.text = getSymbolAt(map, mapX, mapY)
-          cells[y][x].symbol.tint = getColorAt(map, mapX, mapY)
+          cells[y][x].background.tint = getBackgroundAt(world, mapX, mapY)
+          cells[y][x].symbol.text = getSymbolAt(world, mapX, mapY)
+          cells[y][x].symbol.tint = getColorAt(world, mapX, mapY)
         }
       }
     }

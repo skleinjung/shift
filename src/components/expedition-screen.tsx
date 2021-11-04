@@ -1,11 +1,11 @@
 /* eslint-disable max-len */
 import { useKeyHandler } from 'hooks/use-key-handler'
-import { useCallback, useEffect, useState } from 'react'
-import { useRecoilState, useRecoilValue, useResetRecoilState, useSetRecoilState } from 'recoil'
-import { moveBy } from 'state/creature'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { useRecoilState, useRecoilValue, useResetRecoilState } from 'recoil'
 import { expeditionState } from 'state/expedition'
 import { gameState, pause, unpause } from 'state/game'
 import { isExpeditionComplete, playerState } from 'state/player'
+import { World } from 'world/world'
 
 import { ScreenName } from './app'
 import { MapPanel } from './map-panel-pixi'
@@ -36,6 +36,7 @@ Link  : ${player.link}`
 }
 
 export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
+  const world = useRef<World | null>()
   const [ready, setReady] = useState(false)
 
   const resetExpedition = useResetRecoilState(expeditionState)
@@ -44,9 +45,10 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
 
   const isComplete = useRecoilValue(isExpeditionComplete)
   const [game, updateGame] = useRecoilState(gameState)
-  const updatePlayer = useSetRecoilState(playerState)
+  const [, setWorldStateId] = useState(0)
 
   useEffect(() => {
+    world.current = new World()
     resetExpedition()
     resetGame()
     resetPlayer()
@@ -62,8 +64,10 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
   }, [updateGame])
 
   const movePlayer = useCallback((byX: number, byY: number) => () => {
-    updatePlayer(moveBy(byX, byY))
-  }, [updatePlayer])
+    world.current?.player.moveBy(byX, byY)
+    // hack just to trigger a re-render for now
+    setWorldStateId((old) => ++old)
+  }, [])
 
   const handlePauseMenuSelection = useCallback((item: string) => {
     switch (item) {
@@ -118,9 +122,11 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
         </Panel>
       </div>
 
-      <div className="main-content">
-        <MapPanel />
-      </div>
+      {world.current &&
+        <div className="main-content">
+          <MapPanel world={world.current} />
+        </div>
+      }
 
       {game.paused ? renderPauseMenu() : null}
     </div>

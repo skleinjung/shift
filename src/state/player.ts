@@ -1,32 +1,20 @@
+import { CreatureType, CreatureTypes, PlayerCreatureTypeId } from 'db/creatures'
 import { atom, selector } from 'recoil'
-
-import { Creature } from './creature'
 
 const InitialLinkValue = 50
 
-export interface Player extends Creature {
+export interface Player extends CreatureType {
   /** player's current health */
   health: number
 
-  /** player's maximum health value */
-  healthMax: number
-
   /** the strength of the player's link to the current expedition's location */
   link: number
-
-  /** player's character name */
-  name: string
 }
 
 export const newPlayer = (): Player => ({
-  color: 0xffffff,
+  ...CreatureTypes[PlayerCreatureTypeId],
   health: 10,
-  healthMax: 10,
   link: InitialLinkValue,
-  name: 'Mystericus the Untitled',
-  symbol: '@',
-  x: 0,
-  y: 0,
 })
 
 export const playerState = atom<Player>({
