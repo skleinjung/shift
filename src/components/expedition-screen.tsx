@@ -8,7 +8,7 @@ import { isExpeditionComplete, playerState } from 'state/player'
 import { World } from 'world/world'
 
 import { ScreenName } from './app'
-import { MapPanel } from './map-panel-pixi'
+import { MapPanel } from './map-panel'
 import { Panel } from './panel'
 import { PopupMenu } from './popup-menu'
 import { PreFormattedText } from './pre-formatted-text'
