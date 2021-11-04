@@ -1,87 +1,60 @@
 import { ShaderSystem } from '@pixi/core'
 import { install } from '@pixi/unsafe-eval'
 import { FontNames } from 'fonts'
-import { times } from 'lodash'
 import * as PIXI from 'pixi.js'
-import { useCallback, useRef } from 'react'
-import { useRecoilCallback } from 'recoil'
-import { endTurn as endExpeditionTurn, expeditionState } from 'state/expedition'
-import { gameState } from 'state/game'
-import { dealDamage, endTurn, playerState } from 'state/player'
+import { useCallback, useEffect, useRef } from 'react'
+import { useRecoilValue } from 'recoil'
+import { MapCell, mapState, selectOffsetX, selectOffsetY, Terrain } from 'state/map'
 
 import { Panel } from './panel'
 
 // Apply the patch to PIXI
 install({ ShaderSystem })
 
-const makeLine = (length: number) => {
-  let result = ''
-  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
-  const charactersLength = characters.length
-  for (let i = 0; i < length; i++) {
-    result += characters.charAt(Math.floor(Math.random() * charactersLength))
-  }
+const CellFontSize = 16
+const CellHeight = CellFontSize
+const CellWidth = 12
 
-  return result
-}
+const getBackgroundAt = (map: MapCell[][], x: number, y: number) =>
+  (map[y]?.[x]?.terrain ?? Terrain.Default).background
 
-const generateLines = () => {
-  const result = [] as string[]
-  times(5000, () => result.push(makeLine(5000)))
-  return result
-}
+const getColorAt = (map: MapCell[][], x: number, y: number) =>
+  (map[y]?.[x]?.terrain ?? Terrain.Default).color
 
-const lines = generateLines()
+const getSymbolAt = (map: MapCell[][], x: number, y: number) =>
+  (map[y]?.[x]?.terrain ?? Terrain.Default).symbol
 
-interface RenderState {
-  cells: PIXI.BitmapText[][]
-  xOffset: number
-  yOffset: number
+interface RenderCell {
+  background: PIXI.Graphics
+  symbol: PIXI.BitmapText
 }
 
 export const MapPanel = () => {
   const timeSinceScrollRef = useRef<number>(0)
-  const renderStateRef = useRef<RenderState>({
-    cells: [],
-    xOffset: 0,
-    yOffset: 0,
-  })
+  const mapCellsRef = useRef<RenderCell[][]>([])
+  const map = useRecoilValue(mapState)
+  const offsetX = useRecoilValue(selectOffsetX)
+  const offsetY = useRecoilValue(selectOffsetY)
 
   const appRef = useRef<PIXI.Application | null>(null)
 
-  const handleTick = useRecoilCallback(({ set, snapshot }) => (delta: number) => {
-    const paused = snapshot.getLoadable(gameState).valueOrThrow().paused
+  useEffect(() => {
+    const cells = mapCellsRef.current
 
-    if (paused) {
-      return
-    }
+    if (cells[0] !== undefined) {
+      for (let y = 0; y < cells.length; y++) {
+        for (let x = 0; x < cells[y].length; x++) {
+          const mapX = x + offsetX
+          const mapY = y + offsetY
 
-    timeSinceScrollRef.current += delta
-
-    if (timeSinceScrollRef.current < (1000 / 100)) {
-      return
-    }
-
-    const renderState = renderStateRef.current
-    const cells = renderState.cells
-
-    if (Math.random() * 100 < 20) {
-      set(playerState, dealDamage(1))
-    }
-
-    set(playerState, endTurn)
-    set(expeditionState, endExpeditionTurn)
-
-    renderState.xOffset = (renderState.xOffset + 1) % 2000
-    renderState.yOffset = (renderState.yOffset + 1) % 2000
-    for (let y = 0; y < 88; y++) {
-      for (let x = 0; x < 150; x++) {
-        cells[y][x].text = lines[renderState.yOffset + y][renderState.xOffset + x]
-        cells[y][x].tint = Math.floor(Math.random() * 16777215)
+          cells[y][x].background.tint = getBackgroundAt(map, mapX, mapY)
+          cells[y][x].symbol.text = getSymbolAt(map, mapX, mapY)
+          cells[y][x].symbol.tint = getColorAt(map, mapX, mapY)
+        }
       }
     }
     timeSinceScrollRef.current -= (1000 / 100)
-  }, [])
+  }, [map, offsetX, offsetY])
 
   const initializePixiApp = useCallback((container: HTMLDivElement) => {
     const app = new PIXI.Application({
@@ -93,33 +66,46 @@ export const MapPanel = () => {
     container.appendChild(app.view)
     app.start()
 
-    PIXI.BitmapFont.from(FontNames.Map, {
-      fill: '#ffffff',
-      fontSize: 16,
-      fontWeight: 'bold',
-      dropShadow: false,
-    })
+    PIXI.BitmapFont.from(
+      FontNames.Map,
+      {
+        fill: '#ffffff',
+        fontSize: CellFontSize,
+        fontWeight: 'bold',
+        dropShadow: false,
+      },
+      {
+        chars: PIXI.BitmapFont.ASCII,
+      }
+    )
 
-    const renderState = renderStateRef.current
+    const rectangle = new PIXI.Graphics()
+    rectangle.beginFill(0xffffff)
+    rectangle.drawRect(0, 0, CellWidth, CellHeight)
 
-    const cells = renderState.cells
+    const cells = mapCellsRef.current
     for (let y = 0; y < 88; y++) {
       cells[y] = []
 
       for (let x = 0; x < 150; x++) {
-        const cell = new PIXI.BitmapText(lines[y].charAt(x), { fontName: FontNames.Map })
-        cell.anchor.set(0.5)
-        cell.position.set(x * 12 + 6, y * 16 + 8)
-        app.stage.addChild(cell)
+        const background = new PIXI.Graphics(rectangle.geometry)
+        background.position.set(x * CellWidth, y * CellHeight)
+        app.stage.addChild(background)
 
-        cells[y][x] = cell
+        const symbol = new PIXI.BitmapText(' ', { fontName: FontNames.Map })
+        symbol.anchor.set(0.5)
+        symbol.position.set(x * CellWidth + (CellWidth / 2), y * CellHeight + (CellHeight / 2))
+        app.stage.addChild(symbol)
+
+        cells[y][x] = {
+          background,
+          symbol,
+        }
       }
     }
 
-    app.ticker.add(handleTick)
-
     appRef.current = app
-  }, [handleTick])
+  }, [])
 
   const pixiRefCallback = useCallback((container: HTMLDivElement) => {
     if (container === null) {
