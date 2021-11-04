@@ -1,4 +1,6 @@
-import { atom } from 'recoil'
+import { atom, selector } from 'recoil'
+
+import { playerState } from './player'
 
 class TerrainType {
   constructor (
@@ -65,29 +67,18 @@ export const mapState = atom<MapCell[][]>({
   default: createDefaultMap(),
 })
 
-/**
- * Given a (possibly undefined) MapCell, return the character that should be rendered in that cell.
- */
-const getSymbol = (cell: MapCell | undefined): string =>
-  (cell?.terrain ?? Terrain.Default).symbol
+export const selectOffsetX = selector({
+  key: 'mapOffsetX',
+  get: ({ get }) => {
+    const player = get(playerState)
+    return player.position.x
+  },
+})
 
-/**
-* Given a (possibly undefined) MapCell, return the color that should be used to render that cell.
-*/
-const getColor = (cell: MapCell | undefined): number =>
-  (cell?.terrain ?? Terrain.Default).color
-
-/**
-* Given a (possibly undefined) MapCell, return the background color that should be used to render that cell.
-*/
-const getBackground = (cell: MapCell | undefined): number =>
-  (cell?.terrain ?? Terrain.Default).background
-
-export const getSymbolAt = (map: MapCell[][], x: number, y: number) =>
-  getSymbol(map[y]?.[x])
-
-export const getColorAt = (map: MapCell[][], x: number, y: number) =>
-  getColor(map[y]?.[x])
-
-export const getBackgroundAt = (map: MapCell[][], x: number, y: number) =>
-  getBackground(map[y]?.[x])
+export const selectOffsetY = selector({
+  key: 'mapOffsetY',
+  get: ({ get }) => {
+    const player = get(playerState)
+    return player.position.y
+  },
+})

@@ -14,6 +14,9 @@ export interface Player {
 
   /** player's character name */
   name: string
+
+  /** player's position on the map */
+  position: { x: number; y: number }
 }
 
 export const newPlayer = (): Player => ({
@@ -21,6 +24,10 @@ export const newPlayer = (): Player => ({
   healthMax: 10,
   link: InitialLinkValue,
   name: 'Mystericus the Untitled',
+  position: {
+    x: 0,
+    y: 0,
+  },
 })
 
 export const playerState = atom<Player>({
@@ -44,4 +51,12 @@ export const endTurn = (player: Player): Player => ({
 export const dealDamage = (amount: number) => (player: Player): Player => ({
   ...player,
   health: player.health - amount,
+})
+
+export const moveBy = (x: number, y: number) => (player: Player): Player => ({
+  ...player,
+  position: {
+    x: player.position.x + x,
+    y: player.position.y + y,
+  },
 })
