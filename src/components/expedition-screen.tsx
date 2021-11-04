@@ -64,10 +64,12 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
   }, [updateGame])
 
   const movePlayer = useCallback((byX: number, byY: number) => () => {
-    world.current?.player.moveBy(byX, byY)
-    // hack just to trigger a re-render for now
-    setWorldStateId((old) => ++old)
-  }, [])
+    if (!game.paused) {
+      world.current?.player.moveBy(byX, byY)
+      // hack just to trigger a re-render for now
+      setWorldStateId((old) => ++old)
+    }
+  }, [game.paused])
 
   const handlePauseMenuSelection = useCallback((item: string) => {
     switch (item) {
