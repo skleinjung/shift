@@ -1,8 +1,15 @@
 import TypedEmitter from 'typed-emitter'
 
-import { Action } from './actions'
 import { Attackable, Attacker } from './combat'
 import { World } from './world'
+
+/**
+ * An action taken by a creature during a turn. Will be passed the acting creature, and an instance of
+ * the world.
+ *
+ * TODO: return success/fail
+ */
+export type Action = (world: World) => void
 
 /** Methods expoed by objects that emit events defined by type 'T' */
 export type EventSource<T> = Omit<TypedEmitter<T>,

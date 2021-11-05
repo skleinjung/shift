@@ -3,12 +3,13 @@ import { map as mapI } from 'lodash'
 import { filter, forEach, join, omit, values } from 'lodash/fp'
 import { TypedEventEmitter } from 'typed-event-emitter'
 
-import { Action, NoopAction } from './actions'
+import { NoopAction } from './actions/noop'
 import { AttackResult } from './combat'
 import { createPrototypeTerrain } from './create-prototype-terrain'
 import { Creature } from './creature'
 import { WorldEvents } from './events'
 import { ExpeditionMap } from './map'
+import { Action } from './types'
 
 export class World extends TypedEventEmitter<WorldEvents> {
   public readonly map = new ExpeditionMap()
@@ -62,7 +63,7 @@ export class World extends TypedEventEmitter<WorldEvents> {
 
     // iterate over each creature, and execute the action determined by its behavior
     forEach((creature) => {
-      creature.type.behavior(creature, this)?.(creature, this)
+      creature.type.behavior(creature, this)?.(this)
     }, this.creatures)
 
     // remove any dead creatures

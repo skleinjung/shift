@@ -1,5 +1,7 @@
 /* eslint-disable max-len */
-import { Action, AttackAction, MoveByAction } from 'engine/actions'
+import { AttackAction } from 'engine/actions/attack'
+import { MoveByAction } from 'engine/actions/move-by'
+import { Action } from 'engine/types'
 import { World } from 'engine/world'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRecoilState, useRecoilValue, useResetRecoilState, useSetRecoilState } from 'recoil'
@@ -131,9 +133,9 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
       const player = world.current.player
       const creatureId = world.current.map.getCreatureId(player.x + x, player.y + y)
       if (creatureId === undefined) {
-        executeTurn(MoveByAction(x, y))
+        executeTurn(MoveByAction(player, x, y))
       } else {
-        executeTurn(AttackAction(world.current.creatures[creatureId]))
+        executeTurn(AttackAction(player, world.current.creatures[creatureId]))
       }
     }
   }, [executeTurn, game.paused])

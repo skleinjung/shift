@@ -1,7 +1,10 @@
 import { filter, isEmpty, sample } from 'lodash/fp'
 
-import { Action, AttackAction, MoveByAction, NoopAction } from './actions'
+import { AttackAction } from './actions/attack'
+import { MoveByAction } from './actions/move-by'
+import { NoopAction } from './actions/noop'
 import { Creature } from './creature'
+import { Action } from './types'
 import { World } from './world'
 
 /**
@@ -19,10 +22,10 @@ export const AttackAdjacentPlayerBehavior: Behavior = (creature, world) => {
 
   if (creature.y === player.y && Math.abs(creature.x - player.x) < 2) {
     // on same row and no more than one tile distant
-    return AttackAction(player)
+    return AttackAction(creature, player)
   } else if (creature.x === player.x && Math.abs(creature.y - player.y) < 2) {
     // on same column and no more than one tile distant
-    return AttackAction(player)
+    return AttackAction(creature, player)
   }
 
   return undefined
@@ -58,7 +61,7 @@ export const MoveRandomlyBehavior = (chanceToMove = 100): Behavior => (creature,
 
   const validOptions = filter(isValidMove(creature, world), options)
   const move = isEmpty(validOptions) ? undefined : sample(validOptions)
-  return move === undefined ? NoopAction : MoveByAction(move[0], move[1])
+  return move === undefined ? NoopAction : MoveByAction(creature, move[0], move[1])
 }
 
 /** Special type of behavior where actions are directly controlled by the player. */
