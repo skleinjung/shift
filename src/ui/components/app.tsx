@@ -1,7 +1,8 @@
 import './app.css'
-import { loadFonts } from 'fonts'
 import { useCallback, useState } from 'react'
 import { RecoilRoot } from 'recoil'
+
+import { loadFonts } from '../fonts'
 
 import { ExpeditionEndedScreen } from './expedition-ended-screen'
 import { ExpeditionScreen } from './expedition-screen'

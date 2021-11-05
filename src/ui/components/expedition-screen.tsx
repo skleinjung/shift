@@ -1,10 +1,10 @@
 /* eslint-disable max-len */
-import { useKeyHandler } from 'hooks/use-key-handler'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRecoilState, useRecoilValue, useResetRecoilState, useSetRecoilState } from 'recoil'
-import { endTurn, expeditionState, isExpeditionComplete } from 'state/expedition'
-import { gameState, pause, unpause } from 'state/game'
-import { playerState } from 'state/player'
+import { useKeyHandler } from 'ui/hooks/use-key-handler'
+import { endTurn, expeditionState, isExpeditionComplete } from 'ui/state/expedition'
+import { gameState, pause, unpause } from 'ui/state/game'
+import { playerState } from 'ui/state/player'
 import { Action, AttackAction, MoveByAction } from 'world/actions'
 import { World } from 'world/world'
 

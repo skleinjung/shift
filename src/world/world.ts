@@ -113,7 +113,6 @@ export class World extends TypedEventEmitter<WorldEvents> {
         : ` (${join(', ', damages)})`
 
       this.logMessage(
-        // eslint-disable-next-line max-len
         `${attack.attacker.name} hits ${attack.target.name} for ${attack.damageRolled} damage.${damagesString}`
       )
     } else {

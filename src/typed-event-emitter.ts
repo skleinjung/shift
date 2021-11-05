@@ -9,7 +9,6 @@ type Arguments<T> = [T] extends [(...args: infer U) => any]
 type TypedEventEmitterImpl<TEvents> = TypedEmitter<TEvents> & EventEmitter
 
 export class TypedEventEmitter<Events = any> implements TypedEmitter<Events> {
-  // eslint-disable-next-line @typescript-eslint/naming-convention
   private _eventEmitter: TypedEventEmitterImpl<Events>
 
   constructor () {

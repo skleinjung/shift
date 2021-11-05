@@ -1,6 +1,6 @@
 import { useRecoilValue } from 'recoil'
-import { expeditionState, InitialLinkValue } from 'state/expedition'
-import { playerState } from 'state/player'
+import { expeditionState, InitialLinkValue } from 'ui/state/expedition'
+import { playerState } from 'ui/state/player'
 
 import { Panel, PanelProps } from './panel'
 import { PreFormattedText } from './pre-formatted-text'

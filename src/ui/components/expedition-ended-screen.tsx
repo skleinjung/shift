@@ -1,7 +1,7 @@
 import { useCallback } from 'react'
 import { useRecoilValue, useResetRecoilState } from 'recoil'
-import { expeditionState } from 'state/expedition'
-import { playerState } from 'state/player'
+import { expeditionState } from 'ui/state/expedition'
+import { playerState } from 'ui/state/player'
 
 import { ScreenName } from './app'
 import './expedition-ended-screen.css'

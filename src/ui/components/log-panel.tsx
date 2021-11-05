@@ -14,7 +14,6 @@ export interface LogPanelOptions {
   world: World
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const LogPanel = ({ rows = 8, world }: LogPanelOptions) => {
   const [lines, setLines] = useState<string[]>(world.messages)
 
