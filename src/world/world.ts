@@ -1,5 +1,5 @@
 import { CreatureTypes } from 'db/creatures'
-import { forEach } from 'lodash/fp'
+import { filter, forEach, values } from 'lodash/fp'
 
 import { Action, NoopAction } from './actions'
 import { createPrototypeTerrain } from './create-prototype-terrain'
@@ -20,6 +20,10 @@ export class World {
     this._playerAction = NoopAction
 
     this.spawn('kobold', -20, 0)
+    this.spawn('kobold', -22, 0)
+    this.spawn('kobold', -24, 0)
+    this.spawn('kobold', -22, -2)
+    this.spawn('kobold', -22, 2)
     this.spawn('goblin', 13, 12)
     this.spawn('orc', -30, -3)
   }
@@ -41,6 +45,13 @@ export class World {
     forEach((creature) => {
       creature.type.behavior(creature, this)(creature, this)
     }, this.creatures)
+
+    // remove any dead creatures
+    const deadCreatures = filter((creature) => creature.dead, values(this.creatures))
+    forEach((creature) => {
+      delete this.creatures[creature.id]
+      this.map.removeCreature(creature)
+    }, deadCreatures)
   }
 
   /**

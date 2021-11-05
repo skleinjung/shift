@@ -6,6 +6,8 @@ import { ExpeditionMap } from './map'
  * TODO: emit events instead of directly updating map
  */
 export class Creature {
+  private _health: number
+
   constructor (
     public readonly id: number,
     public readonly type: CreatureType,
@@ -17,13 +19,21 @@ export class Creature {
       throw new Error('TODO: do not fail when adding creature to occupied cell')
     }
 
+    this._health = type.healthMax
     this._map.setCreatureId(this._x, this._y, this.id)
   }
 
+  /** flag indicating if this creature is dead or not */
+  public get dead () {
+    return this._health < 1
+  }
+
+  /** creature's x position on the map */
   public get x () {
     return this._x
   }
 
+  /** creature's y position on the map */
   public get y () {
     return this._y
   }
@@ -49,5 +59,12 @@ export class Creature {
 
     this._map.setCreatureId(this._x, this._y, this.id)
     return true
+  }
+
+  /**
+   * Assign a specified amount of damage to this creature.
+   */
+  public takeDamage (amount: number) {
+    this._health = Math.max(0, this._health - amount)
   }
 }
