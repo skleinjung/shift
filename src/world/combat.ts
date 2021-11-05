@@ -1,46 +1,163 @@
 import { sample, sum, times } from 'lodash/fp'
 
-import { Creature } from './creature'
-
 export type DieResult = 0 | 1 | 2
 
 // Values on each face of a combat die
 const DieFaces: DieResult[] = [0, 0, 1, 1, 2, 2]
 
-export interface AttackResult {
-  /** results for the dice rolled by the attacker */
-  attackDice: DieResult[]
+export interface CombatRollResult {
+  /** information on the individual dice rolled */
+  dice: DieResult[]
+
+  /** the combined score from all dice */
+  total: number
+}
+
+export type AttackRollResult = CombatRollResult
+export type DefenseRollResult = CombatRollResult
+
+export const getCombatRollResult = (diceCount: number) => {
+  const dice = times(() => sample(DieFaces) ?? 0, diceCount)
+  return {
+    dice,
+    total: sum(dice),
+  }
+}
+
+export interface Entity {
+  name: string
+}
+
+/**
+ * Dictionary detailing why damage a defender received wasn't "dealt". The property name is a
+ * string describing the effect, and the value is the amount of damage absorbed by that effect.
+ *
+ * Example:
+ * {
+ *   absorbed: 3,
+ *   overkill: 2,
+ *   received: 2
+ * }
+ *
+ */
+export type DamageApplication = Record<string, number> & {
+  taken: number
+}
+
+export interface Attackable extends Entity {
+  /** Generate a defense against the given attack */
+  generateDefense: (attack: Attack) => Defense
+
+  /**
+   * Apply the effects of a completed attack action against this entity. The return value details
+   * how much damage the target took, how much was resisted, etc. If null is returned, then it is
+   * assumed that all of the damage was 'received'. The final AttackResult's 'damageDealt' value
+   * will equal the 'received' value from the damage application.
+   **/
+  onHit: (attack: PendingAttack) => DamageApplication | null
+}
+
+export interface Attacker extends Entity {
+  /** Generate an attack against the specified target */
+  generateAttack: (target: Attackable) => Attack
+
+  /** Optionally apply any after-attack effects, given the full result of the attack's resolution. */
+  onAttackComplete?: (result: AttackResult) => void
+}
+
+/**
+ * Details of an attack that is being performed.
+ */
+export interface Attack {
+  /** result of the combat dice rolled for the attack */
+  roll: AttackRollResult
+}
+
+/**
+ * Details of the defense against an attack.
+ */
+export interface Defense {
+  /** flag indicating if the defender is immune to the attack */
+  immune: boolean
+
+  /**
+   * Result of the combat dice rolled for the defense. Will be undefined if the target is
+   * defenseless or immune to the attack.
+   **/
+  roll: DefenseRollResult | undefined
+}
+
+export interface PendingAttack {
+  /** attributes of the attack, such as dice rolls */
+  attack: Attack
+
+  /** the entity that generated this attack */
+  attacker: Attacker
 
   /** amount of damage that the attack should deal to the target */
-  damage: number
+  damageRolled: number
 
-  /** results for the dice rolled by the defender */
-  defenseDice: DieResult[]
+  /** attributes of the defense, such as dice rolls */
+  defense: Defense
 
-  /** whether the attack was successful or not */
+  /** the entity targeted by this attack */
+  target: Attackable
+}
+
+export interface AttackResult extends PendingAttack {
+  /** detailed breakdown of the damage applied to the target */
+  damage: DamageApplication
+
+  /** the amount of damage actually taken by the target */
+  damageTaken: number
+
+  /** whether the attack was successful or not (that is, rolled damage even if unapplied) */
   success: boolean
 }
 
-/** Gets the number of attack dice a creature has when performing a melee attack */
-const getMeleeAttackDice = (creature: Creature) => creature.type.melee
+export const calculateDamageRolled = (attack: Attack, defense: Defense) =>
+  defense.immune
+    ? 0
+    : Math.max(0, attack.roll.total - (defense.roll?.total ?? 0))
 
-/** Gets the number of defence dice a creature has */
-const getDefenseDice = (creature: Creature) => creature.type.defense
+export const resolveAttack = (attacker: Attacker, target: Attackable) => {
+  const attack = attacker.generateAttack(target)
+  const defense = target.generateDefense(attack)
 
-/**
- * Calculates the result of an attack from an attacker vs. a specified target.
- */
-export const resolveAttack = (attacker: Creature, target: Creature): AttackResult => {
-  const attackDice = times(() => sample(DieFaces) ?? 0, getMeleeAttackDice(attacker))
-  const defenseDice = times(() => sample(DieFaces) ?? 0, getDefenseDice(target))
+  const damageRolled = calculateDamageRolled(attack, defense)
 
-  const attackStrength = sum(attackDice)
-  const defenseStrength = sum(defenseDice)
+  if (damageRolled > 0) {
+    const pendingAttack = {
+      attack,
+      attacker: attacker,
+      damageRolled,
+      defense,
+      target,
+    }
 
-  return {
-    attackDice,
-    damage: Math.max(0, attackStrength - defenseStrength),
-    defenseDice,
-    success: attackStrength > defenseStrength,
+    const damageResult = target.onHit(pendingAttack)
+    const damageApplication = damageResult !== null ? damageResult : {
+      taken: pendingAttack.damageRolled,
+    }
+
+    const result = {
+      ...pendingAttack,
+      damage: damageApplication,
+      damageTaken: damageApplication.taken,
+      success: pendingAttack.damageRolled > 0,
+    }
+
+    attacker.onAttackComplete?.(result)
+  } else {
+    attacker.onAttackComplete?.({
+      attack,
+      attacker: attacker,
+      damage: { taken: 0 },
+      damageTaken: 0,
+      damageRolled,
+      defense,
+      success: false,
+      target,
+    })
   }
 }

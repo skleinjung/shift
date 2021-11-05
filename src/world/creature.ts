@@ -1,11 +1,23 @@
 import { CreatureType } from 'db/creatures'
+import { TypedEventEmitter } from 'typed-event-emitter'
 
+import {
+  Attack,
+  Attackable,
+  Attacker,
+  AttackResult,
+  DamageApplication,
+  Defense,
+  getCombatRollResult,
+  PendingAttack,
+} from './combat'
+import { CreatureEvents } from './events'
 import { ExpeditionMap } from './map'
 
 /**
  * TODO: emit events instead of directly updating map
  */
-export class Creature {
+export class Creature extends TypedEventEmitter<CreatureEvents> implements Attackable, Attacker {
   private _health: number
 
   constructor (
@@ -15,6 +27,8 @@ export class Creature {
     private _y: number,
     private _map: ExpeditionMap
   ) {
+    super()
+
     if (this._map.getCreatureId(this._x, this._y) !== undefined) {
       throw new Error('TODO: do not fail when adding creature to occupied cell')
     }
@@ -31,6 +45,11 @@ export class Creature {
   /** creature's current health */
   public get health () {
     return this._health
+  }
+
+  /** name of this creature */
+  public get name () {
+    return this.type.name
   }
 
   /** creature's x position on the map */
@@ -71,5 +90,42 @@ export class Creature {
    */
   public takeDamage (amount: number) {
     this._health = Math.max(0, this._health - amount)
+
+    if (this._health < 1) {
+      this.emit('death', this)
+    }
+  }
+
+  // Combat interfaces
+
+  public generateAttack (_target: Attackable): Attack {
+    return {
+      roll: getCombatRollResult(this.type.melee),
+    }
+  }
+
+  public generateDefense (_attack: Attack): Defense {
+    return {
+      immune: false,
+      roll: getCombatRollResult(this.type.defense),
+    }
+  }
+
+  public onAttackComplete (result: AttackResult) {
+    this.emit('attack', result)
+  }
+
+  public onHit (attack: PendingAttack): DamageApplication | null {
+    const oldHealth = this.health
+    this.takeDamage(attack.damageRolled)
+    const taken = Math.max(0, oldHealth - this.health)
+    const overkill = attack.damageRolled - taken
+
+    return overkill > 0 ? {
+      taken,
+      overkill,
+    } : {
+      taken,
+    }
   }
 }

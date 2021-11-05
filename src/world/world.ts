@@ -1,8 +1,10 @@
 import { CreatureTypes } from 'db/creatures'
-import { filter, forEach, values } from 'lodash/fp'
+import { map as mapI } from 'lodash'
+import { filter, forEach, join, omit, values } from 'lodash/fp'
 import { TypedEventEmitter } from 'typed-event-emitter'
 
 import { Action, NoopAction } from './actions'
+import { AttackResult } from './combat'
 import { createPrototypeTerrain } from './create-prototype-terrain'
 import { Creature } from './creature'
 import { WorldEvents } from './events'
@@ -79,6 +81,9 @@ export class World extends TypedEventEmitter<WorldEvents> {
     const type = CreatureTypes[creatureTypeId]
     const creature = new Creature(this._nextCreatureId++, type, xLocation, yLocation, this.map)
     this.creatures[creature.id] = creature
+
+    creature.on('attack', this._logAttack.bind(this))
+
     return creature
   }
 
@@ -96,5 +101,23 @@ export class World extends TypedEventEmitter<WorldEvents> {
   /** Gets the action being performed by the player in the current turn. */
   public get playerAction () {
     return this._playerAction
+  }
+
+  /** Adds the results of an attack to the message log. */
+  private _logAttack (attack: AttackResult) {
+    if (attack.success) {
+      // we don't display 'overkill' or 'taken' damage broken out for the user
+      const damages = mapI(omit(['overkill', 'taken'], attack.damage), (value, type) => `${value} ${type}`)
+      const damagesString = damages.length === 0
+        ? ''
+        : ` (${join(', ', damages)})`
+
+      this.logMessage(
+        // eslint-disable-next-line max-len
+        `${attack.attacker.name} hits ${attack.target.name} for ${attack.damageRolled} damage.${damagesString}`
+      )
+    } else {
+      this.logMessage(`${attack.attacker.name} misses ${attack.target.name}.`)
+    }
   }
 }

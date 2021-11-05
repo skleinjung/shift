@@ -14,20 +14,8 @@ export const NoopAction: Action = () => {
 }
 
 /** Attack another creature */
-export const AttackAction = (targetId: Creature['id']): Action => (creature, world) => {
-  const target = world.creatures[targetId]
-  if (target !== undefined) {
-    const result = resolveAttack(creature, target)
-    if (result.success) {
-      target.takeDamage(result.damage)
-      world.logMessage(`${creature.type.name} hits ${target.type.name} for ${result.damage} damage.`)
-    } else {
-      world.logMessage(`${creature.type.name} misses ${target.type.name}.`)
-    }
-  } else {
-    // eslint-disable-next-line no-console
-    console.warn(`Invalid target creature ID: ${targetId}`)
-  }
+export const AttackCommand = (target: Creature): Action => (creature) => {
+  resolveAttack(creature, target)
 }
 
 /** Move the creature a specified distance in each direction. */
