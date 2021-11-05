@@ -5,6 +5,7 @@ import { useRecoilState, useRecoilValue, useResetRecoilState } from 'recoil'
 import { expeditionState } from 'state/expedition'
 import { gameState, pause, unpause } from 'state/game'
 import { isExpeditionComplete, playerState } from 'state/player'
+import { MoveByAction } from 'world/actions'
 import { World } from 'world/world'
 
 import { ScreenName } from './app'
@@ -114,7 +115,7 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
 
   const movePlayer = useCallback((byX: number, byY: number) => () => {
     if (!game.paused) {
-      world.current?.player.moveBy(byX, byY)
+      world.current?.nextTurn(MoveByAction(byX, byY))
 
       // hack just to trigger a re-render for now
       setWorldStateId((old) => ++old)

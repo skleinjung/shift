@@ -1,7 +1,11 @@
 import { Renderable } from 'db/renderable'
 import { snakeCase, toLower } from 'lodash/fp'
+import { Behavior, MoveRandomlyBehavior, PlayerBehavior } from 'world/behavior'
 
 export type CreatureType = Readonly<Renderable & {
+  /** behavior used to determine this creature's actions */
+  behavior: Behavior
+
   /** maximum health of creatures of this type */
   healthMax: number
 
@@ -21,8 +25,9 @@ const addCreatureType = (creature: Omit<CreatureType, 'id'>, id?: string) => {
   return id
 }
 
-export const PlayerCreatureTypeId = addCreatureType({
+addCreatureType({
   background: 0x002200,
+  behavior: PlayerBehavior,
   color: 0xffffff,
   healthMax: 10,
   name: 'Player',
@@ -31,6 +36,7 @@ export const PlayerCreatureTypeId = addCreatureType({
 
 addCreatureType({
   background: 0x220000,
+  behavior: MoveRandomlyBehavior,
   color: 0x990000,
   healthMax: 2,
   name: 'Kobold',
@@ -39,6 +45,7 @@ addCreatureType({
 
 addCreatureType({
   background: 0x220000,
+  behavior: MoveRandomlyBehavior,
   color: 0x990000,
   healthMax: 5,
   name: 'Goblin',
@@ -47,6 +54,7 @@ addCreatureType({
 
 addCreatureType({
   background: 0x220000,
+  behavior: MoveRandomlyBehavior,
   color: 0x990000,
   healthMax: 8,
   name: 'Orc',
