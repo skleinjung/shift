@@ -1,11 +1,11 @@
 /* eslint-disable max-len */
 import { useKeyHandler } from 'hooks/use-key-handler'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useRecoilState, useRecoilValue, useResetRecoilState } from 'recoil'
-import { expeditionState } from 'state/expedition'
+import { useRecoilState, useRecoilValue, useResetRecoilState, useSetRecoilState } from 'recoil'
+import { endTurn, expeditionState, InitialLinkValue, isExpeditionComplete } from 'state/expedition'
 import { gameState, pause, unpause } from 'state/game'
-import { isExpeditionComplete, playerState } from 'state/player'
-import { MoveByAction } from 'world/actions'
+import { playerState } from 'state/player'
+import { Action, MoveByAction } from 'world/actions'
 import { World } from 'world/world'
 
 import { ScreenName } from './app'
@@ -24,13 +24,15 @@ export interface ExpeditionScreenProps {
 }
 
 const PlayerStatusPanel = () => {
+  const expedition = useRecoilValue(expeditionState)
   const player = useRecoilValue(playerState)
 
   const status = `Health: ${player.health}/${player.healthMax}
-Link  : ${player.link}`
+Link  : ${Math.floor(expedition.link / InitialLinkValue * 100)}%
+Turn  : ${expedition.turn}`
 
   return (
-    <Panel columns={SidebarColumns} rows={2}>
+    <Panel columns={SidebarColumns} rows={3}>
       <PreFormattedText>{status}</PreFormattedText>
     </Panel>
   )
@@ -44,11 +46,13 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
   const resetGame = useResetRecoilState(gameState)
   const resetPlayer = useResetRecoilState(playerState)
 
+  const updateExpedition = useSetRecoilState(expeditionState)
+  const updatePlayer = useSetRecoilState(playerState)
+
   const isComplete = useRecoilValue(isExpeditionComplete)
   const [viewportSize, setViewportSize] = useState({ width: 0, height: 0 })
   const [viewportCenter, setViewportCenter] = useState({ x: 0, y: 0 })
   const [game, updateGame] = useRecoilState(gameState)
-  const [, setWorldStateId] = useState(0)
 
   useEffect(() => {
     world.current = new World()
@@ -113,15 +117,20 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
     updateViewport(size, viewportCenter)
   }, [updateViewport, viewportCenter])
 
-  const movePlayer = useCallback((byX: number, byY: number) => () => {
-    if (!game.paused) {
-      world.current?.nextTurn(MoveByAction(byX, byY))
+  const executeTurn = useCallback((playerAction: Action) => () => {
+    if (!game.paused && world.current) {
+      world.current.nextTurn(playerAction)
 
-      // hack just to trigger a re-render for now
-      setWorldStateId((old) => ++old)
+      // update our recoil state based on the new world state
+      updateExpedition(endTurn)
+      updatePlayer((player) => ({
+        ...player,
+        health: player.health,
+      }))
+
       updateViewport(viewportSize, viewportCenter)
     }
-  }, [game.paused, updateViewport, viewportCenter, viewportSize])
+  }, [game.paused, updateExpedition, updatePlayer, updateViewport, viewportCenter, viewportSize])
 
   const handlePauseMenuSelection = useCallback((item: string) => {
     switch (item) {
@@ -136,10 +145,10 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
   }, [handleUnpause, navigateTo])
 
   useKeyHandler({
-    ArrowDown: movePlayer(0, 1),
-    ArrowLeft: movePlayer(-1, 0),
-    ArrowRight: movePlayer(1, 0),
-    ArrowUp: movePlayer(0, -1),
+    ArrowDown: executeTurn(MoveByAction(0, 1)),
+    ArrowLeft: executeTurn(MoveByAction(-1, 0)),
+    ArrowRight: executeTurn(MoveByAction(1, 0)),
+    ArrowUp: executeTurn(MoveByAction(0, -1)),
     Escape: handlePause,
   })
 
