@@ -26,7 +26,8 @@ export class ExpeditionMap {
    * Cells with no data are considered non-traversable.
    */
   public isTraversable (x: number, y: number): boolean {
-    return this._getCell(x, y)?.terrain?.traversable ?? false
+    const cell = this._getCell(x, y)
+    return cell?.terrain?.traversable && cell?.creatureId === undefined
   }
 
   /**
