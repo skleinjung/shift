@@ -28,8 +28,27 @@ export const AttackAdjacentPlayerBehavior: Behavior = (creature, world) => {
   return undefined
 }
 
+/**
+ * Iterate a list of behaviors, and return the first non-undefined action provided. If all behaviors
+ * return undefined, this will return undefined as well.
+ */
+export const CompoundBehavior = (...behaviors: Behavior[]): Behavior => (creature, world) => {
+  for (const behavior of behaviors) {
+    const action = behavior(creature, world)
+    if (action !== undefined) {
+      return action
+    }
+  }
+
+  return undefined
+}
+
 /** Behavior that causes a creature to make a random valid move each turn, if able */
-export const MoveRandomlyBehavior: Behavior = (creature, world) => {
+export const MoveRandomlyBehavior = (chanceToMove = 100): Behavior => (creature, world) => {
+  if (Math.random() >= (chanceToMove / 100)) {
+    return undefined
+  }
+
   const options = [
     [-1, 0],
     [1, 0],

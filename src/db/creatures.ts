@@ -1,6 +1,12 @@
 import { Renderable } from 'db/renderable'
 import { snakeCase, toLower } from 'lodash/fp'
-import { AttackAdjacentPlayerBehavior, Behavior, MoveRandomlyBehavior, PlayerBehavior } from 'world/behavior'
+import {
+  AttackAdjacentPlayerBehavior,
+  Behavior,
+  CompoundBehavior,
+  MoveRandomlyBehavior,
+  PlayerBehavior,
+} from 'world/behavior'
 
 export type CreatureType = Readonly<Renderable & {
   /** behavior used to determine this creature's actions */
@@ -57,7 +63,7 @@ addCreatureType({
 
 addCreatureType({
   background: 0x220000,
-  behavior: MoveRandomlyBehavior,
+  behavior: CompoundBehavior(AttackAdjacentPlayerBehavior, MoveRandomlyBehavior(100)),
   color: 0x990000,
   defense: 1,
   healthMax: 5,
@@ -68,7 +74,7 @@ addCreatureType({
 
 addCreatureType({
   background: 0x220000,
-  behavior: MoveRandomlyBehavior,
+  behavior: CompoundBehavior(AttackAdjacentPlayerBehavior, MoveRandomlyBehavior(20)),
   color: 0x990000,
   defense: 1,
   healthMax: 8,
