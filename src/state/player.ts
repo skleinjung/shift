@@ -1,33 +1,20 @@
+import { CreatureType, CreatureTypes, PlayerCreatureTypeId } from 'db/creatures'
 import { atom, selector } from 'recoil'
 
 const InitialLinkValue = 50
 
-export interface Player {
+export interface Player extends CreatureType {
   /** player's current health */
   health: number
 
-  /** player's maximum health value */
-  healthMax: number
-
   /** the strength of the player's link to the current expedition's location */
   link: number
-
-  /** player's character name */
-  name: string
-
-  /** player's position on the map */
-  position: { x: number; y: number }
 }
 
 export const newPlayer = (): Player => ({
+  ...CreatureTypes[PlayerCreatureTypeId],
   health: 10,
-  healthMax: 10,
   link: InitialLinkValue,
-  name: 'Mystericus the Untitled',
-  position: {
-    x: 0,
-    y: 0,
-  },
 })
 
 export const playerState = atom<Player>({
@@ -51,12 +38,4 @@ export const endTurn = (player: Player): Player => ({
 export const dealDamage = (amount: number) => (player: Player): Player => ({
   ...player,
   health: player.health - amount,
-})
-
-export const moveBy = (x: number, y: number) => (player: Player): Player => ({
-  ...player,
-  position: {
-    x: player.position.x + x,
-    y: player.position.y + y,
-  },
 })
