@@ -1,7 +1,6 @@
 import { Renderable } from 'db/renderable'
 import { snakeCase, toLower } from 'lodash/fp'
-import { NoopAction } from 'world/actions'
-import { Behavior, MoveRandomlyBehavior, PlayerBehavior } from 'world/behavior'
+import { AttackAdjacentPlayerBehavior, Behavior, MoveRandomlyBehavior, PlayerBehavior } from 'world/behavior'
 
 export type CreatureType = Readonly<Renderable & {
   /** behavior used to determine this creature's actions */
@@ -47,7 +46,7 @@ addCreatureType({
 
 addCreatureType({
   background: 0x220000,
-  behavior: () => NoopAction,
+  behavior: AttackAdjacentPlayerBehavior,
   color: 0x990000,
   defense: 0,
   healthMax: 2,
