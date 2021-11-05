@@ -67,6 +67,7 @@ export class World extends TypedEventEmitter<WorldEvents> {
     const deadCreatures = filter((creature) => creature.dead, values(this.creatures))
     forEach((creature) => {
       delete this.creatures[creature.id]
+      this.logMessage(`${creature.type.name} is dead!`)
       this.map.removeCreature(creature)
     }, deadCreatures)
   }

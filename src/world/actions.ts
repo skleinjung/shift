@@ -2,6 +2,10 @@ import { resolveAttack } from './combat'
 import { Creature } from './creature'
 import { World } from './world'
 
+/**
+ * An action taken by a creature during a turn. Will be passed the acting creature, and an instance of
+ * the world.
+ */
 export type Action = (creature: Creature, world: World) => void
 
 /** Do nothing this turn */
@@ -16,6 +20,9 @@ export const AttackAction = (targetId: Creature['id']): Action => (creature, wor
     const result = resolveAttack(creature, target)
     if (result.success) {
       target.takeDamage(result.damage)
+      world.logMessage(`${creature.type.name} hits ${target.type.name} for ${result.damage} damage.`)
+    } else {
+      world.logMessage(`${creature.type.name} misses ${target.type.name}.`)
     }
   } else {
     // eslint-disable-next-line no-console
