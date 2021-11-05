@@ -1,9 +1,8 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { ShaderSystem } from '@pixi/core'
 import { install } from '@pixi/unsafe-eval'
 import { Terrain } from 'db/terrain'
 import { FontNames } from 'fonts'
-import { isArray } from 'lodash/fp'
+import { isArray, noop } from 'lodash/fp'
 import * as PIXI from 'pixi.js'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRecoilState } from 'recoil'
@@ -45,29 +44,38 @@ interface RenderCell {
 }
 
 interface ViewportSize {
+  /** width of the viewport, in grid cells */
   width: number
+
+  /** height of the viewport, in grid cells */
   height: number
 }
 
 export interface MapPanelProps {
+  /** y-coordinate of the viewport center; (default: 0) */
+  centerY?: number
+
+  /** x-coordinate of the viewport center; (default: 0) */
+  centerX?: number
+
+  /** callback notified whenever the size of the viewport changes, with new dimensions in map cell coordinates */
+  onViewportSizeChanged?: (width: number, height: number) => void
+
   /** the whole world */
   world: World
 }
 
 /**
- * Ensure that there are enough render cells created for a viewport with the given dimensions. If the current
- * cells array is smaller than the requested dimensions, new cells will be created and added to the PIXI app
- * as needed.
+ * Ensure that there are enough render cells created for a viewport with the given dimensions (in map coordinates,
+ * not pixels). If the current cells array is smaller than the requested dimensions, new cells will be created and
+ * added to the PIXI app as needed.
  *
  * TODO: remove cells that are no longer needed if the dimensions shrink
  */
-const initializeRenderCells = (app: PIXI.Application, cells: RenderCell[][], width: number, height: number) => {
+const initializeRenderCells = (app: PIXI.Application, cells: RenderCell[][], gridWidth: number, gridHeight: number) => {
   const rectangle = new PIXI.Graphics()
   rectangle.beginFill(0xffffff)
   rectangle.drawRect(0, 0, CellWidth, CellHeight)
-
-  const gridHeight = height / CellHeight
-  const gridWidth = width / CellWidth
 
   for (let y = 0; y < gridHeight; y++) {
     if (cells[y] === undefined) {
@@ -92,16 +100,18 @@ const initializeRenderCells = (app: PIXI.Application, cells: RenderCell[][], wid
   }
 }
 
-export const MapPanel = ({ world }: MapPanelProps) => {
+export const MapPanel = ({
+  centerX = 0,
+  centerY = 0,
+  onViewportSizeChanged = noop,
+  world,
+}: MapPanelProps) => {
   const timeSinceScrollRef = useRef<number>(0)
   const mapCellsRef = useRef<RenderCell[][]>([])
+
   const resizeObserverRef = useRef<ResizeObserver | null>()
   const [viewportSize, setViewportSize] = useState<ViewportSize | undefined>()
 
-  // making the map immutable was too much of a performance hit, so we access a global
-  // something else must notify us of map changes, then
-  const offsetX = -20
-  const offsetY = -20
   // we only subscribe to player because it's the easiest way to rerender currently
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [player, updatePlayer] = useRecoilState(playerState)
@@ -111,13 +121,18 @@ export const MapPanel = ({ world }: MapPanelProps) => {
   useEffect(() => {
     if (appRef.current !== null && viewportSize !== undefined) {
       const cells = mapCellsRef.current
-      initializeRenderCells(appRef.current, cells, viewportSize?.width, viewportSize?.height)
+      initializeRenderCells(appRef.current, cells, viewportSize.width, viewportSize.height)
+      onViewportSizeChanged(viewportSize.width, viewportSize.height)
     }
-  }, [viewportSize])
+  }, [onViewportSizeChanged, viewportSize])
 
   // update cell contents on every render
   useEffect(() => {
     if (appRef.current !== null && viewportSize !== undefined) {
+      // -1 in both of these calculations is to account for the row/column we are centering
+      const offsetX = Math.floor(centerX - ((viewportSize.width - 1) / 2))
+      const offsetY = Math.floor(centerY - ((viewportSize.height - 1) / 2))
+
       const cells = mapCellsRef.current
 
       if (cells[0] !== undefined) {
@@ -170,9 +185,12 @@ export const MapPanel = ({ world }: MapPanelProps) => {
       // See: https://developer.mozilla.org/en-US/docs/Web/API/ResizeObserver
       const size = (isArray(contentBox) ? contentBox[0] : contentBox) as any as ResizeObserverSize
 
+      const newWidth = Math.floor(size.inlineSize / CellWidth)
+      const newHeight = Math.floor(size.blockSize / CellHeight)
+
       setViewportSize({
-        height: size.blockSize,
-        width: size.inlineSize,
+        height: newHeight,
+        width: newWidth,
       })
     })
     resizeObserverRef.current.observe(container)
@@ -199,7 +217,11 @@ export const MapPanel = ({ world }: MapPanelProps) => {
 
   return (<>
     <Panel>
-      <div style={{ flex: 1, height: '100%' }} ref={pixiRefCallback} />
+      <div
+        className="map-canvas"
+        style={{ flex: 1, height: '100%' }}
+        ref={pixiRefCallback}
+      />
     </Panel>
   </>)
 }
