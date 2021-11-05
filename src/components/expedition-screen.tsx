@@ -2,7 +2,7 @@
 import { useKeyHandler } from 'hooks/use-key-handler'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRecoilState, useRecoilValue, useResetRecoilState, useSetRecoilState } from 'recoil'
-import { endTurn, expeditionState, InitialLinkValue, isExpeditionComplete } from 'state/expedition'
+import { endTurn, expeditionState, isExpeditionComplete } from 'state/expedition'
 import { gameState, pause, unpause } from 'state/game'
 import { playerState } from 'state/player'
 import { Action, AttackCommand, MoveByAction } from 'world/actions'
@@ -12,6 +12,7 @@ import { ScreenName } from './app'
 import { LogPanel } from './log-panel'
 import { MapPanel } from './map-panel'
 import { Panel } from './panel'
+import { PlayerStatusPanel } from './player-status-panel'
 import { PopupMenu } from './popup-menu'
 import { PreFormattedText } from './pre-formatted-text'
 
@@ -22,21 +23,6 @@ const SidebarColumns = 30
 export interface ExpeditionScreenProps {
   /** function that allows inter-screen navigation */
   navigateTo: (screen: ScreenName) => void
-}
-
-const PlayerStatusPanel = () => {
-  const expedition = useRecoilValue(expeditionState)
-  const player = useRecoilValue(playerState)
-
-  const status = `Health: ${player.health}/${player.healthMax}
-Link  : ${Math.floor(expedition.link / InitialLinkValue * 100)}%
-Turn  : ${expedition.turn}`
-
-  return (
-    <Panel columns={SidebarColumns} rows={3}>
-      <PreFormattedText>{status}</PreFormattedText>
-    </Panel>
-  )
 }
 
 export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
