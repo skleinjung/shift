@@ -3,6 +3,8 @@ import { selector } from 'recoil'
 
 import { playerState } from '../state/player'
 
+import { Creature } from './creature'
+
 export interface MapCell {
   creatureId?: number
   terrain: TerrainType
@@ -43,6 +45,16 @@ export class ExpeditionMap {
    */
   public setCreatureId (x: number, y: number, creatureId: number | undefined) {
     this._getCell(x, y, true).creatureId = creatureId
+  }
+
+  /**
+   * Removes the specified creature from the map.
+   */
+  public removeCreature (creature: Creature) {
+    const cell = this._getCell(creature.x, creature.y)
+    if (cell.creatureId === creature.id) {
+      this.setCreatureId(creature.x, creature.y, undefined)
+    }
   }
 
   /**

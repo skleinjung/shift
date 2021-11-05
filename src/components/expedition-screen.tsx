@@ -5,7 +5,7 @@ import { useRecoilState, useRecoilValue, useResetRecoilState, useSetRecoilState 
 import { endTurn, expeditionState, InitialLinkValue, isExpeditionComplete } from 'state/expedition'
 import { gameState, pause, unpause } from 'state/game'
 import { playerState } from 'state/player'
-import { Action, MoveByAction } from 'world/actions'
+import { Action, AttackAction, MoveByAction } from 'world/actions'
 import { World } from 'world/world'
 
 import { ScreenName } from './app'
@@ -117,20 +117,39 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
     updateViewport(size, viewportCenter)
   }, [updateViewport, viewportCenter])
 
-  const executeTurn = useCallback((playerAction: Action) => () => {
+  const executeTurn = useCallback((playerAction: Action) => {
     if (!game.paused && world.current) {
       world.current.nextTurn(playerAction)
 
       // update our recoil state based on the new world state
       updateExpedition(endTurn)
-      updatePlayer((player) => ({
-        ...player,
-        health: player.health,
-      }))
+      updatePlayer((player) => {
+        if (world.current) {
+          const worldPlayer = world.current?.player
+          return {
+            ...player,
+            health: worldPlayer.health,
+          }
+        }
+
+        return player
+      })
 
       updateViewport(viewportSize, viewportCenter)
     }
   }, [game.paused, updateExpedition, updatePlayer, updateViewport, viewportCenter, viewportSize])
+
+  const executePlayerMove = useCallback((x: number, y: number) => () => {
+    if (!game.paused && world.current) {
+      const player = world.current.player
+      const creatureId = world.current.map.getCreatureId(player.x + x, player.y + y)
+      if (creatureId === undefined) {
+        executeTurn(MoveByAction(x, y))
+      } else {
+        executeTurn(AttackAction(creatureId))
+      }
+    }
+  }, [executeTurn, game.paused])
 
   const handlePauseMenuSelection = useCallback((item: string) => {
     switch (item) {
@@ -145,10 +164,10 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
   }, [handleUnpause, navigateTo])
 
   useKeyHandler({
-    ArrowDown: executeTurn(MoveByAction(0, 1)),
-    ArrowLeft: executeTurn(MoveByAction(-1, 0)),
-    ArrowRight: executeTurn(MoveByAction(1, 0)),
-    ArrowUp: executeTurn(MoveByAction(0, -1)),
+    ArrowDown: executePlayerMove(0, 1),
+    ArrowLeft: executePlayerMove(-1, 0),
+    ArrowRight: executePlayerMove(1, 0),
+    ArrowUp: executePlayerMove(0, -1),
     Escape: handlePause,
   })
 
