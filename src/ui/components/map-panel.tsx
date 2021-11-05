@@ -1,12 +1,12 @@
 import { ShaderSystem } from '@pixi/core'
 import { install } from '@pixi/unsafe-eval'
 import { Terrain } from 'db/terrain'
+import { World } from 'engine/world'
 import { isArray, noop } from 'lodash/fp'
 import * as PIXI from 'pixi.js'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRecoilState } from 'recoil'
 import { playerState } from 'ui/state/player'
-import { World } from 'world/world'
 
 import { FontNames } from '../fonts'
 

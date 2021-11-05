@@ -1,6 +1,6 @@
+import { World } from 'engine/world'
 import { map, reverse } from 'lodash/fp'
 import { useCallback, useEffect, useState } from 'react'
-import { World } from 'world/world'
 
 import { Panel } from './panel'
 
