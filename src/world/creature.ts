@@ -4,7 +4,6 @@ import { TypedEventEmitter } from 'typed-event-emitter'
 import {
   Attack,
   Attackable,
-  Attacker,
   AttackResult,
   DamageApplication,
   Defense,
@@ -13,16 +12,23 @@ import {
 } from './combat'
 import { CreatureEvents } from './events'
 import { ExpeditionMap } from './map'
+import { Actor, Combatant, Damageable, EventSource, Moveable } from './types'
+import { World } from './world'
 
 /**
- * TODO: emit events instead of directly updating map
+ * A Creature is an Actor subtype that specifically represents a living being.
  */
-export class Creature extends TypedEventEmitter<CreatureEvents> implements Attackable, Attacker {
+export class Creature extends TypedEventEmitter<CreatureEvents> implements
+  Actor,
+  Combatant,
+  Damageable,
+  Moveable,
+  EventSource<CreatureEvents> {
   private _health: number
 
   constructor (
-    public readonly id: number,
-    public readonly type: CreatureType,
+    private _id: number,
+    private _type: CreatureType,
     private _x: number,
     private _y: number,
     private _map: ExpeditionMap
@@ -33,9 +39,72 @@ export class Creature extends TypedEventEmitter<CreatureEvents> implements Attac
       throw new Error('TODO: do not fail when adding creature to occupied cell')
     }
 
-    this._health = type.healthMax
+    this._health = this._type.healthMax
     this._map.setCreatureId(this._x, this._y, this.id)
   }
+
+  public get type () {
+    return this._type
+  }
+
+  /// ////////////////////////////////////////////
+  // Entity
+
+  public get id () {
+    return this._id
+  }
+
+  /** name of this creature */
+  public get name () {
+    return this._type.name
+  }
+
+  /// ////////////////////////////////////////////
+  // Actor
+
+  public getAction (world: World) {
+    return this._type.behavior(this, world)
+  }
+
+  /// ////////////////////////////////////////////
+  // Combatant (Attacker)
+
+  public generateAttack (_target: Attackable): Attack {
+    return {
+      roll: getCombatRollResult(this._type.melee),
+    }
+  }
+
+  public onAttackComplete (result: AttackResult) {
+    this.emit('attack', result, this)
+  }
+
+  /// ////////////////////////////////////////////
+  // Combatant (Attackable)
+
+  public generateDefense (_attack: Attack): Defense {
+    return {
+      immune: false,
+      roll: getCombatRollResult(this._type.defense),
+    }
+  }
+
+  public onHit (attack: PendingAttack): DamageApplication | null {
+    const oldHealth = this.health
+    this.onDamage(attack.damageRolled)
+    const taken = Math.max(0, oldHealth - this.health)
+    const overkill = attack.damageRolled - taken
+
+    return overkill > 0 ? {
+      taken,
+      overkill,
+    } : {
+      taken,
+    }
+  }
+
+  /// ////////////////////////////////////////////
+  // Damageable
 
   /** flag indicating if this creature is dead or not */
   public get dead () {
@@ -47,10 +116,19 @@ export class Creature extends TypedEventEmitter<CreatureEvents> implements Attac
     return this._health
   }
 
-  /** name of this creature */
-  public get name () {
-    return this.type.name
+  /**
+   * Assign a specified amount of damage to this creature.
+   */
+  public onDamage (amount: number) {
+    this._health = Math.max(0, this._health - amount)
+
+    if (this._health < 1) {
+      this.emit('death', this)
+    }
   }
+
+  /// ////////////////////////////////////////////
+  // Moveable
 
   /** creature's x position on the map */
   public get x () {
@@ -83,49 +161,5 @@ export class Creature extends TypedEventEmitter<CreatureEvents> implements Attac
 
     this._map.setCreatureId(this._x, this._y, this.id)
     return true
-  }
-
-  /**
-   * Assign a specified amount of damage to this creature.
-   */
-  public takeDamage (amount: number) {
-    this._health = Math.max(0, this._health - amount)
-
-    if (this._health < 1) {
-      this.emit('death', this)
-    }
-  }
-
-  // Combat interfaces
-
-  public generateAttack (_target: Attackable): Attack {
-    return {
-      roll: getCombatRollResult(this.type.melee),
-    }
-  }
-
-  public generateDefense (_attack: Attack): Defense {
-    return {
-      immune: false,
-      roll: getCombatRollResult(this.type.defense),
-    }
-  }
-
-  public onAttackComplete (result: AttackResult) {
-    this.emit('attack', result)
-  }
-
-  public onHit (attack: PendingAttack): DamageApplication | null {
-    const oldHealth = this.health
-    this.takeDamage(attack.damageRolled)
-    const taken = Math.max(0, oldHealth - this.health)
-    const overkill = attack.damageRolled - taken
-
-    return overkill > 0 ? {
-      taken,
-      overkill,
-    } : {
-      taken,
-    }
   }
 }

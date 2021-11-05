@@ -1,5 +1,7 @@
 import { sample, sum, times } from 'lodash/fp'
 
+import { Actor, Entity } from './types'
+
 export type DieResult = 0 | 1 | 2
 
 // Values on each face of a combat die
@@ -24,10 +26,6 @@ export const getCombatRollResult = (diceCount: number) => {
   }
 }
 
-export interface Entity {
-  name: string
-}
-
 /**
  * Dictionary detailing why damage a defender received wasn't "dealt". The property name is a
  * string describing the effect, and the value is the amount of damage absorbed by that effect.
@@ -44,7 +42,7 @@ export type DamageApplication = Record<string, number> & {
   taken: number
 }
 
-export interface Attackable extends Entity {
+export interface Attackable extends Actor {
   /** Generate a defense against the given attack */
   generateDefense: (attack: Attack) => Defense
 

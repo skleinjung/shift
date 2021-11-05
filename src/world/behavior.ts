@@ -1,6 +1,6 @@
 import { filter, isEmpty, sample } from 'lodash/fp'
 
-import { Action, AttackCommand, MoveByAction, NoopAction } from './actions'
+import { Action, AttackAction, MoveByAction, NoopAction } from './actions'
 import { Creature } from './creature'
 import { World } from './world'
 
@@ -19,10 +19,10 @@ export const AttackAdjacentPlayerBehavior: Behavior = (creature, world) => {
 
   if (creature.y === player.y && Math.abs(creature.x - player.x) < 2) {
     // on same row and no more than one tile distant
-    return AttackCommand(player)
+    return AttackAction(player)
   } else if (creature.x === player.x && Math.abs(creature.y - player.y) < 2) {
     // on same column and no more than one tile distant
-    return AttackCommand(player)
+    return AttackAction(player)
   }
 
   return undefined

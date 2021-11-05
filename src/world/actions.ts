@@ -14,7 +14,7 @@ export const NoopAction: Action = () => {
 }
 
 /** Attack another creature */
-export const AttackCommand = (target: Creature): Action => (creature) => {
+export const AttackAction = (target: Creature): Action => (creature) => {
   resolveAttack(creature, target)
 }
 

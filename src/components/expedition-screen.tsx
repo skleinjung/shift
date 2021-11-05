@@ -5,7 +5,7 @@ import { useRecoilState, useRecoilValue, useResetRecoilState, useSetRecoilState 
 import { endTurn, expeditionState, isExpeditionComplete } from 'state/expedition'
 import { gameState, pause, unpause } from 'state/game'
 import { playerState } from 'state/player'
-import { Action, AttackCommand, MoveByAction } from 'world/actions'
+import { Action, AttackAction, MoveByAction } from 'world/actions'
 import { World } from 'world/world'
 
 import { ScreenName } from './app'
@@ -133,7 +133,7 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
       if (creatureId === undefined) {
         executeTurn(MoveByAction(x, y))
       } else {
-        executeTurn(AttackCommand(world.current.creatures[creatureId]))
+        executeTurn(AttackAction(world.current.creatures[creatureId]))
       }
     }
   }, [executeTurn, game.paused])
