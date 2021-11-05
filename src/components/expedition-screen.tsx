@@ -123,10 +123,17 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
 
       // update our recoil state based on the new world state
       updateExpedition(endTurn)
-      updatePlayer((player) => ({
-        ...player,
-        health: player.health,
-      }))
+      updatePlayer((player) => {
+        if (world.current) {
+          const worldPlayer = world.current?.player
+          return {
+            ...player,
+            health: worldPlayer.health,
+          }
+        }
+
+        return player
+      })
 
       updateViewport(viewportSize, viewportCenter)
     }

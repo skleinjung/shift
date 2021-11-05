@@ -28,6 +28,11 @@ export class Creature {
     return this._health < 1
   }
 
+  /** creature's current health */
+  public get health () {
+    return this._health
+  }
+
   /** creature's x position on the map */
   public get x () {
     return this._x
