@@ -20,6 +20,16 @@ export class ExpeditionMap {
   }
 
   /**
+   * Determines if a creature can enter the cell with the specified coordinates. Will return true in
+   * this case, or false if they cannot (i.e., the terrain is not traversable, the cell is occupied, etc.)
+   *
+   * Cells with no data are considered non-traversable.
+   */
+  public isTraversable (x: number, y: number): boolean {
+    return this._getCell(x, y)?.terrain?.traversable ?? false
+  }
+
+  /**
    * Gets the ID of the creature in the specified map cell, or undefined if there is no cell with
    * a creature at those coordinates.
    */

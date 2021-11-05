@@ -36,7 +36,7 @@ export class Creature {
     const newX = this._x + x
     const newY = this._y + y
 
-    if (this._map.getCreatureId(newX, newY) !== undefined) {
+    if (!this._map.isTraversable(newX, newY)) {
       return false
     }
 
