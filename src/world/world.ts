@@ -1,4 +1,4 @@
-import { CreatureType, CreatureTypes, PlayerCreatureTypeId } from 'db/creatures'
+import { CreatureTypes } from 'db/creatures'
 
 import { createPrototypeTerrain } from './create-prototype-terrain'
 import { Creature } from './creature'
@@ -13,7 +13,11 @@ export class World {
 
   constructor () {
     createPrototypeTerrain(this.map)
-    this._player = this.spawn(CreatureTypes[PlayerCreatureTypeId], 0, 0)
+    this._player = this.spawn('player', 0, 0)
+
+    this.spawn('kobold', -20, 0)
+    this.spawn('goblin', 13, 12)
+    this.spawn('orc', -30, -3)
   }
 
   /**
@@ -26,7 +30,8 @@ export class World {
   /**
    * Creates a creature of a given type at a specific map location.
    */
-  public spawn (type: CreatureType, xLocation: number, yLocation: number) {
+  public spawn (creatureTypeId: string, xLocation: number, yLocation: number) {
+    const type = CreatureTypes[creatureTypeId]
     const creature = new Creature(this._nextCreatureId++, type, xLocation, yLocation, this.map)
     this.creatures[creature.id] = creature
     return creature

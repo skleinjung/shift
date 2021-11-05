@@ -1,4 +1,4 @@
-import { CreatureType, CreatureTypes, PlayerCreatureTypeId } from 'db/creatures'
+import { CreatureType, CreatureTypes } from 'db/creatures'
 import { atom, selector } from 'recoil'
 
 const InitialLinkValue = 50
@@ -12,7 +12,7 @@ export interface Player extends CreatureType {
 }
 
 export const newPlayer = (): Player => ({
-  ...CreatureTypes[PlayerCreatureTypeId],
+  ...CreatureTypes.player,
   health: 10,
   link: InitialLinkValue,
 })
