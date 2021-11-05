@@ -9,6 +9,7 @@ import { Action, AttackAction, MoveByAction } from 'world/actions'
 import { World } from 'world/world'
 
 import { ScreenName } from './app'
+import { LogPanel } from './log-panel'
 import { MapPanel } from './map-panel'
 import { Panel } from './panel'
 import { PopupMenu } from './popup-menu'
@@ -212,6 +213,8 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
             onViewportSizeChanged={handleViewportResize}
             world={world.current}
           />
+
+          <LogPanel world={world.current} />
         </div>
       }
 

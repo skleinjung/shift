@@ -1,5 +1,10 @@
 import { PropsWithChildren } from 'react'
 
-export const PreFormattedText = ({ children }: PropsWithChildren<Record<string, unknown>>) => (
-  <div style={{ whiteSpace: 'pre' }}>{children}</div>
+export interface PreFormattedTextOptions {
+  /** optional CSS class names to apply to the text container */
+  className?: string
+}
+
+export const PreFormattedText = ({ className = '', children }: PropsWithChildren<PreFormattedTextOptions>) => (
+  <div className={className} style={{ whiteSpace: 'pre' }}>{children}</div>
 )
