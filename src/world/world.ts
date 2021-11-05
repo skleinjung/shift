@@ -43,7 +43,7 @@ export class World {
 
     // iterate over each creature, and execute the action determined by its behavior
     forEach((creature) => {
-      creature.type.behavior(creature, this)(creature, this)
+      creature.type.behavior(creature, this)?.(creature, this)
     }, this.creatures)
 
     // remove any dead creatures

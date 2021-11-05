@@ -5,7 +5,7 @@ import { World } from './world'
 export type Action = (creature: Creature, world: World) => void
 
 /** Do nothing this turn */
-export const NoopAction = () => {
+export const NoopAction: Action = () => {
   // noop
 }
 

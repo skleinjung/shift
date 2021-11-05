@@ -1,14 +1,32 @@
 import { filter, isEmpty, sample } from 'lodash/fp'
 
-import { Action, MoveByAction, NoopAction } from './actions'
+import { Action, AttackAction, MoveByAction, NoopAction } from './actions'
 import { Creature } from './creature'
 import { World } from './world'
 
-/** A behavior is a function that generates an action for a creature during each turn. */
-export type Behavior = (creature: Creature, world: World) => Action
+/**
+ * A behavior is a function that generates an action for a creature during each turn. If a
+ * behavior returns undefined, it will be treated as a noop for the turn.
+ **/
+export type Behavior = (creature: Creature, world: World) => Action | undefined
 
 const isValidMove = (creature: Creature, world: World) => ([x, y]: [number, number]) =>
   world.map.isTraversable(creature.x + x, creature.y + y)
+
+/** Behavior that initiates an attack against the player, if the player is adjacent */
+export const AttackAdjacentPlayerBehavior: Behavior = (creature, world) => {
+  const player = world.player
+
+  if (creature.y === player.y && Math.abs(creature.x - player.x) < 2) {
+    // on same row and no more than one tile distant
+    return AttackAction(player.id)
+  } else if (creature.x === player.x && Math.abs(creature.y - player.y) < 2) {
+    // on same column and no more than one tile distant
+    return AttackAction(player.id)
+  }
+
+  return undefined
+}
 
 /** Behavior that causes a creature to make a random valid move each turn, if able */
 export const MoveRandomlyBehavior: Behavior = (creature, world) => {
