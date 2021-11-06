@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { AttackAction } from 'engine/actions/attack'
 import { MoveByAction } from 'engine/actions/move-by'
 import { Action } from 'engine/types'
@@ -222,7 +223,8 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
               content: 'The Bazzle',
               rightContent: '0 / 3 / 1',
             },
-          ]}>
+          ]}
+        >
         </ListPanel>
 
         <Panel columns={SidebarColumns} rows={8}>

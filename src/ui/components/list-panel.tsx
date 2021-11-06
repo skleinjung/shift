@@ -1,6 +1,7 @@
 import { map as mapS } from 'lodash'
-import { compact, flow, isString, join } from 'lodash/fp'
-import { useState } from 'react'
+import { compact, flow, isString, join, noop } from 'lodash/fp'
+import { useCallback, useState } from 'react'
+import { useKeyHandler } from 'ui/hooks/use-key-handler'
 
 import { Panel, PanelProps } from './panel'
 
@@ -36,6 +37,12 @@ export interface ListPanelProps extends PanelProps {
    **/
   items: (ListItem | string)[]
 
+  /** called when the user selects an item, but has not confirmed */
+  onItemSelected?: (item: string) => void
+
+  /** called when a user confirms a selection, with 'enter' or clciking */
+  onSelectionConfirmed?: (itemId: string) => void
+
   /** Optional title to display in a fixed position above the scrolling list. */
   title?: string
 }
@@ -43,10 +50,41 @@ export interface ListPanelProps extends PanelProps {
 export const ListPanel = ({
   allowSelection,
   items,
+  onItemSelected = noop,
+  onSelectionConfirmed = noop,
   ...rest
 }: ListPanelProps) => {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [selectedIndex, setSelectedIndex] = useState(0)
+
+  const select = useCallback((index: number) => {
+    const selection = getId(items[index])
+    if (selection !== undefined) {
+      onItemSelected(selection)
+    }
+
+    setSelectedIndex(index)
+  }, [items, onItemSelected])
+
+  const moveSelectionUp = useCallback(() => {
+    select(selectedIndex === 0 ? items.length - 1 : selectedIndex - 1)
+  }, [items.length, select, selectedIndex])
+
+  const moveSelectionDown = useCallback(() => {
+    select((selectedIndex + 1) % items.length)
+  }, [items.length, select, selectedIndex])
+
+  const confirmSelection = useCallback(() => {
+    const selection = getId(items[selectedIndex])
+    if (selection !== undefined) {
+      onSelectionConfirmed(selection)
+    }
+  }, [items, onSelectionConfirmed, selectedIndex])
+
+  const handleKeyDown = useKeyHandler({
+    ArrowUp: moveSelectionUp,
+    ArrowDown: moveSelectionDown,
+    Enter: confirmSelection,
+  })
 
   const createRow = (item: string | ListItem, index: number) => {
     const rightContent = getRightContent(item)
@@ -69,7 +107,9 @@ export const ListPanel = ({
   }
 
   return (
-    <Panel {...rest}>
+    <Panel {...rest}
+      onKeyDown={handleKeyDown}
+    >
       {mapS(items, createRow)}
     </Panel>
   )
