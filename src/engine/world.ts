@@ -18,7 +18,6 @@ export class World extends TypedEventEmitter<WorldEvents> {
   // all player-readable log messages from this game
   private _messages: string[] = []
 
-  private _nextCreatureId = 0
   private _player: Creature
   private _playerAction: Action
 
@@ -80,7 +79,7 @@ export class World extends TypedEventEmitter<WorldEvents> {
    */
   public spawn (creatureTypeId: string, xLocation: number, yLocation: number) {
     const type = CreatureTypes[creatureTypeId]
-    const creature = new Creature(this._nextCreatureId++, type, xLocation, yLocation, this.map)
+    const creature = new Creature(type, xLocation, yLocation, this.map)
     this.creatures[creature.id] = creature
 
     creature.on('attack', this._logAttack.bind(this))

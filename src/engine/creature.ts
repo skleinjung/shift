@@ -1,4 +1,5 @@
 import { CreatureType } from 'db/creatures'
+import { Container } from 'pixi.js'
 import { TypedEventEmitter } from 'typed-event-emitter'
 
 import {
@@ -12,6 +13,7 @@ import {
 } from './combat'
 import { CreatureEvents } from './events'
 import { ExpeditionMap } from './map'
+import { newId } from './new-id'
 import { Actor, Combatant, Damageable, EventSource, Moveable } from './types'
 import { World } from './world'
 
@@ -25,9 +27,12 @@ export class Creature extends TypedEventEmitter<CreatureEvents> implements
   Moveable,
   EventSource<CreatureEvents> {
   private _health: number
+  private _id = newId()
+
+  /** inventory of items held by this creature */
+  public readonly inventory = new Container()
 
   constructor (
-    private _id: number,
     private _type: CreatureType,
     private _x: number,
     private _y: number,
