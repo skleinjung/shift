@@ -33,11 +33,11 @@ export class World extends TypedEventEmitter<WorldEvents> {
 
     const spear = createWeapon('+100 spear', 100)
     this._player.inventory.add(spear)
-    this._player.equip(spear)
+    // this._player.equip(spear)
 
     const armor = createArmor('amazing, glowing armor', 100)
     this._player.inventory.add(armor)
-    this._player.equip(armor)
+    // this._player.equip(armor)
 
     this.spawn('kobold', -20, 0)
     this.spawn('kobold', -22, 0)

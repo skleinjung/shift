@@ -1,10 +1,12 @@
-import { CreatureAttributes, CreatureAttributeSet } from 'engine/creature'
-import { Player as PlayerEntity } from 'engine/player'
+import { Container } from 'engine/container'
+import { CreatureAttributes, CreatureAttributeSet, Creature as PlayerEntity } from 'engine/creature'
 import { Damageable, Entity, Positionable } from 'engine/types'
 import { pick } from 'lodash/fp'
 import { atom } from 'recoil'
 
-export type Player = Pick<Damageable, 'dead'> & Entity & CreatureAttributeSet & Positionable
+export type Player = Pick<Damageable, 'dead'> & Entity & CreatureAttributeSet & Positionable & {
+  inventory: Container
+}
 
 export const emptyPlayer = (): Player => ({
   dead: false,
@@ -12,6 +14,7 @@ export const emptyPlayer = (): Player => ({
   health: 0,
   healthMax: 0,
   id: -1,
+  inventory: new Container({ name: 'empty-inventory' }),
   melee: 0,
   name: 'Unknown Hero',
   x: 0,
@@ -28,6 +31,7 @@ export const fromEntity = (player: PlayerEntity): Player => {
     ...CreatureAttributes,
     'dead',
     'id',
+    'inventory',
     'name',
     'x',
     'y',
