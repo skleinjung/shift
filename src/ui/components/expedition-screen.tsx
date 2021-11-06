@@ -1,16 +1,20 @@
 /* eslint-disable max-len */
-import { useKeyHandler } from 'hooks/use-key-handler'
+import { AttackAction } from 'engine/actions/attack'
+import { MoveByAction } from 'engine/actions/move-by'
+import { Action } from 'engine/types'
+import { World } from 'engine/world'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRecoilState, useRecoilValue, useResetRecoilState, useSetRecoilState } from 'recoil'
-import { endTurn, expeditionState, InitialLinkValue, isExpeditionComplete } from 'state/expedition'
-import { gameState, pause, unpause } from 'state/game'
-import { playerState } from 'state/player'
-import { Action, AttackAction, MoveByAction } from 'world/actions'
-import { World } from 'world/world'
+import { useKeyHandler } from 'ui/hooks/use-key-handler'
+import { endTurn, expeditionState, isExpeditionComplete } from 'ui/state/expedition'
+import { gameState, pause, unpause } from 'ui/state/game'
+import { playerState } from 'ui/state/player'
 
 import { ScreenName } from './app'
+import { LogPanel } from './log-panel'
 import { MapPanel } from './map-panel'
 import { Panel } from './panel'
+import { PlayerStatusPanel } from './player-status-panel'
 import { PopupMenu } from './popup-menu'
 import { PreFormattedText } from './pre-formatted-text'
 
@@ -21,21 +25,6 @@ const SidebarColumns = 30
 export interface ExpeditionScreenProps {
   /** function that allows inter-screen navigation */
   navigateTo: (screen: ScreenName) => void
-}
-
-const PlayerStatusPanel = () => {
-  const expedition = useRecoilValue(expeditionState)
-  const player = useRecoilValue(playerState)
-
-  const status = `Health: ${player.health}/${player.healthMax}
-Link  : ${Math.floor(expedition.link / InitialLinkValue * 100)}%
-Turn  : ${expedition.turn}`
-
-  return (
-    <Panel columns={SidebarColumns} rows={3}>
-      <PreFormattedText>{status}</PreFormattedText>
-    </Panel>
-  )
 }
 
 export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
@@ -144,9 +133,9 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
       const player = world.current.player
       const creatureId = world.current.map.getCreatureId(player.x + x, player.y + y)
       if (creatureId === undefined) {
-        executeTurn(MoveByAction(x, y))
+        executeTurn(MoveByAction(player, x, y))
       } else {
-        executeTurn(AttackAction(creatureId))
+        executeTurn(AttackAction(player, world.current.creatures[creatureId]))
       }
     }
   }, [executeTurn, game.paused])
@@ -191,15 +180,21 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
       <div className="sidebar">
         <PlayerStatusPanel />
 
+        <Panel columns={SidebarColumns} rows={5}>
+          <PreFormattedText>{`You attack kobold!
+
+🗡️ x5: 2  1  0  1  0  1
+🛡️ x3: 0  1  0
+💔 -2
+
+🛡️ x3 - 0  1  0`}</PreFormattedText>
+        </Panel>
+
         <Panel columns={SidebarColumns}>
           Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam porta ac diam at facilisis. Interdum et malesuada fames ac ante ipsum primis in faucibus. Praesent bibendum auctor congue. Morbi a dapibus tortor. Quisque in faucibus justo, sit amet vehicula lectus. Maecenas pellentesque tincidunt lectus, in convallis ipsum ullamcorper nec. Nulla fermentum aliquam eros, ut molestie massa venenatis at. Nulla faucibus tempus metus, et faucibus ipsum volutpat eget. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Morbi et nulla non enim euismod gravida sit amet ut dui. Nulla et eros eget nisi consequat tincidunt. Praesent mollis dui congue dignissim venenatis. Curabitur est nulla, eleifend ut orci eget, porttitor lobortis lorem. Vivamus turpis magna, pulvinar sed dolor vel, congue aliquet turpis. Pellentesque dictum sollicitudin gravida. Ut a est sed tortor pretium tempus. Morbi eget scelerisque orci. In rutrum odio est, eu faucibus massa viverra ut. Fusce convallis iaculis cursus. Proin sed neque a dui vehicula faucibus. Praesent sit amet bibendum sapien, ultrices sagittis sapien. Etiam facilisis dapibus orci eget aliquet. Nam congue porttitor varius. Integer maximus arcu id ullamcorper placerat. Donec quis egestas mi, at ultricies dolor. Mauris rutrum urna sed eros consequat semper. Aliquam tincidunt in elit at feugiat. Morbi et lorem congue, facilisis mi ac, fringilla enim. Cras aliquam lacus ut augue porttitor pulvinar. Fusce in lectus turpis. Donec consectetur enim quis blandit sagittis. Mauris interdum lectus nisi, vel rhoncus turpis laoreet sed. Sed egestas finibus tempor. Nullam rutrum dapibus turpis, ut vehicula justo vehicula in. Praesent eu augue fermentum, malesuada ex et, vestibulum nulla. Duis condimentum rutrum velit non aliquam. Donec maximus nisi metus, et vehicula nisi aliquet non. Curabitur arcu neque, tempor nec ipsum id, imperdiet sollicitudin neque. Praesent bibendum tristique dapibus. Morbi aliquet fringilla mauris, sed sodales risus porttitor nec. Quisque bibendum tincidunt dolor, vitae faucibus neque scelerisque id. Proin ut consequat ligula. Quisque rhoncus augue at libero ultrices, non imperdiet lorem laoreet. Donec tempor tempor sem condimentum ornare. Curabitur elementum sollicitudin convallis. Integer et laoreet arcu, laoreet laoreet turpis. Aenean sit amet nibh ut nisi suscipit laoreet vitae et odio. Duis aliquet commodo ligula porttitor fermentum. Maecenas convallis molestie nulla, nec rhoncus tortor suscipit sed. Pellentesque eu erat ut nisl pretium interdum. Nulla sagittis, neque at faucibus luctus, tortor ligula laoreet mi, at efficitur justo mauris eu sem. Praesent blandit volutpat quam, facilisis bibendum enim pharetra a. Vestibulum eu euismod urna.
         </Panel>
 
-        <Panel columns={SidebarColumns} rows={10}>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam porta ac diam at facilisis. Interdum et malesuada fames ac ante ipsum primis in faucibus. Praesent bibendum auctor congue. Morbi a dapibus tortor. Quisque in faucibus justo, sit amet vehicula lectus. Maecenas pellentesque tincidunt lectus, in convallis ipsum ullamcorper nec. Nulla fermentum aliquam eros, ut molestie massa venenatis at. Nulla faucibus tempus metus, et faucibus ipsum volutpat eget. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Morbi et nulla non enim euismod gravida sit amet ut dui. Nulla et eros eget nisi consequat tincidunt. Praesent mollis dui congue dignissim venenatis. Curabitur est nulla, eleifend ut orci eget, porttitor lobortis lorem. Vivamus turpis magna, pulvinar sed dolor vel, congue aliquet turpis. Pellentesque dictum sollicitudin gravida. Ut a est sed tortor pretium tempus. Morbi eget scelerisque orci. In rutrum odio est, eu faucibus massa viverra ut. Fusce convallis iaculis cursus. Proin sed neque a dui vehicula faucibus. Praesent sit amet bibendum sapien, ultrices sagittis sapien. Etiam facilisis dapibus orci eget aliquet. Nam congue porttitor varius. Integer maximus arcu id ullamcorper placerat. Donec quis egestas mi, at ultricies dolor. Mauris rutrum urna sed eros consequat semper. Aliquam tincidunt in elit at feugiat. Morbi et lorem congue, facilisis mi ac, fringilla enim. Cras aliquam lacus ut augue porttitor pulvinar. Fusce in lectus turpis. Donec consectetur enim quis blandit sagittis. Mauris interdum lectus nisi, vel rhoncus turpis laoreet sed. Sed egestas finibus tempor. Nullam rutrum dapibus turpis, ut vehicula justo vehicula in. Praesent eu augue fermentum, malesuada ex et, vestibulum nulla. Duis condimentum rutrum velit non aliquam. Donec maximus nisi metus, et vehicula nisi aliquet non. Curabitur arcu neque, tempor nec ipsum id, imperdiet sollicitudin neque. Praesent bibendum tristique dapibus. Morbi aliquet fringilla mauris, sed sodales risus porttitor nec. Quisque bibendum tincidunt dolor, vitae faucibus neque scelerisque id. Proin ut consequat ligula. Quisque rhoncus augue at libero ultrices, non imperdiet lorem laoreet. Donec tempor tempor sem condimentum ornare. Curabitur elementum sollicitudin convallis. Integer et laoreet arcu, laoreet laoreet turpis. Aenean sit amet nibh ut nisi suscipit laoreet vitae et odio. Duis aliquet commodo ligula porttitor fermentum. Maecenas convallis molestie nulla, nec rhoncus tortor suscipit sed. Pellentesque eu erat ut nisl pretium interdum. Nulla sagittis, neque at faucibus luctus, tortor ligula laoreet mi, at efficitur justo mauris eu sem. Praesent blandit volutpat quam, facilisis bibendum enim pharetra a. Vestibulum eu euismod urna.
-        </Panel>
-
-        <Panel columns={SidebarColumns} rows={5}>
+        <Panel columns={SidebarColumns} rows={8}>
           Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam porta ac diam at facilisis. Interdum et malesuada fames ac ante ipsum primis in faucibus. Praesent bibendum auctor congue. Morbi a dapibus tortor. Quisque in faucibus justo, sit amet vehicula lectus. Maecenas pellentesque tincidunt lectus, in convallis ipsum ullamcorper nec. Nulla fermentum aliquam eros, ut molestie massa venenatis at. Nulla faucibus tempus metus, et faucibus ipsum volutpat eget. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Morbi et nulla non enim euismod gravida sit amet ut dui. Nulla et eros eget nisi consequat tincidunt. Praesent mollis dui congue dignissim venenatis. Curabitur est nulla, eleifend ut orci eget, porttitor lobortis lorem. Vivamus turpis magna, pulvinar sed dolor vel, congue aliquet turpis. Pellentesque dictum sollicitudin gravida. Ut a est sed tortor pretium tempus. Morbi eget scelerisque orci. In rutrum odio est, eu faucibus massa viverra ut. Fusce convallis iaculis cursus. Proin sed neque a dui vehicula faucibus. Praesent sit amet bibendum sapien, ultrices sagittis sapien. Etiam facilisis dapibus orci eget aliquet. Nam congue porttitor varius. Integer maximus arcu id ullamcorper placerat. Donec quis egestas mi, at ultricies dolor. Mauris rutrum urna sed eros consequat semper. Aliquam tincidunt in elit at feugiat. Morbi et lorem congue, facilisis mi ac, fringilla enim. Cras aliquam lacus ut augue porttitor pulvinar. Fusce in lectus turpis. Donec consectetur enim quis blandit sagittis. Mauris interdum lectus nisi, vel rhoncus turpis laoreet sed. Sed egestas finibus tempor. Nullam rutrum dapibus turpis, ut vehicula justo vehicula in. Praesent eu augue fermentum, malesuada ex et, vestibulum nulla. Duis condimentum rutrum velit non aliquam. Donec maximus nisi metus, et vehicula nisi aliquet non. Curabitur arcu neque, tempor nec ipsum id, imperdiet sollicitudin neque. Praesent bibendum tristique dapibus. Morbi aliquet fringilla mauris, sed sodales risus porttitor nec. Quisque bibendum tincidunt dolor, vitae faucibus neque scelerisque id. Proin ut consequat ligula. Quisque rhoncus augue at libero ultrices, non imperdiet lorem laoreet. Donec tempor tempor sem condimentum ornare. Curabitur elementum sollicitudin convallis. Integer et laoreet arcu, laoreet laoreet turpis. Aenean sit amet nibh ut nisi suscipit laoreet vitae et odio. Duis aliquet commodo ligula porttitor fermentum. Maecenas convallis molestie nulla, nec rhoncus tortor suscipit sed. Pellentesque eu erat ut nisl pretium interdum. Nulla sagittis, neque at faucibus luctus, tortor ligula laoreet mi, at efficitur justo mauris eu sem. Praesent blandit volutpat quam, facilisis bibendum enim pharetra a. Vestibulum eu euismod urna.
         </Panel>
       </div>
@@ -212,6 +207,8 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
             onViewportSizeChanged={handleViewportResize}
             world={world.current}
           />
+
+          <LogPanel world={world.current} />
         </div>
       }
 

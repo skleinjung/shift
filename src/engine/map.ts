@@ -1,7 +1,6 @@
 import { Terrain, TerrainType } from 'db/terrain'
 import { selector } from 'recoil'
-
-import { playerState } from '../state/player'
+import { playerState } from 'ui/state/player'
 
 import { Creature } from './creature'
 

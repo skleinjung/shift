@@ -1,12 +1,12 @@
 import { Renderable } from 'db/renderable'
-import { snakeCase, toLower } from 'lodash/fp'
 import {
   AttackAdjacentPlayerBehavior,
   Behavior,
   CompoundBehavior,
   MoveRandomlyBehavior,
   PlayerBehavior,
-} from 'world/behavior'
+} from 'engine/behavior'
+import { snakeCase, toLower } from 'lodash/fp'
 
 export type CreatureType = Readonly<Renderable & {
   /** behavior used to determine this creature's actions */
