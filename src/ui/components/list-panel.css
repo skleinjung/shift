@@ -1,0 +1,26 @@
+.list-panel-row {
+  cursor: pointer;
+  display: flex;
+  flex-direction: row;
+}
+
+.list-panel-row.selectable:before {
+  content: '\00a0\00a0';
+}
+
+.list-panel-row.selectable.selected:before {
+  content: '>\00a0';
+}
+
+.list-panel-row.selected {
+  color: #aa0;
+}
+
+.list-panel-left {
+  flex: 1 1;
+  justify-self: flex-start;
+}
+
+.list-panel-right {
+  justify-self: flex-end;
+}

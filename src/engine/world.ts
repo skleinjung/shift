@@ -8,6 +8,7 @@ import { AttackResult } from './combat'
 import { createPrototypeTerrain } from './create-prototype-terrain'
 import { Creature } from './creature'
 import { WorldEvents } from './events'
+import { Item } from './item'
 import { ExpeditionMap } from './map'
 import { Action } from './types'
 
@@ -18,7 +19,6 @@ export class World extends TypedEventEmitter<WorldEvents> {
   // all player-readable log messages from this game
   private _messages: string[] = []
 
-  private _nextCreatureId = 0
   private _player: Creature
   private _playerAction: Action
 
@@ -28,6 +28,9 @@ export class World extends TypedEventEmitter<WorldEvents> {
     createPrototypeTerrain(this.map)
     this._player = this.spawn('player', 0, 0)
     this._playerAction = NoopAction
+    this._player.inventory.add(new Item('a coconut'))
+    this._player.inventory.add(new Item('+1 spear'))
+    this._player.inventory.add(new Item('hopes and dreams'))
 
     this.spawn('kobold', -20, 0)
     this.spawn('kobold', -22, 0)
@@ -80,7 +83,7 @@ export class World extends TypedEventEmitter<WorldEvents> {
    */
   public spawn (creatureTypeId: string, xLocation: number, yLocation: number) {
     const type = CreatureTypes[creatureTypeId]
-    const creature = new Creature(this._nextCreatureId++, type, xLocation, yLocation, this.map)
+    const creature = new Creature(type, xLocation, yLocation, this.map)
     this.creatures[creature.id] = creature
 
     creature.on('attack', this._logAttack.bind(this))

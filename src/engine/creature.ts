@@ -10,8 +10,10 @@ import {
   getCombatRollResult,
   PendingAttack,
 } from './combat'
+import { Container } from './container'
 import { CreatureEvents } from './events'
 import { ExpeditionMap } from './map'
+import { newId } from './new-id'
 import { Actor, Combatant, Damageable, EventSource, Moveable } from './types'
 import { World } from './world'
 
@@ -25,9 +27,12 @@ export class Creature extends TypedEventEmitter<CreatureEvents> implements
   Moveable,
   EventSource<CreatureEvents> {
   private _health: number
+  private _id = newId()
+
+  /** inventory of items held by this creature */
+  public readonly inventory: Container
 
   constructor (
-    private _id: number,
     private _type: CreatureType,
     private _x: number,
     private _y: number,
@@ -40,6 +45,7 @@ export class Creature extends TypedEventEmitter<CreatureEvents> implements
     }
 
     this._health = this._type.healthMax
+    this.inventory = new Container(`inv_creature_${this._id}`)
     this._map.setCreatureId(this._x, this._y, this.id)
   }
 

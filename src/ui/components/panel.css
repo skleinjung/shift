@@ -4,10 +4,16 @@
   align-content: stretch;
   flex: 0;
   margin: 8px 0;
+  padding: 1px;
+  color: #aaa;
 }
+.container:focus { outline: none; }
 
 .container.active {
-  border-color: #999;
+  border-width: 2px;
+  border-color: #660;
+  padding: 0;
+  color: #fff;
 }
 
 .content {
