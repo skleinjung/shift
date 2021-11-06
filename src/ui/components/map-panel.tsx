@@ -10,7 +10,7 @@ import { playerState } from 'ui/state/player'
 
 import { FontNames } from '../fonts'
 
-import { Panel } from './panel'
+import { Panel, PanelProps } from './panel'
 
 // Apply the patch to PIXI
 install({ ShaderSystem })
@@ -52,7 +52,7 @@ interface ViewportSize {
   height: number
 }
 
-export interface MapPanelProps {
+export interface MapPanelProps extends Omit<PanelProps, 'columns' | 'rows'> {
   /** y-coordinate of the viewport center; (default: 0) */
   centerY?: number
 
@@ -106,6 +106,7 @@ export const MapPanel = ({
   centerY = 0,
   onViewportSizeChanged = noop,
   world,
+  ...panelProps
 }: MapPanelProps) => {
   const timeSinceScrollRef = useRef<number>(0)
   const mapCellsRef = useRef<RenderCell[][]>([])
@@ -217,7 +218,7 @@ export const MapPanel = ({
   }, [initializePixiApp, initializeResizeListener])
 
   return (<>
-    <Panel>
+    <Panel {...panelProps}>
       <div
         className="map-canvas"
         style={{ flex: 1, height: '100%' }}

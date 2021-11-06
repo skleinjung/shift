@@ -22,6 +22,13 @@ import './expedition-screen.css'
 
 const SidebarColumns = 30
 
+enum SelectablePanels {
+  Information = 0,
+  Map,
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  __LENGTH,
+}
+
 export interface ExpeditionScreenProps {
   /** function that allows inter-screen navigation */
   navigateTo: (screen: ScreenName) => void
@@ -30,6 +37,7 @@ export interface ExpeditionScreenProps {
 export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
   const world = useRef<World | null>()
   const [ready, setReady] = useState(false)
+  const [activePanel, setActivePanel] = useState<SelectablePanels>(SelectablePanels.Map)
 
   const resetExpedition = useResetRecoilState(expeditionState)
   const resetGame = useResetRecoilState(gameState)
@@ -161,6 +169,7 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
     ArrowRight: executePlayerMove(1, 0),
     ArrowUp: executePlayerMove(0, -1),
     Escape: handlePause,
+    Tab: () => setActivePanel((current) => (current + 1) % SelectablePanels.__LENGTH),
   })
 
   useEffect(() => {
@@ -194,6 +203,7 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
         </Panel>
 
         <ListPanel
+          active={activePanel === SelectablePanels.Information}
           allowSelection={true}
           columns={SidebarColumns}
           items={[
@@ -215,6 +225,7 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
       {world.current &&
         <div className="main-content">
           <MapPanel
+            active={activePanel === SelectablePanels.Map}
             centerX={viewportCenter.x}
             centerY={viewportCenter.y}
             onViewportSizeChanged={handleViewportResize}
