@@ -1,4 +1,5 @@
 .list-panel-row {
+  cursor: pointer;
   display: flex;
   flex-direction: row;
 }

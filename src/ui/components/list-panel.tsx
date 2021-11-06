@@ -73,17 +73,27 @@ export const ListPanel = ({
     select((selectedIndex + 1) % items.length)
   }, [items.length, select, selectedIndex])
 
-  const confirmSelection = useCallback(() => {
-    const selection = getId(items[selectedIndex])
+  const confirmSelection = useCallback((index: number) => {
+    const selection = getId(items[index])
     if (selection !== undefined) {
       onSelectionConfirmed(selection)
     }
-  }, [items, onSelectionConfirmed, selectedIndex])
+    setSelectedIndex(index)
+  }, [items, onSelectionConfirmed])
+
+  const handleClick = useCallback((index: number) => () => {
+    select(index)
+    confirmSelection(index)
+  }, [confirmSelection, select])
+
+  const handleEnterKey = useCallback(() => {
+    confirmSelection(selectedIndex)
+  }, [confirmSelection, selectedIndex])
 
   const handleKeyDown = useKeyHandler({
     ArrowUp: moveSelectionUp,
     ArrowDown: moveSelectionDown,
-    Enter: confirmSelection,
+    Enter: handleEnterKey,
   })
 
   const createRow = (item: string | ListItem, index: number) => {
@@ -99,7 +109,10 @@ export const ListPanel = ({
     ])
 
     return (
-      <div key={getId(item)} className={classes}>
+      <div key={getId(item)}
+        className={classes}
+        onClick={handleClick(index)}
+      >
         <div className="list-panel-left">{getLeftContent(item)}</div>
         {rightContent && <div className="list-panel-right">{rightContent}</div> }
       </div>

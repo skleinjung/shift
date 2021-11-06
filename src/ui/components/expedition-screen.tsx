@@ -61,6 +61,10 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
     setReady(true)
   }, [resetExpedition, resetGame, resetPlayer])
 
+  const handleActivatePanel = useCallback((panel: SelectablePanels) => () => {
+    setActivePanel(panel)
+  }, [])
+
   const handleEscape = useCallback(() => {
     if (game.paused) {
       updateGame(unpause)
@@ -224,6 +228,7 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
               rightContent: '0 / 3 / 1',
             },
           ]}
+          onClick={handleActivatePanel(SelectablePanels.Information)}
         >
         </ListPanel>
 
@@ -238,6 +243,7 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
             active={activePanel === SelectablePanels.Map && !game.paused}
             centerX={viewportCenter.x}
             centerY={viewportCenter.y}
+            onClick={handleActivatePanel(SelectablePanels.Map)}
             onKeyDown={mapKeyHandler}
             onViewportSizeChanged={handleViewportResize}
             world={world.current}
