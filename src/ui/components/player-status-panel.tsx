@@ -13,10 +13,10 @@ export const PlayerStatusPanel = (props: Omit<PanelProps, 'rows'>) => {
 Health : ${player.health}/${player.healthMax}
 Link   : ${Math.floor(expedition.link / InitialLinkValue * 100)}%
 
+Defense: WRONG!
 Melee  : ${player.melee}
 Missile: 1?
 Focus  : 1?
-
 Turn   : ${expedition.turn}
 `
 

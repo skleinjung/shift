@@ -13,11 +13,41 @@ import {
 } from './combat'
 import { Container } from './container'
 import { CreatureEvents } from './events'
-import { EquipmentEffects, EquipmentSet, EquipmentSlot, Item } from './item'
+import { EquipmentSet, EquipmentSlot, Item } from './item'
 import { ExpeditionMap } from './map'
 import { newId } from './new-id'
 import { Actor, Combatant, Damageable, EventSource, Moveable } from './types'
 import { World } from './world'
+
+/** Set of names for all numeric attributes of a Creature. */
+export const CreatureAttributes = [
+  'defense',
+  'health',
+  'healthMax',
+  'melee',
+] as const
+
+/** Union type equal to the names of all numeric creature attributes. */
+export type CreatureAttributeName = (typeof CreatureAttributes)[number]
+
+type CreatureAttributeModifierMethodName = `modify${Capitalize<CreatureAttributeName>}`
+
+/** Object type that has a numeric value for all CreatureAttributes. Implemented by Creature. */
+export type CreatureAttributeSet = { [k in CreatureAttributeName]: number }
+
+/**
+ * Type that defines an optional 'attribute modifier' method for every numeric attribute that a Creature
+ * has. An 'attribute modifier' method is a method that takes a base value for an attribute and the
+ * creature being modified, and returns a new value for the modifier. This is used by equipment and
+ * status effects to modify the attributes of a creature.
+ *
+ * @param value original value of the attribute
+ * @param creature creature being affected, in case its properties affect the modification
+ * @return new attribute value, or the original value if it should not be changed
+ */
+export type CreatureAttributeModifiers = {
+  [k in CreatureAttributeModifierMethodName]?: (value: number, creature: Creature) => number
+}
 
 /**
  * A Creature is an Actor subtype that specifically represents a living being.
@@ -25,6 +55,7 @@ import { World } from './world'
 export class Creature extends TypedEventEmitter<CreatureEvents> implements
   Actor,
   Combatant,
+  CreatureAttributeSet,
   Damageable,
   Moveable,
   EventSource<CreatureEvents> {
@@ -52,18 +83,30 @@ export class Creature extends TypedEventEmitter<CreatureEvents> implements
     this._map.setCreatureId(this._x, this._y, this.id)
   }
 
+  public get type () {
+    return this._type
+  }
+
+  /// ////////////////////////////////////////////
+  // CreatureAttributeSet
+
   /** the creatures total defense stat, with modifiers */
   public get defense () {
-    return this._type.defense + this._getEquipmentModifier('defenseModifier')
+    return this._getModifiedAttribute(this._type.defense, 'modifyDefense')
+  }
+
+  /** creature's current health */
+  public get health () {
+    return this._getModifiedAttribute(this._health, 'modifyHealth')
+  }
+
+  public get healthMax () {
+    return this._getModifiedAttribute(this._type.healthMax, 'modifyHealthMax')
   }
 
   /** the creatures total melee stat, with modifiers */
   public get melee () {
-    return this._type.melee + this._getEquipmentModifier('meleeModifier')
-  }
-
-  public get type () {
-    return this._type
+    return this._getModifiedAttribute(this._type.melee, 'modifyMelee')
   }
 
   /// ////////////////////////////////////////////
@@ -187,10 +230,7 @@ export class Creature extends TypedEventEmitter<CreatureEvents> implements
     return this._health < 1
   }
 
-  /** creature's current health */
-  public get health () {
-    return this._health
-  }
+  // health: See CreatureAttributeSet methods, above
 
   /**
    * Assign a specified amount of damage to this creature.
@@ -239,26 +279,21 @@ export class Creature extends TypedEventEmitter<CreatureEvents> implements
     return true
   }
 
-  private get _equipmentEffects () {
-    return flow(
-      map((equipment: Item) => equipment.equipmentEffects),
+  private _getModifiedAttribute (baseValue: number, modifierName: CreatureAttributeModifierMethodName) {
+    const getAttributeModifiers = (equippedItem: Item) => equippedItem.equipmentEffects?.attributeModifiers
+
+    const modifierSets = flow(
+      map(getAttributeModifiers),
       compact
     )(values(this.equipment))
-  }
-
-  /**
-  * Gets the total modifier of a given type for the equipment worn by this creature.
-  */
-  private _getEquipmentModifier = (type: keyof EquipmentEffects) => {
-    const modifierFunctions = flow(
-      map((effects: EquipmentEffects) => effects[type]),
-      compact
-    )(this._equipmentEffects)
 
     return reduce(
-      (result, modifierFunction) => result + modifierFunction(this),
-      0,
-      modifierFunctions
+      (result, modifierSet) => {
+        const modifier = modifierSet[modifierName]
+        return modifier === undefined ? result : modifier(result, this)
+      },
+      baseValue,
+      modifierSets
     )
   }
 }

@@ -1,6 +1,6 @@
 import { findIndex } from 'lodash/fp'
 
-import { Creature } from './creature'
+import { CreatureAttributeModifiers } from './creature'
 import { newId } from './new-id'
 import { Entity } from './types'
 
@@ -14,15 +14,7 @@ export type EquipmentSlot = (typeof EquipmentSlots)[number]
 export type EquipmentSet = Partial<Record<EquipmentSlot, Item>>
 
 export interface EquipmentEffects {
-  /**
-   * Optional method that returns a modifier to the wearer's "defense" score.
-   **/
-  defenseModifier?: (wearer: Creature) => number
-
-  /**
-   * Optional method that returns a modifier to the wearer's "melee" score.
-   **/
-  meleeModifier?: (wearer: Creature) => number
+  attributeModifiers?: CreatureAttributeModifiers
 }
 
 export interface ItemOptions {
@@ -83,7 +75,9 @@ export const createWeapon = (name: string, meleeBonus = 0) =>
   new Item({
     equipment: {
       effects: {
-        meleeModifier: () => meleeBonus,
+        attributeModifiers: {
+          modifyMelee: (value) => value + meleeBonus,
+        },
       },
       slots: ['MainHand', 'OffHand'],
     },
@@ -95,7 +89,9 @@ export const createArmor = (name: string, defenseBonus = 0) =>
   new Item({
     equipment: {
       effects: {
-        defenseModifier: () => defenseBonus,
+        attributeModifiers: {
+          modifyDefense: (value) => value + defenseBonus,
+        },
       },
       slots: ['Body'],
     },
