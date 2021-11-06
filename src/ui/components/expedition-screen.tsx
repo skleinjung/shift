@@ -4,6 +4,7 @@ import { Action } from 'engine/types'
 import { World } from 'engine/world'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRecoilState, useRecoilValue, useResetRecoilState, useSetRecoilState } from 'recoil'
+import { useGlobalKeyHandler } from 'ui/hooks/use-global-key-handler'
 import { useKeyHandler } from 'ui/hooks/use-key-handler'
 import { endTurn, expeditionState, isExpeditionComplete } from 'ui/state/expedition'
 import { gameState, pause, unpause } from 'ui/state/game'
@@ -59,9 +60,13 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
     setReady(true)
   }, [resetExpedition, resetGame, resetPlayer])
 
-  const handlePause = useCallback(() => {
-    updateGame(pause)
-  }, [updateGame])
+  const handleEscape = useCallback(() => {
+    if (game.paused) {
+      updateGame(unpause)
+    } else {
+      updateGame(pause)
+    }
+  }, [game.paused, updateGame])
 
   const handleUnpause = useCallback(() => {
     updateGame(unpause)
@@ -151,6 +156,13 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
     }
   }, [executeTurn, game.paused])
 
+  const mapKeyHandler = useKeyHandler({
+    ArrowDown: executePlayerMove(0, 1),
+    ArrowLeft: executePlayerMove(-1, 0),
+    ArrowRight: executePlayerMove(1, 0),
+    ArrowUp: executePlayerMove(0, -1),
+  })
+
   const handlePauseMenuSelection = useCallback((item: string) => {
     switch (item) {
       case 'Resume':
@@ -163,12 +175,8 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
     }
   }, [handleUnpause, navigateTo])
 
-  useKeyHandler({
-    ArrowDown: executePlayerMove(0, 1),
-    ArrowLeft: executePlayerMove(-1, 0),
-    ArrowRight: executePlayerMove(1, 0),
-    ArrowUp: executePlayerMove(0, -1),
-    Escape: handlePause,
+  useGlobalKeyHandler({
+    Escape: handleEscape,
     Tab: () => setActivePanel((current) => (current + 1) % SelectablePanels.__LENGTH),
   })
 
@@ -203,7 +211,7 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
         </Panel>
 
         <ListPanel
-          active={activePanel === SelectablePanels.Information}
+          active={activePanel === SelectablePanels.Information && !game.paused}
           allowSelection={true}
           columns={SidebarColumns}
           items={[
@@ -225,9 +233,10 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
       {world.current &&
         <div className="main-content">
           <MapPanel
-            active={activePanel === SelectablePanels.Map}
+            active={activePanel === SelectablePanels.Map && !game.paused}
             centerX={viewportCenter.x}
             centerY={viewportCenter.y}
+            onKeyDown={mapKeyHandler}
             onViewportSizeChanged={handleViewportResize}
             world={world.current}
           />

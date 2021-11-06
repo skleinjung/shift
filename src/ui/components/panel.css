@@ -7,6 +7,7 @@
   padding: 1px;
   color: #aaa;
 }
+.container:focus { outline: none; }
 
 .container.active {
   border-width: 2px;

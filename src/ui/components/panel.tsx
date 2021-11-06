@@ -1,8 +1,12 @@
 import { join } from 'lodash/fp'
-import { PropsWithChildren } from 'react'
+import { HTMLAttributes, PropsWithChildren } from 'react'
+
+import { FocusableDiv } from './focusable-div'
 import './panel.css'
 
-export type PanelProps = PropsWithChildren<{
+type InheritedProps = Omit<HTMLAttributes<HTMLDivElement>, 'className'>
+
+export type PanelProps = InheritedProps & PropsWithChildren<{
   /** indicates if this panel is active -- that is, highlighted and receives input */
   active?: boolean
 
@@ -30,6 +34,7 @@ export const Panel = ({
   columns,
   containerClass,
   rows,
+  ...divProps
 }: PanelProps) => {
   const containerClasses = ['container']
   if (columns === undefined) {
@@ -52,7 +57,10 @@ export const Panel = ({
 
   return (
     <>
-      <div className={join(' ', containerClasses)}>
+      <FocusableDiv {...divProps}
+        className={join(' ', containerClasses)}
+        focused={active}
+      >
         <div
           className={className === undefined ? 'content' : `content ${className}`}
           style={{
@@ -65,7 +73,7 @@ export const Panel = ({
           }}>
           {children}
         </div>
-      </div>
+      </FocusableDiv>
     </>
   )
 }
