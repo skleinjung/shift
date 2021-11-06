@@ -8,7 +8,7 @@ import { useGlobalKeyHandler } from 'ui/hooks/use-global-key-handler'
 import { useKeyHandler } from 'ui/hooks/use-key-handler'
 import { endTurn, expeditionState, isExpeditionComplete } from 'ui/state/expedition'
 import { gameState, pause, unpause } from 'ui/state/game'
-import { playerState } from 'ui/state/player'
+import { fromEntity, playerState } from 'ui/state/player'
 
 import { ScreenName } from './app'
 import { ContainerContentsPanel } from './container-contents-panel'
@@ -17,7 +17,6 @@ import { MapPanel } from './map-panel'
 import { Panel } from './panel'
 import { PlayerStatusPanel } from './player-status-panel'
 import { PopupMenu } from './popup-menu'
-import { PreFormattedText } from './pre-formatted-text'
 
 import './expedition-screen.css'
 
@@ -42,7 +41,6 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
 
   const resetExpedition = useResetRecoilState(expeditionState)
   const resetGame = useResetRecoilState(gameState)
-  const resetPlayer = useResetRecoilState(playerState)
 
   const updateExpedition = useSetRecoilState(expeditionState)
   const updatePlayer = useSetRecoilState(playerState)
@@ -56,9 +54,9 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
     world.current = new World()
     resetExpedition()
     resetGame()
-    resetPlayer()
+    updatePlayer(fromEntity(world.current.player))
     setReady(true)
-  }, [resetExpedition, resetGame, resetPlayer])
+  }, [resetExpedition, resetGame, updatePlayer])
 
   const handleActivatePanel = useCallback((panel: SelectablePanels) => () => {
     setActivePanel(panel)
@@ -132,18 +130,9 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
 
       // update our recoil state based on the new world state
       updateExpedition(endTurn)
-      updatePlayer((player) => {
-        if (world.current) {
-          const worldPlayer = world.current?.player
-          return {
-            ...player,
-            health: worldPlayer.health,
-          }
-        }
+      updatePlayer(fromEntity(world.current.player))
 
-        return player
-      })
-
+      // recenter viewport based on player movement, if needed
       updateViewport(viewportSize, viewportCenter)
     }
   }, [game.paused, updateExpedition, updatePlayer, updateViewport, viewportCenter, viewportSize])
@@ -204,7 +193,7 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
       <div className="sidebar">
         <PlayerStatusPanel />
 
-        <Panel columns={SidebarColumns} rows={5}>
+        {/* <Panel columns={SidebarColumns} rows={5}>
           <PreFormattedText>{`You attack kobold!
 
 🗡️ x5: 2  1  0  1  0  1
@@ -212,7 +201,7 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
 💔 -2
 
 🛡️ x3 - 0  1  0`}</PreFormattedText>
-        </Panel>
+        </Panel> */}
 
         <ContainerContentsPanel
           active={activePanel === SelectablePanels.Information && !game.paused}

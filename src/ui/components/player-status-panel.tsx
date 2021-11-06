@@ -10,18 +10,20 @@ export const PlayerStatusPanel = (props: Omit<PanelProps, 'rows'>) => {
   const player = useRecoilValue(playerState)
 
   const status = `${player.name} - Level X (0/100?)
+
 Health : ${player.health}/${player.healthMax}
 Link   : ${Math.floor(expedition.link / InitialLinkValue * 100)}%
 
-Defense: WRONG!
+Defense: ${player.defense}
 Melee  : ${player.melee}
-Missile: 1?
-Focus  : 1?
+Missile: undefined
+Focus  : undefined
+
 Turn   : ${expedition.turn}
 `
 
   return (
-    <Panel {...props} rows={9}>
+    <Panel {...props} rows={11}>
       <PreFormattedText>{status}</PreFormattedText>
     </Panel>
   )
