@@ -53,6 +53,7 @@ export const ListPanel = ({
   items,
   onItemConsidered = noop,
   onItemSelected = noop,
+  title,
   ...rest
 }: ListPanelProps) => {
   const [selectedIndex, setSelectedIndex] = useState(0)
@@ -110,13 +111,13 @@ export const ListPanel = ({
     ])
 
     return (
-      <div key={getId(item)}
+      <li key={getId(item)}
         className={classes}
         onClick={handleClick(index)}
       >
         <div className="list-panel-left">{getLeftContent(item)}</div>
         {rightContent && <div className="list-panel-right">{rightContent}</div> }
-      </div>
+      </li>
     )
   }
 
@@ -125,7 +126,10 @@ export const ListPanel = ({
       active={active}
       onKeyDown={handleKeyDown}
     >
-      {mapS(items, createRow)}
+      {title && <h2 className="list-panel-title">{title}</h2>}
+      <ul className="list-panel">
+        {mapS(items, createRow)}
+      </ul>
     </Panel>
   )
 }
