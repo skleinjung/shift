@@ -12,6 +12,7 @@ import { fromEntity, playerState } from 'ui/state/player'
 
 import { ScreenName } from './app'
 import { ContainerContentsPanel } from './container-contents-panel'
+import { ListPanel } from './list-panel'
 import { LogPanel } from './log-panel'
 import { MapPanel } from './map-panel'
 import { Panel } from './panel'
@@ -20,13 +21,14 @@ import { PopupMenu } from './popup-menu'
 
 import './expedition-screen.css'
 
-const SidebarColumns = 30
+const SidebarColumns = 45
 
 enum SelectablePanels {
-  Information = 0,
-  Map,
+  Map = 0,
+  Information,
   // eslint-disable-next-line @typescript-eslint/naming-convention
   __LENGTH,
+  Options,
 }
 
 export interface ExpeditionScreenProps {
@@ -190,6 +192,22 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
 
   return (ready && world.current) ? (
     <div className="dungeon-screen">
+      {world.current &&
+        <div className="main-content">
+          <MapPanel
+            active={activePanel === SelectablePanels.Map && !game.paused}
+            centerX={viewportCenter.x}
+            centerY={viewportCenter.y}
+            onClick={handleActivatePanel(SelectablePanels.Map)}
+            onKeyDown={mapKeyHandler}
+            onViewportSizeChanged={handleViewportResize}
+            world={world.current}
+          />
+
+          <LogPanel world={world.current} />
+        </div>
+      }
+
       <div className="sidebar">
         <PlayerStatusPanel />
 
@@ -209,29 +227,21 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
           columns={SidebarColumns}
           container={world.current.player.inventory}
           onClick={handleActivatePanel(SelectablePanels.Information)}
-        >
-        </ContainerContentsPanel>
+          title="Inventory"
+        />
+
+        <ListPanel
+          active={activePanel === SelectablePanels.Options && !game.paused}
+          allowSelection={true}
+          columns={SidebarColumns}
+          items={['Drop', 'Equip', 'Unequip']}
+          rows={3}
+        />
 
         <Panel columns={SidebarColumns} rows={8}>
           Lorem ipsum dolor sit amet.
         </Panel>
       </div>
-
-      {world.current &&
-        <div className="main-content">
-          <MapPanel
-            active={activePanel === SelectablePanels.Map && !game.paused}
-            centerX={viewportCenter.x}
-            centerY={viewportCenter.y}
-            onClick={handleActivatePanel(SelectablePanels.Map)}
-            onKeyDown={mapKeyHandler}
-            onViewportSizeChanged={handleViewportResize}
-            world={world.current}
-          />
-
-          <LogPanel world={world.current} />
-        </div>
-      }
 
       {game.paused ? renderPauseMenu() : null}
     </div>
