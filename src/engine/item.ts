@@ -1,5 +1,6 @@
 import { findIndex } from 'lodash/fp'
 
+import { Creature } from './creature'
 import { newId } from './new-id'
 import { Entity } from './types'
 
@@ -10,11 +11,29 @@ export const EquipmentSlots = [
 ] as const
 export type EquipmentSlot = (typeof EquipmentSlots)[number]
 
-export type Equipment = Partial<Record<EquipmentSlot, Item>>
+export type EquipmentSet = Partial<Record<EquipmentSlot, Item>>
+
+export interface EquipmentEffects {
+  /**
+   * Optional method that returns a modifier to the wearer's "defense" score.
+   **/
+  defenseModifier?: (wearer: Creature) => number
+
+  /**
+   * Optional method that returns a modifier to the wearer's "melee" score.
+   **/
+  meleeModifier?: (wearer: Creature) => number
+}
 
 export interface ItemOptions {
-  /** the slots in which this item can be equipped, which may be an empty list */
-  equipmentSlots?: EquipmentSlot[]
+  /** optional configuration for equippable items */
+  equipment?: {
+    /** the effects on the wearer when this item is equipped */
+    effects?: EquipmentEffects
+
+    /** the slots in which this item can be equipped */
+    slots: EquipmentSlot[]
+  }
 
   /** human-readable name of the item */
   name: string
@@ -31,13 +50,17 @@ export class Item implements Entity {
   /** the slots in which this item can be equipped, which may be an empty list */
   public readonly equipmentSlots: EquipmentSlot[]
 
+  /** the effects of wearing this equipment, which may be undefined */
+  public readonly equipmentEffects: EquipmentEffects | undefined
+
   public readonly name: string
 
   constructor ({
-    equipmentSlots = [],
+    equipment,
     name,
   }: ItemOptions) {
-    this.equipmentSlots = equipmentSlots
+    this.equipmentSlots = equipment?.slots ?? []
+    this.equipmentEffects = equipment?.effects
     this.name = name
   }
 
@@ -51,6 +74,30 @@ export class Item implements Entity {
   }
 }
 
+export class Equippable extends Item {
+
+}
+
 /** Creates an item with default options for a weapon. */
-export const createWeapon = (name: string) =>
-  new Item({ name, equipmentSlots: ['MainHand', 'OffHand'] })
+export const createWeapon = (name: string, meleeBonus = 0) =>
+  new Item({
+    equipment: {
+      effects: {
+        meleeModifier: () => meleeBonus,
+      },
+      slots: ['MainHand', 'OffHand'],
+    },
+    name,
+  })
+
+/** Creates an item with default options for armo. */
+export const createArmor = (name: string, defenseBonus = 0) =>
+  new Item({
+    equipment: {
+      effects: {
+        defenseModifier: () => defenseBonus,
+      },
+      slots: ['Body'],
+    },
+    name,
+  })

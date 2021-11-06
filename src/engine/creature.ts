@@ -1,5 +1,5 @@
 import { CreatureType } from 'db/creatures'
-import { find } from 'lodash/fp'
+import { compact, find, flow, map, reduce, values } from 'lodash/fp'
 import { TypedEventEmitter } from 'typed-event-emitter'
 
 import {
@@ -13,7 +13,7 @@ import {
 } from './combat'
 import { Container } from './container'
 import { CreatureEvents } from './events'
-import { Equipment, EquipmentSlot, Item } from './item'
+import { EquipmentEffects, EquipmentSet, EquipmentSlot, Item } from './item'
 import { ExpeditionMap } from './map'
 import { newId } from './new-id'
 import { Actor, Combatant, Damageable, EventSource, Moveable } from './types'
@@ -30,7 +30,7 @@ export class Creature extends TypedEventEmitter<CreatureEvents> implements
   EventSource<CreatureEvents> {
   private _health: number
   private _id = newId()
-  private _equipment: Equipment = {}
+  private _equipment: EquipmentSet = {}
 
   /** inventory of items held by this creature */
   public readonly inventory: Container
@@ -52,6 +52,16 @@ export class Creature extends TypedEventEmitter<CreatureEvents> implements
     this._map.setCreatureId(this._x, this._y, this.id)
   }
 
+  /** the creatures total defense stat, with modifiers */
+  public get defense () {
+    return this._type.defense + this._getEquipmentModifier('defenseModifier')
+  }
+
+  /** the creatures total melee stat, with modifiers */
+  public get melee () {
+    return this._type.melee + this._getEquipmentModifier('meleeModifier')
+  }
+
   public get type () {
     return this._type
   }
@@ -59,7 +69,7 @@ export class Creature extends TypedEventEmitter<CreatureEvents> implements
   /// ////////////////////////////////////////////
   // Equipment
 
-  public get equipment (): Readonly<Equipment> {
+  public get equipment (): Readonly<EquipmentSet> {
     return this._equipment
   }
 
@@ -137,7 +147,7 @@ export class Creature extends TypedEventEmitter<CreatureEvents> implements
 
   public generateAttack (_target: Attackable): Attack {
     return {
-      roll: getCombatRollResult(this._type.melee),
+      roll: getCombatRollResult(this.melee),
     }
   }
 
@@ -151,7 +161,7 @@ export class Creature extends TypedEventEmitter<CreatureEvents> implements
   public generateDefense (_attack: Attack): Defense {
     return {
       immune: false,
-      roll: getCombatRollResult(this._type.defense),
+      roll: getCombatRollResult(this.defense),
     }
   }
 
@@ -227,5 +237,28 @@ export class Creature extends TypedEventEmitter<CreatureEvents> implements
 
     this._map.setCreatureId(this._x, this._y, this.id)
     return true
+  }
+
+  private get _equipmentEffects () {
+    return flow(
+      map((equipment: Item) => equipment.equipmentEffects),
+      compact
+    )(values(this.equipment))
+  }
+
+  /**
+  * Gets the total modifier of a given type for the equipment worn by this creature.
+  */
+  private _getEquipmentModifier = (type: keyof EquipmentEffects) => {
+    const modifierFunctions = flow(
+      map((effects: EquipmentEffects) => effects[type]),
+      compact
+    )(this._equipmentEffects)
+
+    return reduce(
+      (result, modifierFunction) => result + modifierFunction(this),
+      0,
+      modifierFunctions
+    )
   }
 }

@@ -29,8 +29,18 @@ describe('container', () => {
 
     test('slot already in use', () => {
       const creature = createCreature()
-      const item1 = new Item({ name: 'test-body-item-1', equipmentSlots: ['Body'] })
-      const item2 = new Item({ name: 'test-body-item-1', equipmentSlots: ['Body'] })
+      const item1 = new Item({
+        name: 'test-body-item-1',
+        equipment: {
+          slots: ['Body'],
+        },
+      })
+      const item2 = new Item({
+        name: 'test-body-item-2',
+        equipment: {
+          slots: ['Body'],
+        },
+      })
       creature.inventory.add(item1)
       creature.inventory.add(item2)
 
