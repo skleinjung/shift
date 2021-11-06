@@ -38,53 +38,54 @@ export interface ListPanelProps extends PanelProps {
   items: (ListItem | string)[]
 
   /** called when the user selects an item, but has not confirmed */
-  onItemSelected?: (item: string) => void
+  onItemConsidered?: (item: string) => void
 
   /** called when a user confirms a selection, with 'enter' or clciking */
-  onSelectionConfirmed?: (itemId: string) => void
+  onItemSelected?: (itemId: string) => void
 
   /** Optional title to display in a fixed position above the scrolling list. */
   title?: string
 }
 
 export const ListPanel = ({
+  active = false,
   allowSelection,
   items,
+  onItemConsidered = noop,
   onItemSelected = noop,
-  onSelectionConfirmed = noop,
   ...rest
 }: ListPanelProps) => {
   const [selectedIndex, setSelectedIndex] = useState(0)
 
-  const select = useCallback((index: number) => {
+  const consider = useCallback((index: number) => {
     const selection = getId(items[index])
     if (selection !== undefined) {
-      onItemSelected(selection)
+      onItemConsidered(selection)
     }
 
     setSelectedIndex(index)
-  }, [items, onItemSelected])
+  }, [items, onItemConsidered])
 
   const moveSelectionUp = useCallback(() => {
-    select(selectedIndex === 0 ? items.length - 1 : selectedIndex - 1)
-  }, [items.length, select, selectedIndex])
+    consider(selectedIndex === 0 ? items.length - 1 : selectedIndex - 1)
+  }, [items.length, consider, selectedIndex])
 
   const moveSelectionDown = useCallback(() => {
-    select((selectedIndex + 1) % items.length)
-  }, [items.length, select, selectedIndex])
+    consider((selectedIndex + 1) % items.length)
+  }, [items.length, consider, selectedIndex])
 
   const confirmSelection = useCallback((index: number) => {
     const selection = getId(items[index])
     if (selection !== undefined) {
-      onSelectionConfirmed(selection)
+      onItemSelected(selection)
     }
     setSelectedIndex(index)
-  }, [items, onSelectionConfirmed])
+  }, [items, onItemSelected])
 
   const handleClick = useCallback((index: number) => () => {
-    select(index)
+    consider(index)
     confirmSelection(index)
-  }, [confirmSelection, select])
+  }, [confirmSelection, consider])
 
   const handleEnterKey = useCallback(() => {
     confirmSelection(selectedIndex)
@@ -105,7 +106,7 @@ export const ListPanel = ({
     )([
       'list-panel-row',
       allowSelection ? 'selectable' : undefined,
-      allowSelection && index === selectedIndex ? 'selected' : undefined,
+      active && allowSelection && index === selectedIndex ? 'selected' : undefined,
     ])
 
     return (
@@ -121,6 +122,7 @@ export const ListPanel = ({
 
   return (
     <Panel {...rest}
+      active={active}
       onKeyDown={handleKeyDown}
     >
       {mapS(items, createRow)}

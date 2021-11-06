@@ -1,5 +1,4 @@
 import { CreatureType } from 'db/creatures'
-import { Container } from 'pixi.js'
 import { TypedEventEmitter } from 'typed-event-emitter'
 
 import {
@@ -11,6 +10,7 @@ import {
   getCombatRollResult,
   PendingAttack,
 } from './combat'
+import { Container } from './container'
 import { CreatureEvents } from './events'
 import { ExpeditionMap } from './map'
 import { newId } from './new-id'
@@ -30,7 +30,7 @@ export class Creature extends TypedEventEmitter<CreatureEvents> implements
   private _id = newId()
 
   /** inventory of items held by this creature */
-  public readonly inventory = new Container()
+  public readonly inventory: Container
 
   constructor (
     private _type: CreatureType,
@@ -45,6 +45,7 @@ export class Creature extends TypedEventEmitter<CreatureEvents> implements
     }
 
     this._health = this._type.healthMax
+    this.inventory = new Container(`inv_creature_${this._id}`)
     this._map.setCreatureId(this._x, this._y, this.id)
   }
 

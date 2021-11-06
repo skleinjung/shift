@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import { AttackAction } from 'engine/actions/attack'
 import { MoveByAction } from 'engine/actions/move-by'
 import { Action } from 'engine/types'
@@ -12,7 +11,7 @@ import { gameState, pause, unpause } from 'ui/state/game'
 import { playerState } from 'ui/state/player'
 
 import { ScreenName } from './app'
-import { ListPanel } from './list-panel'
+import { ContainerContentsPanel } from './container-contents-panel'
 import { LogPanel } from './log-panel'
 import { MapPanel } from './map-panel'
 import { Panel } from './panel'
@@ -200,7 +199,7 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
     )
   }
 
-  return ready ? (
+  return (ready && world.current) ? (
     <div className="dungeon-screen">
       <div className="sidebar">
         <PlayerStatusPanel />
@@ -215,22 +214,14 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
 🛡️ x3 - 0  1  0`}</PreFormattedText>
         </Panel>
 
-        <ListPanel
+        <ContainerContentsPanel
           active={activePanel === SelectablePanels.Information && !game.paused}
           allowSelection={true}
           columns={SidebarColumns}
-          items={[
-            'Foo',
-            'Bar',
-            {
-              id: 'baz',
-              content: 'The Bazzle',
-              rightContent: '0 / 3 / 1',
-            },
-          ]}
+          container={world.current.player.inventory}
           onClick={handleActivatePanel(SelectablePanels.Information)}
         >
-        </ListPanel>
+        </ContainerContentsPanel>
 
         <Panel columns={SidebarColumns} rows={8}>
           Lorem ipsum dolor sit amet.
