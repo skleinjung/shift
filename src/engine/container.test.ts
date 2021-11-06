@@ -4,8 +4,8 @@ import { Container } from './container'
 import { Item } from './item'
 
 describe('container', () => {
-  const createContainer = () => new Container('test-container')
-  const createItem = () => new Item('test-object')
+  const createContainer = () => new Container({ name: 'test-container' })
+  const createItem = () => new Item({ name: 'test-object' })
 
   let container: Container
   let object1: Item
@@ -46,6 +46,17 @@ describe('container', () => {
       expect(container.contents.length).toBe(1)
       expect(find((item) => item.id === object1.id, container.contents)).toBeUndefined()
       expect(find((item) => item.id === object2.id, container.contents)).toBeDefined()
+    })
+  })
+
+  describe('contains', () => {
+    test('true', () => {
+      container.add(object1)
+      expect(container.contains(object1)).toBe(true)
+    })
+
+    test('false', () => {
+      expect(container.contains(object1)).toBe(false)
     })
   })
 })

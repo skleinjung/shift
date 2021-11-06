@@ -28,6 +28,11 @@ export class Container extends Item {
     }
   }
 
+  /** Returns true if the specified item is in this container. */
+  public contains (item: Item) {
+    return findIndex((candidate) => candidate.id === item.id, this._contents) !== -1
+  }
+
   /** The contents of this container, as a readonly array */
   public get contents (): Readonly<Item[]> {
     return this._contents
