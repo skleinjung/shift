@@ -194,13 +194,14 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
         </Panel>
 
         <ListPanel
+          allowSelection={true}
           columns={SidebarColumns}
           items={[
             'Foo',
             'Bar',
             {
               id: 'baz',
-              content: 'The Baz Monster',
+              content: 'The Bazzle',
               rightContent: '0 / 3 / 1',
             },
           ]}>
