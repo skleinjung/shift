@@ -2,7 +2,7 @@ import { join } from 'lodash/fp'
 import { PropsWithChildren } from 'react'
 import './panel.css'
 
-export interface PanelProps {
+export type PanelProps = PropsWithChildren<{
   /** indicates if this panel is active -- that is, highlighted and receives input */
   active?: boolean
 
@@ -21,7 +21,7 @@ export interface PanelProps {
 
   /** fixed height of the panel (in text rows), or undefined if it should expand vertically */
   rows?: number | undefined
-}
+}>
 
 export const Panel = ({
   active,
@@ -30,7 +30,7 @@ export const Panel = ({
   columns,
   containerClass,
   rows,
-}: PropsWithChildren<PanelProps>) => {
+}: PanelProps) => {
   const containerClasses = ['container']
   if (columns === undefined) {
     containerClasses.push('dynamic-width')

@@ -1,0 +1,13 @@
+.list-panel-row {
+  display: flex;
+  flex-direction: row;
+}
+
+.list-panel-left {
+  flex: 1 1;
+  justify-self: flex-start;
+}
+
+.list-panel-right {
+  justify-self: flex-end;
+}
