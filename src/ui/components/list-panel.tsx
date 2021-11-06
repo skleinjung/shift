@@ -50,6 +50,7 @@ export interface ListPanelProps extends PanelProps {
 export const ListPanel = ({
   active = false,
   allowSelection,
+  children,
   items,
   onItemConsidered = noop,
   onItemSelected = noop,
@@ -127,6 +128,7 @@ export const ListPanel = ({
       onKeyDown={handleKeyDown}
     >
       {title && <h2 className="list-panel-title">{title}</h2>}
+      {children}
       <ul className="list-panel">
         {mapS(items, createRow)}
       </ul>

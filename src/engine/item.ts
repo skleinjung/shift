@@ -18,6 +18,9 @@ export interface EquipmentEffects {
 }
 
 export interface ItemOptions {
+  /** optional detailed description for the item */
+  description?: string
+
   /** optional configuration for equippable items */
   equipment?: {
     /** the effects on the wearer when this item is equipped */
@@ -45,14 +48,20 @@ export class Item implements Entity {
   /** the effects of wearing this equipment, which may be undefined */
   public readonly equipmentEffects: EquipmentEffects | undefined
 
+  /** detailed description */
+  public readonly description: string | undefined
+
+  /** name of this item */
   public readonly name: string
 
   constructor ({
     equipment,
     name,
+    description,
   }: ItemOptions) {
     this.equipmentSlots = equipment?.slots ?? []
     this.equipmentEffects = equipment?.effects
+    this.description = description
     this.name = name
   }
 
@@ -85,8 +94,9 @@ export const createWeapon = (name: string, meleeBonus = 0) =>
   })
 
 /** Creates an item with default options for armo. */
-export const createArmor = (name: string, defenseBonus = 0) =>
+export const createArmor = (name: string, defenseBonus = 0, description?: string) =>
   new Item({
+    description,
     equipment: {
       effects: {
         attributeModifiers: {

@@ -7,6 +7,8 @@ import { playerState } from 'ui/state/player'
 import { ContainerContentsPanel } from './container-contents-panel'
 import { ListPanel, ListPanelProps } from './list-panel'
 
+import './inventory-panel.css'
+
 export type ItemAction = {
   /** name of this action, to display in the list */
   name: string
@@ -62,6 +64,10 @@ export const InventoryPanel = ({
       items={[...map(get('name'), getItemActions(selectedItem)), 'Back']}
       onItemSelected={handleItemAction}
       title={selectedItem.name}
-    />
+    >
+      {selectedItem?.description &&
+        <p className="inventory-panel-item-description">{selectedItem.description}</p>
+      }
+    </ListPanel>
   )
 }

@@ -35,7 +35,10 @@ export class World extends TypedEventEmitter<WorldEvents> {
     this._player.inventory.add(spear)
     // this._player.equip(spear)
 
-    const armor = createArmor('amazing, glowing armor', 100)
+    const armor = createArmor('amazing, glowing armor', 100, `Lorem ipsum dolor sit amet, 
+consectetur adipiscing elit. Aenean pharetra est id velit laoreet, eu semper lectus ullamcorper.
+Nunc pellentesque nunc ex, eu venenatis orci mattis non. Maecenas in justo mollis, luctus urna 
+porttitor, imperdiet lectus. Quisque sit amet quam venenatis, iaculis sapien in, rutrum dui.`)
     this._player.inventory.add(armor)
     // this._player.equip(armor)
 
