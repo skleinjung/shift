@@ -5,7 +5,7 @@ repository:
   allow_squash_merge: true
   default_branch: main
   delete_branch_on_merge: true
-  description: Uncover a story of loss and revenge while exploring procedurally generated dungeons in this hack-and-slash RPG.
+  description: Uncover a story of loss and redemption in this hack-and-slash RPG where the dungeon -- not the hero -- experiences permadeath.
 
 branches:
   - name: main

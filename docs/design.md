@@ -1,6 +1,6 @@
-# Shift: Prelude - Design Document
+# Shift: Prelude - Design Document (1.1)
 
-Uncover a story of loss and redemption while exploring procedurally generated dungeons in this hack-and-slash RPG.
+Uncover a story of loss and redemption in this hack-and-slash RPG where the dungeon -- not the hero -- experiences permadeath.
 
 ## Overview
 
@@ -9,7 +9,9 @@ Uncover a story of loss and redemption while exploring procedurally generated du
 
 In the world of *Shift*, powerful mages have learned to open gateways into parallel worlds, allowing chosen servants to pass between dimensions for a variety of purposes. Those individuals with the right blend of training, fortitude, and recklessness needed to undertake such a journey are known as *Shifters*. An archmage may employ a Shifter for a variety of reasons, and it's rare that a Shifter even knows the true purpose of their adventures. But, for most, the rewards of such an occupation far outweigh a little lack of understanding and the occassional moral dilemma.
 
-Shift borrows the visual styling and random elements from classic Rogue-like games, but is tailored to people who do not enjoy character permadeath. The larger concept for Shift is an open-ended game that allows players to explore an ever-expanding, procedurally generated multiverse while building and customizing a character over many play sessions. In this Prelude adventure, the scope has been reduced to exploring the manifestation of a limited set of areas as they exist in different worlds.
+Shift borrows the visual styling and random elements from classic Rogue-like games, but is tailored to people who do not enjoy character permadeath. Instead, when the player dies or runs out of turns they are pulled back to their home world, and the contents of that dungeon is forever lost to them.
+
+The larger concept for Shift is an open-ended game that allows players to explore an ever-expanding, procedurally generated multiverse while building and customizing a character over many play sessions. In this Prelude adventure, the scope has been reduced to exploring the manifestation of a limited set of areas as they exist in different worlds.
 
 *Note*: This document describes a stripped-down version of the Shift concept intended to be completed in a month, as part of the [Crunchless Challenge](https://itch.io/jam/crunchless-challenge).
 
@@ -26,6 +28,8 @@ The development of Shift is influenced by ideas from the Rogue-lite, Action RPG,
 ### Innovations
 
 Shift aims to build upon its influences by innovating in a number of key areas:
+
+* **World Permadeath**: The player has a limited number of turns to explore a specific dungeon. When these turns are depleted, or the player dies, they are able to begin new expeditions but cannot return to that world. This loss is made more meaningful by providing the player with teasers about what treasures a dungeon contains, so they know what has been lost. Furthermore, some story elements require completing tasks in a specific dungeon. Failing to do so will change the narrative outcome.
 
 * **Story**: The Shift universe is crafted to incorporate the randomness of procedural generation as part of its setting, rather than a purely "out of character" gameplay mechanic. The Prelude adventure is intended to tell a story of a grieving man's struggle to recover from a great loss, and will use a combination of techniques to convey this story as the adventure unfolds.
 
@@ -49,6 +53,13 @@ The story will be gradually revealed as the player explores and conquers the pro
 * Static content inserted into the random dungeon, including scripted events referred to in the game's design as *vignettes*
 * Interaction between the player character, his employer, and other residents of the wizard's tower
 * Possibly a letter or journal entrusted to the player character (narrator) at the conclusion of the main plot
+
+The story will not be strictly linear, but will contain a few key branch points that will determine the final ending a player receives. These branch points are tied to expedition outcomes, and a particular branch may be chosen based on the following criteria:
+
+* whether an expedition's objectives were completed or failed
+* whether the player accepts or refuses to complete some expeditions
+
+The working notes on the game's actual narrative are in the [project's Wiki]([./story.md](https://github.com/skleinjung/shift/wiki/Story)). (**WARNING: Spoilers**)
 
 ## Player Character Attributes
 
@@ -196,3 +207,10 @@ The following items are out of scope for the Prelude release:
 * City building, farming, etc.
 * Magic
 * Card-based combat "maneuvers"
+
+## Version History
+
+| Version | Changes |
+|:-------:| ------- |
+| Initial | Created document
+| 1.1 | <ul><li>Add dungeon permadeath</li></ul> |
