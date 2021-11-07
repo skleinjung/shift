@@ -57,6 +57,13 @@ export class ExpeditionMap {
   }
 
   /**
+   * Gets the terrain type for the specified cell.
+   */
+  public getTerrain (x: number, y: number) {
+    return this._getCell(x, y)?.terrain ?? Terrain.Default
+  }
+
+  /**
    * Updates the terrain for a given map cell. Will create the cell if it does not yet exist.
    */
   public setTerrain (x: number, y: number, terrain: TerrainType) {
