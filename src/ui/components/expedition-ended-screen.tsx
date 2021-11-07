@@ -36,7 +36,7 @@ export const ExpeditionEndedScreen = ({ navigateTo }: ExpeditionEndedScreenProps
     navigateTo('title')
   }, [resetExpedition, resetPlayer, navigateTo])
 
-  const fate = player.health < 1 ? 'was killed' : 'lost his connection to this world'
+  const fate = player.dead ? 'was killed' : 'lost his connection to this world'
 
   const expeditionSummary =
     `${player.name} ${fate}.

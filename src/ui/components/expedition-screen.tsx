@@ -1,33 +1,35 @@
 import { AttackAction } from 'engine/actions/attack'
 import { MoveByAction } from 'engine/actions/move-by'
+import { Item } from 'engine/item'
 import { Action } from 'engine/types'
 import { World } from 'engine/world'
+import { compact } from 'lodash'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRecoilState, useRecoilValue, useResetRecoilState, useSetRecoilState } from 'recoil'
 import { useGlobalKeyHandler } from 'ui/hooks/use-global-key-handler'
 import { useKeyHandler } from 'ui/hooks/use-key-handler'
 import { endTurn, expeditionState, isExpeditionComplete } from 'ui/state/expedition'
 import { gameState, pause, unpause } from 'ui/state/game'
-import { playerState } from 'ui/state/player'
+import { fromEntity, playerState } from 'ui/state/player'
 
 import { ScreenName } from './app'
-import { ContainerContentsPanel } from './container-contents-panel'
+import { InventoryPanel, ItemAction } from './inventory-panel'
 import { LogPanel } from './log-panel'
 import { MapPanel } from './map-panel'
 import { Panel } from './panel'
 import { PlayerStatusPanel } from './player-status-panel'
 import { PopupMenu } from './popup-menu'
-import { PreFormattedText } from './pre-formatted-text'
 
 import './expedition-screen.css'
 
-const SidebarColumns = 30
+const SidebarColumns = 45
 
 enum SelectablePanels {
-  Information = 0,
-  Map,
+  Map = 0,
+  Information,
   // eslint-disable-next-line @typescript-eslint/naming-convention
   __LENGTH,
+  Options,
 }
 
 export interface ExpeditionScreenProps {
@@ -42,7 +44,6 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
 
   const resetExpedition = useResetRecoilState(expeditionState)
   const resetGame = useResetRecoilState(gameState)
-  const resetPlayer = useResetRecoilState(playerState)
 
   const updateExpedition = useSetRecoilState(expeditionState)
   const updatePlayer = useSetRecoilState(playerState)
@@ -56,9 +57,9 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
     world.current = new World()
     resetExpedition()
     resetGame()
-    resetPlayer()
+    updatePlayer(fromEntity(world.current.player))
     setReady(true)
-  }, [resetExpedition, resetGame, resetPlayer])
+  }, [resetExpedition, resetGame, updatePlayer])
 
   const handleActivatePanel = useCallback((panel: SelectablePanels) => () => {
     setActivePanel(panel)
@@ -132,18 +133,9 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
 
       // update our recoil state based on the new world state
       updateExpedition(endTurn)
-      updatePlayer((player) => {
-        if (world.current) {
-          const worldPlayer = world.current?.player
-          return {
-            ...player,
-            health: worldPlayer.health,
-          }
-        }
+      updatePlayer(fromEntity(world.current.player))
 
-        return player
-      })
-
+      // recenter viewport based on player movement, if needed
       updateViewport(viewportSize, viewportCenter)
     }
   }, [game.paused, updateExpedition, updatePlayer, updateViewport, viewportCenter, viewportSize])
@@ -159,6 +151,27 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
       }
     }
   }, [executeTurn, game.paused])
+
+  const getItemActions = useCallback((item: Item): ItemAction[] => {
+    return compact([
+      item.equippable ? {
+        name: 'Equip',
+        execute: (item) => {
+          if (world.current?.player) {
+            world.current.player.equip(item)
+            updatePlayer(fromEntity(world.current.player))
+            setActivePanel(SelectablePanels.Map)
+          }
+        },
+      } : undefined,
+      item.equippable ? {
+        name: 'Unequip',
+        execute: () => {
+          // world.current?.player?.unequip?.(item)
+        },
+      } : undefined,
+    ])
+  }, [updatePlayer])
 
   const mapKeyHandler = useKeyHandler({
     ArrowDown: executePlayerMove(0, 1),
@@ -201,33 +214,6 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
 
   return (ready && world.current) ? (
     <div className="dungeon-screen">
-      <div className="sidebar">
-        <PlayerStatusPanel />
-
-        <Panel columns={SidebarColumns} rows={5}>
-          <PreFormattedText>{`You attack kobold!
-
-🗡️ x5: 2  1  0  1  0  1
-🛡️ x3: 0  1  0
-💔 -2
-
-🛡️ x3 - 0  1  0`}</PreFormattedText>
-        </Panel>
-
-        <ContainerContentsPanel
-          active={activePanel === SelectablePanels.Information && !game.paused}
-          allowSelection={true}
-          columns={SidebarColumns}
-          container={world.current.player.inventory}
-          onClick={handleActivatePanel(SelectablePanels.Information)}
-        >
-        </ContainerContentsPanel>
-
-        <Panel columns={SidebarColumns} rows={8}>
-          Lorem ipsum dolor sit amet.
-        </Panel>
-      </div>
-
       {world.current &&
         <div className="main-content">
           <MapPanel
@@ -243,6 +229,32 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
           <LogPanel world={world.current} />
         </div>
       }
+
+      <div className="sidebar">
+        <PlayerStatusPanel />
+
+        {/* <Panel columns={SidebarColumns} rows={5}>
+          <PreFormattedText>{`You attack kobold!
+
+🗡️ x5: 2  1  0  1  0  1
+🛡️ x3: 0  1  0
+💔 -2
+
+🛡️ x3 - 0  1  0`}</PreFormattedText>
+        </Panel> */}
+
+        <InventoryPanel
+          active={activePanel === SelectablePanels.Information && !game.paused}
+          allowSelection={true}
+          columns={SidebarColumns}
+          getItemActions={getItemActions}
+          onClick={handleActivatePanel(SelectablePanels.Information)}
+        />
+
+        <Panel columns={SidebarColumns} rows={8}>
+          Lorem ipsum dolor sit amet.
+        </Panel>
+      </div>
 
       {game.paused ? renderPauseMenu() : null}
     </div>

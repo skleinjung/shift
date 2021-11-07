@@ -1,7 +1,27 @@
+.list-panel {
+  margin: 4px 0 0 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 0;
+}
+
+.list-panel-title {
+  background-color: #222;
+  border: 1px solid #333;
+  font-size: 1em;
+  margin: 0 0 6px 0;
+  padding: 2px;
+  text-align: center;
+  text-transform: uppercase;
+}
+
 .list-panel-row {
   cursor: pointer;
   display: flex;
   flex-direction: row;
+  list-style-type: none;
+  margin: 0;
+  padding: 0
 }
 
 .list-panel-row.selectable:before {
@@ -12,7 +32,7 @@
   content: '>\00a0';
 }
 
-.list-panel-row.selected {
+.list-panel-row.selected, .list-panel-row:hover {
   color: #aa0;
 }
 

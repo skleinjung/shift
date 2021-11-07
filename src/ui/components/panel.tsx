@@ -6,6 +6,8 @@ import './panel.css'
 
 type InheritedProps = Omit<HTMLAttributes<HTMLDivElement>, 'className'>
 
+const LINE_HEIGHT = 20
+
 export type PanelProps = InheritedProps & PropsWithChildren<{
   /** indicates if this panel is active -- that is, highlighted and receives input */
   active?: boolean
@@ -52,7 +54,7 @@ export const Panel = ({
     containerClasses.push(containerClass)
   }
 
-  const height = rows !== undefined ? rows * 16 : undefined
+  const height = rows !== undefined ? rows * LINE_HEIGHT : undefined
   const width = columns !== undefined ? `${columns}ch` : undefined
 
   return (

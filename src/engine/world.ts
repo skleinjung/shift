@@ -8,7 +8,7 @@ import { AttackResult } from './combat'
 import { createPrototypeTerrain } from './create-prototype-terrain'
 import { Creature } from './creature'
 import { WorldEvents } from './events'
-import { Item } from './item'
+import { createArmor, createWeapon, Item } from './item'
 import { ExpeditionMap } from './map'
 import { Action } from './types'
 
@@ -28,9 +28,19 @@ export class World extends TypedEventEmitter<WorldEvents> {
     createPrototypeTerrain(this.map)
     this._player = this.spawn('player', 0, 0)
     this._playerAction = NoopAction
-    this._player.inventory.add(new Item('a coconut'))
-    this._player.inventory.add(new Item('+1 spear'))
-    this._player.inventory.add(new Item('hopes and dreams'))
+    this._player.inventory.add(new Item({ name: 'a coconut' }))
+    this._player.inventory.add(new Item({ name: 'hopes and dreams' }))
+
+    const spear = createWeapon('+100 spear', 100)
+    this._player.inventory.add(spear)
+    // this._player.equip(spear)
+
+    const armor = createArmor('amazing, glowing armor', 100, `Lorem ipsum dolor sit amet, 
+consectetur adipiscing elit. Aenean pharetra est id velit laoreet, eu semper lectus ullamcorper.
+Nunc pellentesque nunc ex, eu venenatis orci mattis non. Maecenas in justo mollis, luctus urna 
+porttitor, imperdiet lectus. Quisque sit amet quam venenatis, iaculis sapien in, rutrum dui.`)
+    this._player.inventory.add(armor)
+    // this._player.equip(armor)
 
     this.spawn('kobold', -20, 0)
     this.spawn('kobold', -22, 0)

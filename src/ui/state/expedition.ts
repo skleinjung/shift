@@ -33,6 +33,6 @@ export const isExpeditionComplete = selector({
   get: ({ get }) => {
     const expedition = get(expeditionState)
     const player = get(playerState)
-    return expedition.link < 1 || player.health < 1
+    return expedition.link < 1 || player.dead
   },
 })
