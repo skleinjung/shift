@@ -13,17 +13,23 @@ export interface TerrainType extends Renderable {
   traversable: boolean
 }
 
-export const Terrain: Record<string, TerrainType> = {
+export const Terrain = {
   Default: {
     symbol: ' ',
     color: 0,
     background: 0,
     traversable: false,
   },
+  Door: {
+    symbol: '+',
+    color: 0x555555,
+    background: 0x111111,
+    traversable: true,
+  },
   Floor: {
     symbol: '.',
     color: 0x222222,
-    background: 0,
+    background: 0x111111,
     traversable: true,
   },
   Water: {

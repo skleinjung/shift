@@ -5,8 +5,8 @@ import { TypedEventEmitter } from 'typed-event-emitter'
 
 import { NoopAction } from './actions/noop'
 import { AttackResult } from './combat'
-import { createPrototypeTerrain } from './create-prototype-terrain'
 import { Creature } from './creature'
+import { createDungeon } from './dungeon/create-dungeon-v1'
 import { WorldEvents } from './events'
 import { createArmor, createWeapon, Item } from './item'
 import { ExpeditionMap } from './map'
@@ -25,7 +25,12 @@ export class World extends TypedEventEmitter<WorldEvents> {
   constructor () {
     super()
 
-    createPrototypeTerrain(this.map)
+    const dungeon = createDungeon()
+    dungeon.createTerrain(this.map)
+    forEach((spawn) => {
+      this.spawn(spawn.type, spawn.x, spawn.y)
+    }, dungeon.creatures)
+
     this._player = this.spawn('player', 0, 0)
     this._playerAction = NoopAction
     this._player.inventory.add(new Item({ name: 'a coconut' }))
@@ -41,14 +46,6 @@ Nunc pellentesque nunc ex, eu venenatis orci mattis non. Maecenas in justo molli
 porttitor, imperdiet lectus. Quisque sit amet quam venenatis, iaculis sapien in, rutrum dui.`)
     this._player.inventory.add(armor)
     // this._player.equip(armor)
-
-    this.spawn('kobold', -20, 0)
-    this.spawn('kobold', -22, 0)
-    this.spawn('kobold', -24, 0)
-    this.spawn('kobold', -22, -2)
-    this.spawn('kobold', -22, 2)
-    this.spawn('goblin', 13, 12)
-    this.spawn('orc', -30, -3)
 
     this.logMessage('Expedition started.')
   }
