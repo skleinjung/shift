@@ -16,6 +16,16 @@
   color: #fff;
 }
 
+.container.dynamic-height {
+  flex: 1;
+  min-height: 48px;
+  overflow: hidden;
+}
+
+.container.dynamic-width {
+  align-self: stretch;
+}
+
 .content {
   display: flex;
   flex: 1;
@@ -27,12 +37,7 @@
   overflow: hidden;
 }
 
-.container.dynamic-height {
-  flex: 1;
-  min-height: 48px;
-  overflow: hidden;
-}
-
-.container.dynamic-width {
-  align-self: stretch;
+.content p {
+  margin: 0;
+  padding: 0;
 }

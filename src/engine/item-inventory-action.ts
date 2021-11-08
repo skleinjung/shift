@@ -14,7 +14,7 @@ export interface ItemInventoryAction {
 export const drop: ItemInventoryAction = {
   name: 'Drop',
   execute: (item, creature, world) => {
-    creature.inventory.remove(item)
+    creature.inventory.removeItem(item)
     world.map.addItem(creature.x, creature.y, item)
   },
 }

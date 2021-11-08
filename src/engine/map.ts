@@ -1,29 +1,27 @@
 import { filter, findIndex } from 'lodash/fp'
 
+import { BasicContainer } from './container'
 import { Creature } from './creature'
 import { Item } from './item'
 import { TerrainType, TerrainTypes } from './terrain-db'
 
-export interface MapCell {
-  /** ID of the creature occupying this cell, if any */
-  creature?: Creature
-
-  /** list of items on the ground here, which may be empty */
-  items: Item[]
-
-  /** type of terrain in this cell */
-  terrain: TerrainType
+export class MapCell extends BasicContainer {
+  constructor (
+    /** type of terrain in this cell */
+    public terrain: TerrainType,
+    /** ID of the creature occupying this cell, if any */
+    public creature?: Creature
+  ) {
+    super()
+  }
 }
 
-const DefaultCell: MapCell = {
-  items: [],
-  terrain: TerrainTypes.default,
-}
+const DefaultCell: MapCell = new MapCell(TerrainTypes.default)
 
 export class ExpeditionMap {
   private _cells: MapCell[][] = []
 
-  public getCell (x: number, y: number): Readonly<MapCell> {
+  public getCell (x: number, y: number): MapCell {
     return this._getCell(x, y) ?? DefaultCell
   }
 
@@ -69,7 +67,7 @@ export class ExpeditionMap {
   public addItem (x: number, y: number, item: Item) {
     const cell = this._getCell(x, y, true)
     if (findIndex((cellItem) => cellItem.id === item.id, cell.items) === -1) {
-      cell.items.push(item)
+      cell.addItem(item)
     }
   }
 
@@ -79,10 +77,7 @@ export class ExpeditionMap {
   public removeItem (x: number, y: number, item: Item) {
     const cell = this._getCell(x, y)
     if (cell !== undefined) {
-      const index = findIndex((cellItem) => cellItem.id === item.id, cell.items)
-      if (index > -1) {
-        cell.items.splice(index, 1)
-      }
+      cell.removeItem(item)
     }
   }
 
@@ -126,7 +121,7 @@ export class ExpeditionMap {
     }
 
     if (createIfMissing && this._cells[y][x] === undefined) {
-      this._cells[y][x] = { items: [], terrain: TerrainTypes.default }
+      this._cells[y][x] = new MapCell(TerrainTypes.default)
     }
 
     return this._cells[y]?.[x]

@@ -26,6 +26,9 @@ export class World extends TypedEventEmitter<WorldEvents> {
   constructor () {
     super()
 
+    // eslint-disable-next-line no-console
+    console.log('>>>>>>>>>>>> New World')
+
     const dungeon = createDungeon()
     dungeon.createTerrain(this.map)
     forEach((spawn) => {
@@ -35,23 +38,23 @@ export class World extends TypedEventEmitter<WorldEvents> {
     this._player = new Player(CreatureTypes.player, 0, 0, this.map)
     this._registerCreature(this._player)
     this._playerAction = DoNothing
-    this._player.inventory.add(new Item({ name: 'a coconut' }))
-    this._player.inventory.add(new Item({ name: 'hopes and dreams' }))
+    this._player.inventory.addItem(new Item({ name: 'a coconut' }))
+    this._player.inventory.addItem(new Item({ name: 'hopes and dreams' }))
 
     const spear = createWeapon('+100 spear', 100)
-    this._player.inventory.add(spear)
+    this._player.inventory.addItem(spear)
     // this._player.equip(spear)
 
     const armor = createArmor('amazing, glowing armor', 100, `Lorem ipsum dolor sit amet, 
 consectetur adipiscing elit. Aenean pharetra est id velit laoreet, eu semper lectus ullamcorper.
 Nunc pellentesque nunc ex, eu venenatis orci mattis non. Maecenas in justo mollis, luctus urna 
 porttitor, imperdiet lectus. Quisque sit amet quam venenatis, iaculis sapien in, rutrum dui.`)
-    this._player.inventory.add(armor)
+    this._player.inventory.addItem(armor)
     // this._player.equip(armor)
 
-    this.map.addItem(-2, 0, armor)
-    this.map.addItem(2, 0, spear)
-    this.map.addItem(2, 0, armor)
+    this.map.addItem(-2, 0, createWeapon('+1 spear', 1))
+    this.map.addItem(2, 0, createWeapon('+2 spear', 2))
+    this.map.addItem(2, 0, createWeapon('+3 spear', 3))
 
     this.logMessage('Expedition started.')
   }

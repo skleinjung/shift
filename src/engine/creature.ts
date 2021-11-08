@@ -10,7 +10,7 @@ import {
   getCombatRollResult,
   PendingAttack,
 } from './combat'
-import { Container } from './container'
+import { BasicContainer } from './container'
 import { CreatureType } from './creature-db'
 import { CreatureEvents } from './events'
 import { EquipmentSet, EquipmentSlot, Item } from './item'
@@ -49,6 +49,9 @@ export type CreatureAttributeModifiers = {
   [k in CreatureAttributeModifierMethodName]?: (value: number, creature: Creature) => number
 }
 
+/** Specialized container type repsenting a creature's inventory */
+export class Inventory extends BasicContainer {}
+
 /**
  * A Creature is an Actor subtype that specifically represents a living being.
  */
@@ -64,7 +67,7 @@ export class Creature extends TypedEventEmitter<CreatureEvents> implements
   private _equipment: EquipmentSet = {}
 
   /** inventory of items held by this creature */
-  public readonly inventory: Container
+  public readonly inventory: Inventory
 
   constructor (
     private _type: CreatureType,
@@ -75,11 +78,13 @@ export class Creature extends TypedEventEmitter<CreatureEvents> implements
     super()
 
     if (this._map.getCreature(this._x, this._y) !== undefined) {
-      throw new Error('TODO: do not fail when adding creature to occupied cell')
+      // throw new Error('TODO: do not fail when adding creature to occupied cell')
+      // eslint-disable-next-line no-console
+      console.log('big failure')
     }
 
     this._health = this._type.healthMax
-    this.inventory = new Container({ name: `inv_creature_${this._id}` })
+    this.inventory = new Inventory()
     this._map.setCreature(this._x, this._y, this)
   }
 
@@ -125,7 +130,7 @@ export class Creature extends TypedEventEmitter<CreatureEvents> implements
    **/
   public equip (item: Item, slot?: EquipmentSlot) {
     // can only equip from inventory
-    if (!this.inventory.contains(item)) {
+    if (!this.inventory.containsItem(item)) {
       return false
     }
 

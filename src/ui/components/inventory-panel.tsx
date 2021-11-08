@@ -22,7 +22,7 @@ export const InventoryPanel = ({
   ...rest
 }: InventoryPanelProps) => {
   const creature = useWorld().player
-  const [selectedItem, setSelectedItem] = useState(head(creature.inventory.contents))
+  const [selectedItem, setSelectedItem] = useState(head(creature.inventory.items))
 
   // if the user tabs out of the list, clear the item selection to avoid confusion
   useEffect(() => {

@@ -16,6 +16,6 @@ export const get: ItemInteraction = {
   name: 'Get',
   execute: (item, creature, world) => {
     world.map.removeItem(creature.x, creature.y, item)
-    creature.inventory.add(item)
+    creature.inventory.addItem(item)
   },
 }

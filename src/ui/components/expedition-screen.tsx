@@ -5,6 +5,7 @@ import { UseInventoryItemAction } from 'engine/actions/use-inventory-item'
 import { Item } from 'engine/item'
 import { ItemInventoryAction } from 'engine/item-inventory-action'
 import { Action } from 'engine/types'
+import { toLower } from 'lodash/fp'
 import { useCallback, useEffect, useState } from 'react'
 import { useResetRecoilState, useSetRecoilState } from 'recoil'
 import { useGlobalKeyHandler } from 'ui/hooks/use-global-key-handler'
@@ -14,11 +15,13 @@ import { endTurn, expeditionState } from 'ui/state/expedition'
 
 import { ScreenName } from './app'
 import { InventoryPanel } from './inventory-panel'
+import { ItemInteractionPanel } from './item-interaction-panel'
 import { LogPanel } from './log-panel'
 import { MapPanel } from './map-panel'
+import { Modal } from './modal'
 import { Panel } from './panel'
 import { PlayerStatusPanel } from './player-status-panel'
-import { PopupMenu } from './popup-menu'
+import { ScreenMenu } from './screen-menu'
 
 import './expedition-screen.css'
 
@@ -30,6 +33,13 @@ enum SelectablePanels {
   // eslint-disable-next-line @typescript-eslint/naming-convention
   __LENGTH,
   Options,
+}
+
+/** Type of modal to display. Modals are used when a user initiates an action that requires multiple inputs. */
+enum ModalMode {
+  None = 0,
+  Pause,
+  InteractWithItem
 }
 
 interface KeyMap {
@@ -68,7 +78,8 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
   const world = useWorld()
 
   const [ready, setReady] = useState(false)
-  const [paused, setPaused] = useState(false)
+  const [modalMode, setModalMode] = useState<ModalMode>(ModalMode.None)
+  const [modelArgument, setModalArgument] = useState<string | undefined>()
   const [activePanel, setActivePanel] = useState<SelectablePanels>(SelectablePanels.Map)
 
   const resetExpedition = useResetRecoilState(expeditionState)
@@ -79,6 +90,8 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
   const [viewportSize, setViewportSize] = useState({ width: 0, height: 0 })
   const [viewportCenter, setViewportCenter] = useState({ x: 0, y: 0 })
 
+  const paused = modalMode !== ModalMode.None
+
   useEffect(() => {
     resetExpedition()
     setReady(true)
@@ -88,13 +101,17 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
     setActivePanel(panel)
   }, [])
 
-  const togglePause = useCallback(() => {
-    setPaused((paused) => !paused)
-  }, [])
-
-  const unpause = useCallback(() => {
-    setPaused(false)
-  }, [])
+  const handleEscape = useCallback(() => {
+    if (modalMode !== ModalMode.None) {
+      // close any open modals
+      setModalMode(ModalMode.None)
+      setModalArgument(undefined)
+    } else {
+      // pause, with the default pause modal visible
+      setModalMode(ModalMode.Pause)
+      setModalArgument(undefined)
+    }
+  }, [modalMode])
 
   const updateViewport = useCallback((
     viewportSize: { width: number; height: number },
@@ -147,16 +164,14 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
   }, [updateViewport, viewportCenter])
 
   const executeTurn = useCallback((playerAction: Action) => {
-    if (!paused) {
-      world.nextTurn(playerAction)
+    world.nextTurn(playerAction)
 
-      // update our recoil state based on the new world state
-      updateExpedition(endTurn)
+    // update our recoil state based on the new world state
+    updateExpedition(endTurn)
 
-      // recenter viewport based on player movement, if needed
-      updateViewport(viewportSize, viewportCenter)
-    }
-  }, [paused, updateExpedition, updateViewport, viewportCenter, viewportSize, world])
+    // recenter viewport based on player movement, if needed
+    updateViewport(viewportSize, viewportCenter)
+  }, [updateExpedition, updateViewport, viewportCenter, viewportSize, world])
 
   const executePlayerMove = useCallback((x: number, y: number) => () => {
     if (!paused) {
@@ -170,21 +185,35 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
     }
   }, [executeTurn, paused, world.map, world.player])
 
+  const interactWithItem = useCallback((item: Item, interaction: string) => {
+    executeTurn(new InteractWithItemAction(
+      world.player,
+      interaction,
+      item
+    ))
+  }, [executeTurn, world.player])
+
   const beginItemInteraction = useCallback((interactionName: string) => () => {
     const player = world.player
     const candidateItems = world.map.getInteractableItems(player.x, player.y, interactionName)
     if (candidateItems.length === 0) {
       // no items
-      world.logMessage('There are no items here to get.')
+      world.logMessage(`There are no items to ${toLower(interactionName)} here.`)
     } else if (candidateItems.length === 1) {
       // just one item, pick it up directly
-      executeTurn(new InteractWithItemAction(
-        world.player,
-        interactionName,
-        candidateItems[0]
-      ))
+      interactWithItem(candidateItems[0], interactionName)
+    } else {
+      // multiple items, use a modal to pick one
+      setModalMode(ModalMode.InteractWithItem)
+      setModalArgument(interactionName)
     }
-  }, [executeTurn, world])
+  }, [interactWithItem, world])
+
+  const handleNoMoreItemInteractions = useCallback((interaction: string) => {
+    world.logMessage(`There are no more items to ${toLower(interaction)} here.`)
+    setModalMode(ModalMode.None)
+    setModalArgument(undefined)
+  }, [world])
 
   const handleInventoryAction = useCallback((item: Item, action: ItemInventoryAction) => {
     executeTurn(new UseInventoryItemAction(
@@ -206,17 +235,17 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
   const handlePauseMenuSelection = useCallback((item: string) => {
     switch (item) {
       case 'Resume':
-        unpause()
+        setModalMode(ModalMode.None)
         break
 
       case 'Quit Expedition':
         navigateTo('title')
         break
     }
-  }, [navigateTo, unpause])
+  }, [navigateTo])
 
   useGlobalKeyHandler({
-    Escape: togglePause,
+    Escape: handleEscape,
     Tab: () => setActivePanel((current) => (current + 1) % SelectablePanels.__LENGTH),
   })
 
@@ -226,13 +255,39 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
     }
   }, [isComplete, navigateTo])
 
+  const getModalContent = () => {
+    switch (modalMode) {
+      case ModalMode.Pause:
+        return (
+          <ScreenMenu
+            classes="pause-menu"
+            items={['Resume', 'Quit Expedition']}
+            onSelectionConfirmed={handlePauseMenuSelection}
+          />
+        )
+
+      case ModalMode.InteractWithItem:
+        return (
+          <ItemInteractionPanel
+            active={true}
+            columns={SidebarColumns}
+            interaction={modelArgument ?? 'Get'}
+            onNoValidInteractions={handleNoMoreItemInteractions}
+            onInteraction={interactWithItem}
+          />
+        )
+    }
+
+    return undefined
+  }
+
   const renderModal = () => {
-    return paused ? (
-      <PopupMenu
-        items={['Resume', 'Quit Expedition']}
-        onSelectionConfirmed={handlePauseMenuSelection}
-      />
-    ) : null
+    const content = getModalContent()
+    return content === undefined ? null : (
+      <Modal>
+        {content}
+      </Modal>
+    )
   }
 
   return (ready) ? (
