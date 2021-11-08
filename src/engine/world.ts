@@ -1,6 +1,6 @@
 import { CreatureTypes } from 'db/creatures'
 import { map as mapI } from 'lodash'
-import { filter, forEach, join, omit, values } from 'lodash/fp'
+import { compact, filter, forEach, join, map, omit, values } from 'lodash/fp'
 import { TypedEventEmitter } from 'typed-event-emitter'
 
 import { NoopAction } from './actions/noop'
@@ -71,10 +71,11 @@ porttitor, imperdiet lectus. Quisque sit amet quam venenatis, iaculis sapien in,
   public nextTurn (playerAction: Action) {
     this._playerAction = playerAction
 
-    // iterate over each creature, and execute the action determined by its behavior
-    forEach((creature) => {
-      creature.type.behavior(creature, this)?.(this)
-    }, this.creatures)
+    // iterate over each creature, and get the action determined by its behavior
+    const actions = map((creature) => creature.type.behavior(creature, this), this.creatures)
+
+    // once all actions have been determined, execute them
+    forEach((action) => action(this), compact(actions))
 
     // remove any dead creatures
     const deadCreatures = filter((creature) => creature.dead, values(this.creatures))
