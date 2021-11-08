@@ -1,7 +1,10 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { ShaderSystem } from '@pixi/core'
 import { install } from '@pixi/unsafe-eval'
 import { Terrain } from 'db/terrain'
+import { Creature } from 'engine/creature'
 import { World } from 'engine/world'
+import { creatureDeath, VisualEffect } from 'graphics/effects'
 import { isArray, noop } from 'lodash/fp'
 import * as PIXI from 'pixi.js'
 import { useCallback, useEffect, useRef, useState } from 'react'
@@ -152,6 +155,35 @@ export const MapPanel = ({
       timeSinceScrollRef.current -= (1000 / 100)
     }
   })
+
+  const showVisualEffect = useCallback((effect: VisualEffect, mapX: number, mapY: number) => {
+    if (viewportSize !== undefined) {
+      const cells = mapCellsRef.current
+      // -1 in both of these calculations is to account for the row/column we are centering
+      const offsetX = Math.floor(centerX - ((viewportSize.width - 1) / 2))
+      const offsetY = Math.floor(centerY - ((viewportSize.height - 1) / 2))
+
+      const cellX = mapX - offsetX
+      const cellY = mapY - offsetY
+
+      if (cells[cellY] !== undefined && cells[cellY][cellX] !== undefined) {
+        const effectContainer =
+        effect(cells[cellY][cellX].symbol)
+      }
+    }
+  }, [centerX, centerY, viewportSize])
+
+  // register listener to play death animation when a creature is killed
+  useEffect(() => {
+    const showDeathEffect = (creature: Creature) => {
+      showVisualEffect(creatureDeath, creature.x, creature.y)
+    }
+
+    world.on('creatureDeath', showDeathEffect)
+    return () => {
+      world.off('creatureDeath', showDeathEffect)
+    }
+  }, [showVisualEffect, world])
 
   const initializePixiApp = useCallback((container: HTMLDivElement) => {
     const app = new PIXI.Application({

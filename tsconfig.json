@@ -5,7 +5,7 @@
     "allowSyntheticDefaultImports": true,
     "alwaysStrict": true,
     "baseUrl": "src",
-    "composite": true,
+    "composite": false,
     "esModuleInterop": true,
     "experimentalDecorators": true,
     "forceConsistentCasingInFileNames": true,

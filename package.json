@@ -23,6 +23,7 @@
     "test": "react-scripts test --passWithNoTests"
   },
   "dependencies": {
+    "@pixi/particle-emitter": "5.0.2",
     "@pixi/unsafe-eval": "6.2.0",
     "@testing-library/jest-dom": "5.11.4",
     "@testing-library/react": "11.1.0",

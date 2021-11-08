@@ -75,7 +75,7 @@ export class Creature extends TypedEventEmitter<CreatureEvents> implements
     super()
 
     if (this._map.getCreatureId(this._x, this._y) !== undefined) {
-      throw new Error('TODO: do not fail when adding creature to occupied cell')
+      // throw new Error('TODO: do not fail when adding creature to occupied cell')
     }
 
     this._health = this._type.healthMax

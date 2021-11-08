@@ -41,14 +41,14 @@ export interface CreateDungeonOptions {
 
 const withDefaults = (options: Partial<CreateDungeonOptions>): CreateDungeonOptions => ({
   maximumPlacementFailures: 500,
-  maximumRoomArea: 100,
-  maximumRoomCount: 20,
+  maximumRoomArea: 800,
+  maximumRoomCount: 2,
   maximumHallwayLength: 7,
   minimumRoomArea: 4,
   minimumHallwayLength: 1,
   minimumDimensionSize: 2,
-  monsterCountMaximum: 12,
-  monsterCountMinimum: 10,
+  monsterCountMaximum: 20,
+  monsterCountMinimum: 20,
   roomIrregularity: 0.75,
   ...options,
 })
