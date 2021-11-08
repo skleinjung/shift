@@ -5,11 +5,12 @@ import { TypedEventEmitter } from 'typed-event-emitter'
 import { NoopAction } from './actions/noop'
 import { AttackResult } from './combat'
 import { Creature } from './creature'
-import { CreatureTypeId, CreatureTypes } from './creature-db'
+import { CreatureTypes } from './creature-db'
 import { createDungeon } from './dungeon/create-dungeon-v1'
 import { WorldEvents } from './events'
 import { createArmor, createWeapon, Item } from './item'
 import { ExpeditionMap } from './map'
+import { Player } from './player'
 import { Action } from './types'
 
 export class World extends TypedEventEmitter<WorldEvents> {
@@ -19,7 +20,7 @@ export class World extends TypedEventEmitter<WorldEvents> {
   // all player-readable log messages from this game
   private _messages: string[] = []
 
-  private _player: Creature
+  private _player: Player
   private _playerAction: Action
 
   constructor () {
@@ -28,10 +29,11 @@ export class World extends TypedEventEmitter<WorldEvents> {
     const dungeon = createDungeon()
     dungeon.createTerrain(this.map)
     forEach((spawn) => {
-      this.spawn(spawn.type, spawn.x, spawn.y)
+      this._registerCreature(new Creature(CreatureTypes[spawn.type], spawn.x, spawn.y, this.map))
     }, dungeon.creatures)
 
-    this._player = this.spawn('player', 0, 0)
+    this._player = new Player(CreatureTypes.player, 0, 0, this.map)
+    this._registerCreature(this._player)
     this._playerAction = NoopAction
     this._player.inventory.add(new Item({ name: 'a coconut' }))
     this._player.inventory.add(new Item({ name: 'hopes and dreams' }))
@@ -88,19 +90,13 @@ porttitor, imperdiet lectus. Quisque sit amet quam venenatis, iaculis sapien in,
       this.logMessage(`${creature.type.name} is dead!`)
       this.map.removeCreature(creature)
     }, deadCreatures)
+
+    this.emit('turn')
   }
 
-  /**
-   * Creates a creature of a given type at a specific map location.
-   */
-  public spawn (creatureTypeId: CreatureTypeId, xLocation: number, yLocation: number) {
-    const type = CreatureTypes[creatureTypeId]
-    const creature = new Creature(type, xLocation, yLocation, this.map)
-    this.creatures[creature.id] = creature
-
-    creature.on('attack', this._logAttack.bind(this))
-
-    return creature
+  /** Returns flag indicating if the current expedition reached an end condition. */
+  public get expeditionEnded () {
+    return this.player.link < 1 || this.player.dead
   }
 
   /**
@@ -134,5 +130,14 @@ porttitor, imperdiet lectus. Quisque sit amet quam venenatis, iaculis sapien in,
     } else {
       this.logMessage(`${attack.attacker.name} misses ${attack.target.name}.`)
     }
+  }
+
+  /**
+   * Registers a newly created by creature with the world.
+   */
+  private _registerCreature (creature: Creature) {
+    this.creatures[creature.id] = creature
+
+    creature.on('attack', this._logAttack.bind(this))
   }
 }

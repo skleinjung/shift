@@ -36,7 +36,7 @@ export interface Entity {
 
 /**
  * An Actor is a subtype of entity that participates in the game loop, and is capable of independent
- * action.
+ * action. It is also notified of the passing of each turn, in case of passive effects.
  */
 export interface Actor extends Entity {
   /**
@@ -48,6 +48,11 @@ export interface Actor extends Entity {
    * an action.
    **/
   getAction: (world: World) => Action | undefined
+
+  /**
+   * Called by the engine after each turn passes.
+   */
+  turnEnded: (world: World) => void
 }
 
 /** A Positionable entity has coordinates on the map grid. */

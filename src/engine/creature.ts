@@ -185,6 +185,10 @@ export class Creature extends TypedEventEmitter<CreatureEvents> implements
     return this._type.behavior(this, world)
   }
 
+  public turnEnded (_world: World) {
+    // do nothing by default
+  }
+
   /// ////////////////////////////////////////////
   // Combatant (Attacker)
 
