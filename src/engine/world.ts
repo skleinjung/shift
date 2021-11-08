@@ -38,14 +38,14 @@ export class World extends TypedEventEmitter<WorldEvents> {
 
     const spear = createWeapon('+100 spear', 100)
     this._player.inventory.add(spear)
-    // this._player.equip(spear)
+    this._player.equip(spear)
 
     const armor = createArmor('amazing, glowing armor', 100, `Lorem ipsum dolor sit amet, 
 consectetur adipiscing elit. Aenean pharetra est id velit laoreet, eu semper lectus ullamcorper.
 Nunc pellentesque nunc ex, eu venenatis orci mattis non. Maecenas in justo mollis, luctus urna 
 porttitor, imperdiet lectus. Quisque sit amet quam venenatis, iaculis sapien in, rutrum dui.`)
     this._player.inventory.add(armor)
-    // this._player.equip(armor)
+    this._player.equip(armor)
 
     this.logMessage('Expedition started.')
   }
@@ -82,6 +82,7 @@ porttitor, imperdiet lectus. Quisque sit amet quam venenatis, iaculis sapien in,
       delete this.creatures[creature.id]
       this.logMessage(`${creature.type.name} is dead!`)
       this.map.removeCreature(creature)
+      this.emit('creatureDeath', creature)
     }, deadCreatures)
   }
 
@@ -94,6 +95,8 @@ porttitor, imperdiet lectus. Quisque sit amet quam venenatis, iaculis sapien in,
     this.creatures[creature.id] = creature
 
     creature.on('attack', this._logAttack.bind(this))
+
+    this.emit('creatureSpawn', creature)
 
     return creature
   }

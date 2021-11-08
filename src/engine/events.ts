@@ -2,6 +2,12 @@ import { AttackResult } from './combat'
 import { Creature } from './creature'
 
 export interface WorldEvents {
+  /** Emitted when a creature is killed */
+  creatureDeath: (creature: Creature) => void
+
+  /** Emitted when a creature has been spawned on the map. */
+  creatureSpawn: (creature: Creature) => void
+
   /**
    * Emitted whenever a log message with meaningful content for the player has been generated.
    **/
