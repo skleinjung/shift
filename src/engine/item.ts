@@ -1,4 +1,4 @@
-import { findIndex } from 'lodash/fp'
+import { find, findIndex } from 'lodash/fp'
 
 import { CreatureAttributeModifiers } from './creature'
 import { drop, equip, unequip } from './item-inventory-action'
@@ -71,6 +71,11 @@ export class Item implements Entity {
     return this.equipmentSlots.length > 0
       ? [equip, unequip, drop]
       : [drop]
+  }
+
+  /** gets a specific inventory action by name, or undefined if there is none */
+  public getInventoryAction (name: string) {
+    return find((availableAction) => availableAction.name === name, this.inventoryActions)
   }
 
   /** flag indicating if this item can be equipped or not */

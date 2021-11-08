@@ -1,6 +1,4 @@
 import { findIndex } from 'lodash/fp'
-import { selector } from 'recoil'
-import { playerState } from 'ui/state/player'
 
 import { Creature } from './creature'
 import { Item } from './item'
@@ -114,21 +112,3 @@ export class ExpeditionMap {
     return this._cells[y]?.[x]
   }
 }
-
-export const selectOffsetX = selector({
-  key: 'mapOffsetX',
-  get: ({ get }) => {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const player = get(playerState)
-    return -20 // player.x
-  },
-})
-
-export const selectOffsetY = selector({
-  key: 'mapOffsetY',
-  get: ({ get }) => {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const player = get(playerState)
-    return -20 // player.y
-  },
-})

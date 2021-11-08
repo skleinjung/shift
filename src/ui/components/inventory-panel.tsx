@@ -1,8 +1,8 @@
 import { Item } from 'engine/item'
+import { ItemInventoryAction } from 'engine/item-inventory-action'
 import { get, head, map, noop } from 'lodash/fp'
 import { useCallback, useEffect, useState } from 'react'
-import { useRecoilValue } from 'recoil'
-import { playerState } from 'ui/state/player'
+import { useWorld } from 'ui/hooks/use-world'
 
 import { ContainerContentsPanel } from './container-contents-panel'
 import { ListPanel, ListPanelProps } from './list-panel'
@@ -13,7 +13,7 @@ export type InventoryPanelProps = Omit<
 ListPanelProps, 'items' | 'title' | 'container' | 'onItemConsidered' | 'onItemSelected'
 > & {
   /** callback invoked when a user attempts to execute an inventory action on an item */
-  onInventoryAction?: (item: Item, action: string) => void
+  onInventoryAction?: (item: Item, action: ItemInventoryAction) => void
 }
 
 export const InventoryPanel = ({
@@ -21,8 +21,8 @@ export const InventoryPanel = ({
   onInventoryAction = noop,
   ...rest
 }: InventoryPanelProps) => {
-  const player = useRecoilValue(playerState)
-  const [selectedItem, setSelectedItem] = useState(head(player.inventory.contents))
+  const creature = useWorld().player
+  const [selectedItem, setSelectedItem] = useState(head(creature.inventory.contents))
 
   // if the user tabs out of the list, clear the item selection to avoid confusion
   useEffect(() => {
@@ -31,17 +31,20 @@ export const InventoryPanel = ({
     }
   }, [active])
 
-  const handleItemAction = useCallback((action: string) => {
+  const handleItemAction = useCallback((name: string) => {
     if (selectedItem !== undefined) {
-      onInventoryAction(selectedItem, action)
-      setSelectedItem(undefined)
+      const action = selectedItem.getInventoryAction(name)
+      if (action !== undefined) {
+        onInventoryAction(selectedItem, action)
+        setSelectedItem(undefined)
+      }
     }
   }, [onInventoryAction, selectedItem])
 
   return selectedItem === undefined ? (
     <ContainerContentsPanel {...rest}
       active={active}
-      container={player.inventory}
+      container={creature.inventory}
       onItemSelected={setSelectedItem}
       title="Inventory"
     />

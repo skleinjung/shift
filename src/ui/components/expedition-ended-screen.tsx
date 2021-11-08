@@ -1,7 +1,7 @@
 import { useCallback } from 'react'
 import { useRecoilValue, useResetRecoilState } from 'recoil'
+import { useWorld } from 'ui/hooks/use-world'
 import { expeditionState } from 'ui/state/expedition'
-import { playerState } from 'ui/state/player'
 
 import { ScreenName } from './app'
 import './expedition-ended-screen.css'
@@ -14,10 +14,9 @@ export interface ExpeditionEndedScreenProps {
 }
 
 export const ExpeditionEndedScreen = ({ navigateTo }: ExpeditionEndedScreenProps) => {
+  const player = useWorld().player
   const expedition = useRecoilValue(expeditionState)
   const resetExpedition = useResetRecoilState(expeditionState)
-  const resetPlayer = useResetRecoilState(playerState)
-  const player = useRecoilValue(playerState)
 
   // update the focus when a new UL element is created
   const refCallback = useCallback((ul: HTMLDivElement) => {
@@ -32,9 +31,8 @@ export const ExpeditionEndedScreen = ({ navigateTo }: ExpeditionEndedScreenProps
 
   const returnToTitle = useCallback(() => {
     resetExpedition()
-    resetPlayer()
     navigateTo('title')
-  }, [resetExpedition, resetPlayer, navigateTo])
+  }, [resetExpedition, navigateTo])
 
   const fate = player.dead ? 'was killed' : 'lost his connection to this world'
 

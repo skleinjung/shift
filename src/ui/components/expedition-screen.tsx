@@ -1,16 +1,15 @@
 import { AttackAction } from 'engine/actions/attack'
 import { MoveByAction } from 'engine/actions/move-by'
 import { Item } from 'engine/item'
+import { ItemInventoryAction } from 'engine/item-inventory-action'
 import { Action } from 'engine/types'
-import { World } from 'engine/world'
-import { find } from 'lodash/fp'
-import { useCallback, useEffect, useRef, useState } from 'react'
-import { useRecoilState, useRecoilValue, useResetRecoilState, useSetRecoilState } from 'recoil'
+import { useCallback, useEffect, useState } from 'react'
+import { useRecoilState, useResetRecoilState, useSetRecoilState } from 'recoil'
 import { useGlobalKeyHandler } from 'ui/hooks/use-global-key-handler'
 import { useKeyHandler } from 'ui/hooks/use-key-handler'
-import { endTurn, expeditionState, isExpeditionComplete } from 'ui/state/expedition'
+import { useWorld } from 'ui/hooks/use-world'
+import { endTurn, expeditionState } from 'ui/state/expedition'
 import { gameState, pause, unpause } from 'ui/state/game'
-import { fromEntity, playerState } from 'ui/state/player'
 
 import { ScreenName } from './app'
 import { InventoryPanel } from './inventory-panel'
@@ -38,7 +37,8 @@ export interface ExpeditionScreenProps {
 }
 
 export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
-  const world = useRef<World | null>()
+  const world = useWorld()
+
   const [ready, setReady] = useState(false)
   const [activePanel, setActivePanel] = useState<SelectablePanels>(SelectablePanels.Map)
 
@@ -46,20 +46,17 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
   const resetGame = useResetRecoilState(gameState)
 
   const updateExpedition = useSetRecoilState(expeditionState)
-  const updatePlayer = useSetRecoilState(playerState)
 
-  const isComplete = useRecoilValue(isExpeditionComplete)
+  const isComplete = world.expeditionEnded
   const [viewportSize, setViewportSize] = useState({ width: 0, height: 0 })
   const [viewportCenter, setViewportCenter] = useState({ x: 0, y: 0 })
   const [game, updateGame] = useRecoilState(gameState)
 
   useEffect(() => {
-    world.current = new World()
     resetExpedition()
     resetGame()
-    updatePlayer(fromEntity(world.current.player))
     setReady(true)
-  }, [resetExpedition, resetGame, updatePlayer])
+  }, [resetExpedition, resetGame])
 
   const handleActivatePanel = useCallback((panel: SelectablePanels) => () => {
     setActivePanel(panel)
@@ -81,7 +78,7 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
     viewportSize: { width: number; height: number },
     viewportCenter: { x: number; y: number }
   ) => {
-    const player = world.current?.player
+    const player = world.player
 
     const oldCenter = viewportCenter
     let newCenterX = oldCenter.x
@@ -119,7 +116,7 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
     if (newCenterX !== oldCenter.x || newCenterY !== oldCenter.y) {
       setViewportCenter({ x: newCenterX, y: newCenterY })
     }
-  }, [])
+  }, [world.player])
 
   const handleViewportResize = useCallback((width, height) => {
     const size = { width, height }
@@ -128,36 +125,32 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
   }, [updateViewport, viewportCenter])
 
   const executeTurn = useCallback((playerAction: Action) => {
-    if (!game.paused && world.current) {
-      world.current.nextTurn(playerAction)
+    if (!game.paused) {
+      world.nextTurn(playerAction)
 
       // update our recoil state based on the new world state
       updateExpedition(endTurn)
-      updatePlayer(fromEntity(world.current.player))
 
       // recenter viewport based on player movement, if needed
       updateViewport(viewportSize, viewportCenter)
     }
-  }, [game.paused, updateExpedition, updatePlayer, updateViewport, viewportCenter, viewportSize])
+  }, [game.paused, updateExpedition, updateViewport, viewportCenter, viewportSize, world])
 
   const executePlayerMove = useCallback((x: number, y: number) => () => {
-    if (!game.paused && world.current) {
-      const player = world.current.player
-      const creature = world.current.map.getCreature(player.x + x, player.y + y)
+    if (!game.paused) {
+      const player = world.player
+      const creature = world.map.getCreature(player.x + x, player.y + y)
       if (creature === undefined) {
         executeTurn(MoveByAction(player, x, y))
       } else {
         executeTurn(AttackAction(player, creature))
       }
     }
-  }, [executeTurn, game.paused])
+  }, [executeTurn, game.paused, world.map, world.player])
 
-  const handleInventoryAction = useCallback((item: Item, actionName: string) => {
-    if (world.current) {
-      const action = find((availableAction) => availableAction.name === actionName, item.inventoryActions)
-      action?.execute(item, world.current.player, world.current)
-    }
-  }, [])
+  const handleInventoryAction = useCallback((item: Item, action: ItemInventoryAction) => {
+    action.execute(item, world.player, world)
+  }, [world])
 
   const mapKeyHandler = useKeyHandler({
     ArrowDown: executePlayerMove(0, 1),
@@ -198,23 +191,20 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
     )
   }
 
-  return (ready && world.current) ? (
+  return (ready) ? (
     <div className="dungeon-screen">
-      {world.current &&
-        <div className="main-content">
-          <MapPanel
-            active={activePanel === SelectablePanels.Map && !game.paused}
-            centerX={viewportCenter.x}
-            centerY={viewportCenter.y}
-            onClick={handleActivatePanel(SelectablePanels.Map)}
-            onKeyDown={mapKeyHandler}
-            onViewportSizeChanged={handleViewportResize}
-            world={world.current}
-          />
+      <div className="main-content">
+        <MapPanel
+          active={activePanel === SelectablePanels.Map && !game.paused}
+          centerX={viewportCenter.x}
+          centerY={viewportCenter.y}
+          onClick={handleActivatePanel(SelectablePanels.Map)}
+          onKeyDown={mapKeyHandler}
+          onViewportSizeChanged={handleViewportResize}
+        />
 
-          <LogPanel world={world.current} />
-        </div>
-      }
+        <LogPanel world={world} />
+      </div>
 
       <div className="sidebar">
         <PlayerStatusPanel />
