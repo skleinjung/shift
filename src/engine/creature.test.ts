@@ -12,7 +12,7 @@ describe('container', () => {
     test('unequippable item', () => {
       const creature = createCreature()
       const item = new Item({ name: 'test-item' })
-      creature.inventory.add(item)
+      creature.inventory.addItem(item)
 
       expect(creature.equip(item)).toBe(false)
       expect(keys(creature.equipment).length).toBe(0)
@@ -21,7 +21,7 @@ describe('container', () => {
     test('invalid slot', () => {
       const creature = createCreature()
       const item = createWeapon('test-weapon')
-      creature.inventory.add(item)
+      creature.inventory.addItem(item)
 
       expect(creature.equip(item, 'Body')).toBe(false)
       expect(keys(creature.equipment).length).toBe(0)
@@ -41,8 +41,8 @@ describe('container', () => {
           slots: ['Body'],
         },
       })
-      creature.inventory.add(item1)
-      creature.inventory.add(item2)
+      creature.inventory.addItem(item1)
+      creature.inventory.addItem(item2)
 
       creature.equip(item1)
       expect(creature.equip(item2)).toBe(false)
@@ -53,7 +53,7 @@ describe('container', () => {
     test('specific slot', () => {
       const creature = createCreature()
       const item = createWeapon('test-weapon-1')
-      creature.inventory.add(item)
+      creature.inventory.addItem(item)
 
       expect(creature.equip(item, 'OffHand')).toBe(true)
       expect(keys(creature.equipment).length).toBe(1)
@@ -64,7 +64,7 @@ describe('container', () => {
     test('default slot', () => {
       const creature = createCreature()
       const item = createWeapon('test-weapon-1')
-      creature.inventory.add(item)
+      creature.inventory.addItem(item)
 
       expect(creature.equip(item)).toBe(true)
       expect(keys(creature.equipment).length).toBe(1)
@@ -75,8 +75,8 @@ describe('container', () => {
       const creature = createCreature()
       const item1 = createWeapon('test-weapon-1')
       const item2 = createWeapon('test-weapon-2')
-      creature.inventory.add(item1)
-      creature.inventory.add(item2)
+      creature.inventory.addItem(item1)
+      creature.inventory.addItem(item2)
 
       creature.equip(item1)
       expect(creature.equip(item2)).toBe(true)
