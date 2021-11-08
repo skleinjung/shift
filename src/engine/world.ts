@@ -81,6 +81,7 @@ porttitor, imperdiet lectus. Quisque sit amet quam venenatis, iaculis sapien in,
     const actions = map((creature) => creature.type.behavior(creature, this), this.creatures)
 
     // once all actions have been determined, execute them
+    // TODO: examine success/failure return value
     forEach((action) => action(this), compact(actions))
 
     // remove any dead creatures

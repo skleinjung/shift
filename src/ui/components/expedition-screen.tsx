@@ -1,5 +1,6 @@
 import { AttackAction } from 'engine/actions/attack'
 import { MoveByAction } from 'engine/actions/move-by'
+import { UseInventoryItemAction } from 'engine/actions/use-inventory-item'
 import { Item } from 'engine/item'
 import { ItemInventoryAction } from 'engine/item-inventory-action'
 import { Action } from 'engine/types'
@@ -149,8 +150,13 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
   }, [executeTurn, game.paused, world.map, world.player])
 
   const handleInventoryAction = useCallback((item: Item, action: ItemInventoryAction) => {
-    action.execute(item, world.player, world)
-  }, [world])
+    executeTurn(UseInventoryItemAction(
+      world.player,
+      action.name,
+      item
+    ))
+    setActivePanel(SelectablePanels.Map)
+  }, [executeTurn, world])
 
   const mapKeyHandler = useKeyHandler({
     ArrowDown: executePlayerMove(0, 1),
