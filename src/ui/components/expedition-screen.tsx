@@ -3,7 +3,7 @@ import { MoveByAction } from 'engine/actions/move-by'
 import { Item } from 'engine/item'
 import { Action } from 'engine/types'
 import { World } from 'engine/world'
-import { compact } from 'lodash'
+import { find } from 'lodash/fp'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRecoilState, useRecoilValue, useResetRecoilState, useSetRecoilState } from 'recoil'
 import { useGlobalKeyHandler } from 'ui/hooks/use-global-key-handler'
@@ -13,7 +13,7 @@ import { gameState, pause, unpause } from 'ui/state/game'
 import { fromEntity, playerState } from 'ui/state/player'
 
 import { ScreenName } from './app'
-import { InventoryPanel, ItemAction } from './inventory-panel'
+import { InventoryPanel } from './inventory-panel'
 import { LogPanel } from './log-panel'
 import { MapPanel } from './map-panel'
 import { Panel } from './panel'
@@ -152,26 +152,12 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
     }
   }, [executeTurn, game.paused])
 
-  const getItemActions = useCallback((item: Item): ItemAction[] => {
-    return compact([
-      item.equippable ? {
-        name: 'Equip',
-        execute: (item) => {
-          if (world.current?.player) {
-            world.current.player.equip(item)
-            updatePlayer(fromEntity(world.current.player))
-            setActivePanel(SelectablePanels.Map)
-          }
-        },
-      } : undefined,
-      item.equippable ? {
-        name: 'Unequip',
-        execute: () => {
-          // world.current?.player?.unequip?.(item)
-        },
-      } : undefined,
-    ])
-  }, [updatePlayer])
+  const handleInventoryAction = useCallback((item: Item, actionName: string) => {
+    if (world.current) {
+      const action = find((availableAction) => availableAction.name === actionName, item.inventoryActions)
+      action?.execute(item, world.current.player, world.current)
+    }
+  }, [])
 
   const mapKeyHandler = useKeyHandler({
     ArrowDown: executePlayerMove(0, 1),
@@ -247,8 +233,8 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
           active={activePanel === SelectablePanels.Information && !game.paused}
           allowSelection={true}
           columns={SidebarColumns}
-          getItemActions={getItemActions}
           onClick={handleActivatePanel(SelectablePanels.Information)}
+          onInventoryAction={handleInventoryAction}
         />
 
         <Panel columns={SidebarColumns} rows={8}>

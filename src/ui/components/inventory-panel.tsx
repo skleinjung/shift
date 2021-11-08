@@ -1,5 +1,5 @@
 import { Item } from 'engine/item'
-import { find, get, head, map } from 'lodash/fp'
+import { get, head, map, noop } from 'lodash/fp'
 import { useCallback, useEffect, useState } from 'react'
 import { useRecoilValue } from 'recoil'
 import { playerState } from 'ui/state/player'
@@ -9,24 +9,16 @@ import { ListPanel, ListPanelProps } from './list-panel'
 
 import './inventory-panel.css'
 
-export type ItemAction = {
-  /** name of this action, to display in the list */
-  name: string
-
-  /** invoke the action, for the given item */
-  execute: (item: Item) => void
-}
-
 export type InventoryPanelProps = Omit<
 ListPanelProps, 'items' | 'title' | 'container' | 'onItemConsidered' | 'onItemSelected'
 > & {
-  /** given an item in the inventory, return a set of actions the user can perform on that item */
-  getItemActions: (item: Item) => ItemAction[]
+  /** callback invoked when a user attempts to execute an inventory action on an item */
+  onInventoryAction?: (item: Item, action: string) => void
 }
 
 export const InventoryPanel = ({
   active,
-  getItemActions,
+  onInventoryAction = noop,
   ...rest
 }: InventoryPanelProps) => {
   const player = useRecoilValue(playerState)
@@ -41,14 +33,10 @@ export const InventoryPanel = ({
 
   const handleItemAction = useCallback((action: string) => {
     if (selectedItem !== undefined) {
-      find(
-        (availableAction) => availableAction.name === action,
-        getItemActions(selectedItem)
-      )?.execute(selectedItem)
+      onInventoryAction(selectedItem, action)
+      setSelectedItem(undefined)
     }
-
-    setSelectedItem(undefined)
-  }, [getItemActions, selectedItem])
+  }, [onInventoryAction, selectedItem])
 
   return selectedItem === undefined ? (
     <ContainerContentsPanel {...rest}
@@ -61,7 +49,7 @@ export const InventoryPanel = ({
     <ListPanel {...rest}
       active={active}
       allowSelection={true}
-      items={[...map(get('name'), getItemActions(selectedItem)), 'Back']}
+      items={[...map(get('name'), selectedItem.inventoryActions), 'Back']}
       onItemSelected={handleItemAction}
       title={selectedItem.name}
     >
