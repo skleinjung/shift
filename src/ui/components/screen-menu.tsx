@@ -1,9 +1,17 @@
 import { findIndex, map, noop } from 'lodash/fp'
-import React, { useCallback, useState } from 'react'
+import React, { HTMLAttributes, PropsWithChildren, useCallback, useState } from 'react'
+import { toClassName, WithExtraClasses } from 'ui/to-class-name'
 
 import './screen-menu.css'
 
-export interface ScreenMenuProps {
+type InheritedProps = Omit<HTMLAttributes<HTMLUListElement>,
+'className'
+| 'onBlur'
+| 'onKeyDown'
+| 'tabIndex'
+>
+
+export type ScreenMenuProps = InheritedProps & WithExtraClasses & PropsWithChildren<{
   /** the item to select when the list first renders */
   initialSelection?: string
 
@@ -14,13 +22,15 @@ export interface ScreenMenuProps {
 
   /** called when a user confirms a selection, with 'enter' or clciking */
   onSelectionConfirmed?: (item: string) => void
-}
+}>
 
 export const ScreenMenu = ({
+  classes = [],
   initialSelection,
   items,
   onItemSelected = noop,
   onSelectionConfirmed = noop,
+  ...ulProps
 }: ScreenMenuProps) => {
   const [selectedItem, setSelectedItem] = useState(initialSelection ?? items[0])
 
@@ -81,8 +91,8 @@ export const ScreenMenu = ({
   }, [confirmSelection, select])
 
   return (
-    <ul
-      className="screen-menu"
+    <ul {...ulProps}
+      className={toClassName(classes, 'screen-menu')}
       onBlur={handleBlur}
       onKeyDown={handleKeyPress}
       ref={refCallback}
