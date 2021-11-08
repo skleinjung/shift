@@ -1,4 +1,5 @@
-import { sample, times } from 'lodash/fp'
+import { MonsterTypeIds } from 'engine/creature-db'
+import { find, sample, times } from 'lodash/fp'
 
 import { Dungeon } from './dungeon'
 import { Region } from './region'
@@ -175,13 +176,26 @@ const createDungeonRecursive = (
 const populate = (dungeon: Dungeon, { monsterCountMaximum, monsterCountMinimum }: CreateDungeonOptions) => {
   const monsterCount = random(monsterCountMinimum, monsterCountMaximum)
   times(() => {
-    const type = sample(['kobold', 'goblin', 'orc']) ?? 'kobold'
+    const type = sample(MonsterTypeIds) ?? 'kobold'
     const rooms = dungeon.rooms
     const room = rooms[random(0, rooms.length - 1)]
-    const x = random(room.left, room.right)
-    const y = random(room.top, room.bottom)
 
-    dungeon.creatures.push({ type, x, y })
+    let loopCount = 0
+    let x = 0
+    let y = 0
+
+    const spaceOccupied = (x: number, y: number) => {
+      return find((monster) => monster.x === x && monster.y === y, dungeon.creatures) !== undefined
+    }
+
+    do {
+      x = random(room.left, room.right)
+      y = random(room.top, room.bottom)
+    } while (spaceOccupied(x, y) && loopCount++ < 50)
+
+    if (!spaceOccupied(x, y)) {
+      dungeon.creatures.push({ type, x, y })
+    }
   }, monsterCount)
 }
 

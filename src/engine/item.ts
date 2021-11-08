@@ -1,6 +1,8 @@
-import { findIndex } from 'lodash/fp'
+import { find, findIndex } from 'lodash/fp'
 
 import { CreatureAttributeModifiers } from './creature'
+import { get } from './item-interaction'
+import { drop, equip, unequip } from './item-inventory-action'
 import { newId } from './new-id'
 import { Entity } from './types'
 
@@ -63,6 +65,28 @@ export class Item implements Entity {
     this.equipmentEffects = equipment?.effects
     this.description = description
     this.name = name
+  }
+
+  /** ItemInteractions that apply to this item */
+  public get interactions () {
+    return [get]
+  }
+
+  /** gets a specific item interaction by name, or undefined if there is none */
+  public getInteraction (name: string) {
+    return find((availableInteraction) => availableInteraction.name === name, this.interactions)
+  }
+
+  /** ItemInventoryActions that apply to this item */
+  public get inventoryActions () {
+    return this.equipmentSlots.length > 0
+      ? [equip, unequip, drop]
+      : [drop]
+  }
+
+  /** gets a specific inventory action by name, or undefined if there is none */
+  public getInventoryAction (name: string) {
+    return find((availableAction) => availableAction.name === name, this.inventoryActions)
   }
 
   /** flag indicating if this item can be equipped or not */

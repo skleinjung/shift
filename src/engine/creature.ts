@@ -1,5 +1,4 @@
-import { CreatureType } from 'db/creatures'
-import { compact, find, flow, map, reduce, values } from 'lodash/fp'
+import { compact, find, findIndex, flow, keys, map, reduce, values } from 'lodash/fp'
 import { TypedEventEmitter } from 'typed-event-emitter'
 
 import {
@@ -11,7 +10,8 @@ import {
   getCombatRollResult,
   PendingAttack,
 } from './combat'
-import { Container } from './container'
+import { BasicContainer } from './container'
+import { CreatureType } from './creature-db'
 import { CreatureEvents } from './events'
 import { EquipmentSet, EquipmentSlot, Item } from './item'
 import { ExpeditionMap } from './map'
@@ -49,6 +49,9 @@ export type CreatureAttributeModifiers = {
   [k in CreatureAttributeModifierMethodName]?: (value: number, creature: Creature) => number
 }
 
+/** Specialized container type repsenting a creature's inventory */
+export class Inventory extends BasicContainer {}
+
 /**
  * A Creature is an Actor subtype that specifically represents a living being.
  */
@@ -64,7 +67,7 @@ export class Creature extends TypedEventEmitter<CreatureEvents> implements
   private _equipment: EquipmentSet = {}
 
   /** inventory of items held by this creature */
-  public readonly inventory: Container
+  public readonly inventory: Inventory
 
   constructor (
     private _type: CreatureType,
@@ -74,13 +77,13 @@ export class Creature extends TypedEventEmitter<CreatureEvents> implements
   ) {
     super()
 
-    if (this._map.getCreatureId(this._x, this._y) !== undefined) {
+    if (this._map.getCreature(this._x, this._y) !== undefined) {
       throw new Error('TODO: do not fail when adding creature to occupied cell')
     }
 
     this._health = this._type.healthMax
-    this.inventory = new Container({ name: `inv_creature_${this._id}` })
-    this._map.setCreatureId(this._x, this._y, this.id)
+    this.inventory = new Inventory()
+    this._map.setCreature(this._x, this._y, this)
   }
 
   public get type () {
@@ -116,6 +119,11 @@ export class Creature extends TypedEventEmitter<CreatureEvents> implements
     return this._equipment
   }
 
+  /** Returns whether or not a specified item is equipped. */
+  public isEquipped (item: Item): boolean {
+    return findIndex((equippedItem) => item.id === equippedItem?.id, values(this._equipment)) !== -1
+  }
+
   /**
    * Equips an item in the specified slot. If no slot is given, then the default slot (main hand,
    * ring 1, etc.) will be used by default.
@@ -125,7 +133,7 @@ export class Creature extends TypedEventEmitter<CreatureEvents> implements
    **/
   public equip (item: Item, slot?: EquipmentSlot) {
     // can only equip from inventory
-    if (!this.inventory.contains(item)) {
+    if (!this.inventory.containsItem(item)) {
       return false
     }
 
@@ -157,8 +165,11 @@ export class Creature extends TypedEventEmitter<CreatureEvents> implements
    * Unequips the item at the specified slot. Returns true if the item was successfully unequipped,
    * or false if it could not be for some reason (i.e. no item at that slot, item is cursed, etc.).
    **/
-  public unequip (slot: EquipmentSlot) {
-    if (this._equipment[slot] !== undefined) {
+  public unequip (item: Item) {
+    const allSlots = keys(this._equipment) as (keyof EquipmentSet)[]
+    const slot = find((slot) => this._equipment[slot] === item, allSlots)
+
+    if (slot !== undefined) {
       delete this._equipment[slot]
       return true
     }
@@ -183,6 +194,10 @@ export class Creature extends TypedEventEmitter<CreatureEvents> implements
 
   public getAction (world: World) {
     return this._type.behavior(this, world)
+  }
+
+  public turnEnded (_world: World) {
+    // do nothing by default
   }
 
   /// ////////////////////////////////////////////
@@ -268,14 +283,14 @@ export class Creature extends TypedEventEmitter<CreatureEvents> implements
       return false
     }
 
-    if (this._map.getCreatureId(this._x, this._y) === this.id) {
-      this._map.setCreatureId(this._x, this._y, undefined)
+    if (this._map.getCreature(this._x, this._y) === this) {
+      this._map.setCreature(this._x, this._y, undefined)
     }
 
     this._x = newX
     this._y = newY
 
-    this._map.setCreatureId(this._x, this._y, this.id)
+    this._map.setCreature(this._x, this._y, this)
     return true
   }
 

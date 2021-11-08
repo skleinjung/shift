@@ -1,12 +1,10 @@
 import { ShaderSystem } from '@pixi/core'
 import { install } from '@pixi/unsafe-eval'
-import { Terrain } from 'db/terrain'
-import { World } from 'engine/world'
+import { toSymbol } from 'engine/map-symbolizer'
 import { isArray, noop } from 'lodash/fp'
 import * as PIXI from 'pixi.js'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useRecoilState } from 'recoil'
-import { playerState } from 'ui/state/player'
+import { useWorld } from 'ui/hooks/use-world'
 
 import { FontNames } from '../fonts'
 
@@ -18,26 +16,6 @@ install({ ShaderSystem })
 const CellFontSize = 16
 const CellHeight = 16
 const CellWidth = 16
-
-const getRenderable = (world: World, x: number, y: number) => {
-  const cell = world.map.getCell(x, y)
-  if (cell?.creatureId !== undefined) {
-    return world.getCreature(cell.creatureId).type
-  }
-
-  return cell?.terrain !== undefined
-    ? cell.terrain
-    : Terrain.Default
-}
-
-const getBackgroundAt = (world: World, x: number, y: number) =>
-  getRenderable(world, x, y).background ?? 0
-
-const getColorAt = (world: World, x: number, y: number) =>
-  getRenderable(world, x, y).color
-
-const getSymbolAt = (world: World, x: number, y: number) =>
-  getRenderable(world, x, y).symbol
 
 interface RenderCell {
   background: PIXI.Graphics
@@ -61,9 +39,6 @@ export interface MapPanelProps extends Omit<PanelProps, 'columns' | 'rows'> {
 
   /** callback notified whenever the size of the viewport changes, with new dimensions in map cell coordinates */
   onViewportSizeChanged?: (width: number, height: number) => void
-
-  /** the whole world */
-  world: World
 }
 
 /**
@@ -105,18 +80,15 @@ export const MapPanel = ({
   centerX = 0,
   centerY = 0,
   onViewportSizeChanged = noop,
-  world,
   ...panelProps
 }: MapPanelProps) => {
+  const world = useWorld()
   const timeSinceScrollRef = useRef<number>(0)
   const mapCellsRef = useRef<RenderCell[][]>([])
 
   const resizeObserverRef = useRef<ResizeObserver | null>()
   const [viewportSize, setViewportSize] = useState<ViewportSize | undefined>()
 
-  // we only subscribe to player because it's the easiest way to rerender currently
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [player, updatePlayer] = useRecoilState(playerState)
   const appRef = useRef<PIXI.Application | null>(null)
 
   // create PIXI objects for new cells if the viewport has expanded
@@ -143,9 +115,10 @@ export const MapPanel = ({
             const mapX = x + offsetX
             const mapY = y + offsetY
 
-            cells[y][x].background.tint = getBackgroundAt(world, mapX, mapY)
-            cells[y][x].symbol.text = getSymbolAt(world, mapX, mapY)
-            cells[y][x].symbol.tint = getColorAt(world, mapX, mapY)
+            const mapSymbol = toSymbol(world.map.getCell(mapX, mapY))
+            cells[y][x].background.tint = mapSymbol.background ?? 0
+            cells[y][x].symbol.text = mapSymbol.symbol
+            cells[y][x].symbol.tint = mapSymbol.color
           }
         }
       }

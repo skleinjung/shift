@@ -1,22 +1,27 @@
-import { Terrain, TerrainType } from 'db/terrain'
-import { selector } from 'recoil'
-import { playerState } from 'ui/state/player'
+import { filter, findIndex } from 'lodash/fp'
 
+import { BasicContainer } from './container'
 import { Creature } from './creature'
+import { Item } from './item'
+import { TerrainType, TerrainTypes } from './terrain-db'
 
-export interface MapCell {
-  creatureId?: number
-  terrain: TerrainType
+export class MapCell extends BasicContainer {
+  constructor (
+    /** type of terrain in this cell */
+    public terrain: TerrainType,
+    /** ID of the creature occupying this cell, if any */
+    public creature?: Creature
+  ) {
+    super()
+  }
 }
 
-const DefaultCell = {
-  terrain: Terrain.Default,
-}
+const DefaultCell: MapCell = new MapCell(TerrainTypes.default)
 
 export class ExpeditionMap {
   private _cells: MapCell[][] = []
 
-  public getCell (x: number, y: number): Readonly<MapCell> {
+  public getCell (x: number, y: number): MapCell {
     return this._getCell(x, y) ?? DefaultCell
   }
 
@@ -28,22 +33,22 @@ export class ExpeditionMap {
    */
   public isTraversable (x: number, y: number): boolean {
     const cell = this._getCell(x, y)
-    return cell?.terrain?.traversable && cell?.creatureId === undefined
+    return cell?.terrain?.traversable && cell?.creature === undefined
   }
 
   /**
    * Gets the ID of the creature in the specified map cell, or undefined if there is no cell with
    * a creature at those coordinates.
    */
-  public getCreatureId (x: number, y: number): number | undefined {
-    return this._getCell(x, y)?.creatureId
+  public getCreature (x: number, y: number): Creature | undefined {
+    return this._getCell(x, y)?.creature
   }
 
   /**
    * Sets the creature ID for a specified map cell.
    */
-  public setCreatureId (x: number, y: number, creatureId: number | undefined) {
-    this._getCell(x, y, true).creatureId = creatureId
+  public setCreature (x: number, y: number, creature: Creature | undefined) {
+    this._getCell(x, y, true).creature = creature
   }
 
   /**
@@ -51,16 +56,56 @@ export class ExpeditionMap {
    */
   public removeCreature (creature: Creature) {
     const cell = this._getCell(creature.x, creature.y)
-    if (cell.creatureId === creature.id) {
-      this.setCreatureId(creature.x, creature.y, undefined)
+    if (cell.creature?.id === creature.id) {
+      this.setCreature(creature.x, creature.y, undefined)
     }
+  }
+
+  /**
+   * Adds an item to the ground at the specified cell coordinates.
+   */
+  public addItem (x: number, y: number, item: Item) {
+    const cell = this._getCell(x, y, true)
+    if (findIndex((cellItem) => cellItem.id === item.id, cell.items) === -1) {
+      cell.addItem(item)
+    }
+  }
+
+  /**
+   * Removes an item from the ground at the specified cell coordinates.
+   */
+  public removeItem (x: number, y: number, item: Item) {
+    const cell = this._getCell(x, y)
+    if (cell !== undefined) {
+      cell.removeItem(item)
+    }
+  }
+
+  /**
+   * Returns a list of items in the specified map cell.
+   */
+  public getItems (x: number, y: number) {
+    return this._getCell(x, y)?.items ?? []
+  }
+
+  /**
+   * Returns a list of items in the given cell that have any available item interactions. If the
+   * interactionName parameter is specified, then only items that support that type of interaction
+   * are returned.
+   */
+  public getInteractableItems (x: number, y: number, interactionName?: string) {
+    return filter((item) => {
+      return interactionName === undefined
+        ? item.interactions.length > 1
+        : item.getInteraction(interactionName) !== undefined
+    }, this.getItems(x, y))
   }
 
   /**
    * Gets the terrain type for the specified cell.
    */
   public getTerrain (x: number, y: number) {
-    return this._getCell(x, y)?.terrain ?? Terrain.Default
+    return this._getCell(x, y)?.terrain ?? TerrainTypes.default
   }
 
   /**
@@ -76,27 +121,9 @@ export class ExpeditionMap {
     }
 
     if (createIfMissing && this._cells[y][x] === undefined) {
-      this._cells[y][x] = { terrain: Terrain.Default }
+      this._cells[y][x] = new MapCell(TerrainTypes.default)
     }
 
     return this._cells[y]?.[x]
   }
 }
-
-export const selectOffsetX = selector({
-  key: 'mapOffsetX',
-  get: ({ get }) => {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const player = get(playerState)
-    return -20 // player.x
-  },
-})
-
-export const selectOffsetY = selector({
-  key: 'mapOffsetY',
-  get: ({ get }) => {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const player = get(playerState)
-    return -20 // player.y
-  },
-})

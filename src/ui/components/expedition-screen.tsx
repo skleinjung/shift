@@ -1,24 +1,27 @@
 import { AttackAction } from 'engine/actions/attack'
+import { InteractWithItemAction } from 'engine/actions/interact-with-item'
 import { MoveByAction } from 'engine/actions/move-by'
+import { UseInventoryItemAction } from 'engine/actions/use-inventory-item'
 import { Item } from 'engine/item'
+import { ItemInventoryAction } from 'engine/item-inventory-action'
 import { Action } from 'engine/types'
-import { World } from 'engine/world'
-import { compact } from 'lodash'
-import { useCallback, useEffect, useRef, useState } from 'react'
-import { useRecoilState, useRecoilValue, useResetRecoilState, useSetRecoilState } from 'recoil'
+import { toLower } from 'lodash/fp'
+import { useCallback, useEffect, useState } from 'react'
+import { useResetRecoilState, useSetRecoilState } from 'recoil'
 import { useGlobalKeyHandler } from 'ui/hooks/use-global-key-handler'
 import { useKeyHandler } from 'ui/hooks/use-key-handler'
-import { endTurn, expeditionState, isExpeditionComplete } from 'ui/state/expedition'
-import { gameState, pause, unpause } from 'ui/state/game'
-import { fromEntity, playerState } from 'ui/state/player'
+import { useWorld } from 'ui/hooks/use-world'
+import { endTurn, expeditionState } from 'ui/state/expedition'
 
 import { ScreenName } from './app'
-import { InventoryPanel, ItemAction } from './inventory-panel'
+import { InventoryPanel } from './inventory-panel'
+import { ItemInteractionPanel } from './item-interaction-panel'
 import { LogPanel } from './log-panel'
 import { MapPanel } from './map-panel'
+import { Modal } from './modal'
 import { Panel } from './panel'
 import { PlayerStatusPanel } from './player-status-panel'
-import { PopupMenu } from './popup-menu'
+import { ScreenMenu } from './screen-menu'
 
 import './expedition-screen.css'
 
@@ -32,56 +35,89 @@ enum SelectablePanels {
   Options,
 }
 
+/** Type of modal to display. Modals are used when a user initiates an action that requires multiple inputs. */
+enum ModalMode {
+  None = 0,
+  Pause,
+  InteractWithItem
+}
+
+interface KeyMap {
+  Get: string
+  MoveUp: string
+  MoveDown: string
+  MoveLeft: string
+  MoveRight: string
+}
+
+const KeyMaps = {
+  Sean: {
+    Get: 'g',
+    MoveUp: 'e',
+    MoveDown: 'd',
+    MoveLeft: 's',
+    MoveRight: 'f',
+  },
+  EveryoneElse: {
+    Get: 'g',
+    MoveUp: 'w',
+    MoveDown: 's',
+    MoveLeft: 'a',
+    MoveRight: 'd',
+  },
+}
+
+const keyMap: KeyMap = KeyMaps.Sean
+
 export interface ExpeditionScreenProps {
   /** function that allows inter-screen navigation */
   navigateTo: (screen: ScreenName) => void
 }
 
 export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
-  const world = useRef<World | null>()
+  const world = useWorld()
+
   const [ready, setReady] = useState(false)
+  const [modalMode, setModalMode] = useState<ModalMode>(ModalMode.None)
+  const [modelArgument, setModalArgument] = useState<string | undefined>()
   const [activePanel, setActivePanel] = useState<SelectablePanels>(SelectablePanels.Map)
 
   const resetExpedition = useResetRecoilState(expeditionState)
-  const resetGame = useResetRecoilState(gameState)
 
   const updateExpedition = useSetRecoilState(expeditionState)
-  const updatePlayer = useSetRecoilState(playerState)
 
-  const isComplete = useRecoilValue(isExpeditionComplete)
+  const isComplete = world.expeditionEnded
   const [viewportSize, setViewportSize] = useState({ width: 0, height: 0 })
   const [viewportCenter, setViewportCenter] = useState({ x: 0, y: 0 })
-  const [game, updateGame] = useRecoilState(gameState)
+
+  const paused = modalMode !== ModalMode.None
 
   useEffect(() => {
-    world.current = new World()
     resetExpedition()
-    resetGame()
-    updatePlayer(fromEntity(world.current.player))
     setReady(true)
-  }, [resetExpedition, resetGame, updatePlayer])
+  }, [resetExpedition])
 
   const handleActivatePanel = useCallback((panel: SelectablePanels) => () => {
     setActivePanel(panel)
   }, [])
 
   const handleEscape = useCallback(() => {
-    if (game.paused) {
-      updateGame(unpause)
+    if (modalMode !== ModalMode.None) {
+      // close any open modals
+      setModalMode(ModalMode.None)
+      setModalArgument(undefined)
     } else {
-      updateGame(pause)
+      // pause, with the default pause modal visible
+      setModalMode(ModalMode.Pause)
+      setModalArgument(undefined)
     }
-  }, [game.paused, updateGame])
-
-  const handleUnpause = useCallback(() => {
-    updateGame(unpause)
-  }, [updateGame])
+  }, [modalMode])
 
   const updateViewport = useCallback((
     viewportSize: { width: number; height: number },
     viewportCenter: { x: number; y: number }
   ) => {
-    const player = world.current?.player
+    const player = world.player
 
     const oldCenter = viewportCenter
     let newCenterX = oldCenter.x
@@ -119,7 +155,7 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
     if (newCenterX !== oldCenter.x || newCenterY !== oldCenter.y) {
       setViewportCenter({ x: newCenterX, y: newCenterY })
     }
-  }, [])
+  }, [world.player])
 
   const handleViewportResize = useCallback((width, height) => {
     const size = { width, height }
@@ -128,69 +164,85 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
   }, [updateViewport, viewportCenter])
 
   const executeTurn = useCallback((playerAction: Action) => {
-    if (!game.paused && world.current) {
-      world.current.nextTurn(playerAction)
+    world.nextTurn(playerAction)
 
-      // update our recoil state based on the new world state
-      updateExpedition(endTurn)
-      updatePlayer(fromEntity(world.current.player))
+    // update our recoil state based on the new world state
+    updateExpedition(endTurn)
 
-      // recenter viewport based on player movement, if needed
-      updateViewport(viewportSize, viewportCenter)
-    }
-  }, [game.paused, updateExpedition, updatePlayer, updateViewport, viewportCenter, viewportSize])
+    // recenter viewport based on player movement, if needed
+    updateViewport(viewportSize, viewportCenter)
+  }, [updateExpedition, updateViewport, viewportCenter, viewportSize, world])
 
   const executePlayerMove = useCallback((x: number, y: number) => () => {
-    if (!game.paused && world.current) {
-      const player = world.current.player
-      const creatureId = world.current.map.getCreatureId(player.x + x, player.y + y)
-      if (creatureId === undefined) {
-        executeTurn(MoveByAction(player, x, y))
+    if (!paused) {
+      const player = world.player
+      const creature = world.map.getCreature(player.x + x, player.y + y)
+      if (creature === undefined) {
+        executeTurn(new MoveByAction(player, x, y))
       } else {
-        executeTurn(AttackAction(player, world.current.creatures[creatureId]))
+        executeTurn(new AttackAction(player, creature))
       }
     }
-  }, [executeTurn, game.paused])
+  }, [executeTurn, paused, world.map, world.player])
 
-  const getItemActions = useCallback((item: Item): ItemAction[] => {
-    return compact([
-      item.equippable ? {
-        name: 'Equip',
-        execute: (item) => {
-          if (world.current?.player) {
-            world.current.player.equip(item)
-            updatePlayer(fromEntity(world.current.player))
-            setActivePanel(SelectablePanels.Map)
-          }
-        },
-      } : undefined,
-      item.equippable ? {
-        name: 'Unequip',
-        execute: () => {
-          // world.current?.player?.unequip?.(item)
-        },
-      } : undefined,
-    ])
-  }, [updatePlayer])
+  const interactWithItem = useCallback((item: Item, interaction: string) => {
+    executeTurn(new InteractWithItemAction(
+      world.player,
+      interaction,
+      item
+    ))
+  }, [executeTurn, world.player])
+
+  const beginItemInteraction = useCallback((interactionName: string) => () => {
+    const player = world.player
+    const candidateItems = world.map.getInteractableItems(player.x, player.y, interactionName)
+    if (candidateItems.length === 0) {
+      // no items
+      world.logMessage(`There are no items to ${toLower(interactionName)} here.`)
+    } else if (candidateItems.length === 1) {
+      // just one item, pick it up directly
+      interactWithItem(candidateItems[0], interactionName)
+    } else {
+      // multiple items, use a modal to pick one
+      setModalMode(ModalMode.InteractWithItem)
+      setModalArgument(interactionName)
+    }
+  }, [interactWithItem, world])
+
+  const handleNoMoreItemInteractions = useCallback((interaction: string) => {
+    world.logMessage(`There are no more items to ${toLower(interaction)} here.`)
+    setModalMode(ModalMode.None)
+    setModalArgument(undefined)
+  }, [world])
+
+  const handleInventoryAction = useCallback((item: Item, action: ItemInventoryAction) => {
+    executeTurn(new UseInventoryItemAction(
+      world.player,
+      action.name,
+      item
+    ))
+    setActivePanel(SelectablePanels.Map)
+  }, [executeTurn, world])
 
   const mapKeyHandler = useKeyHandler({
-    ArrowDown: executePlayerMove(0, 1),
-    ArrowLeft: executePlayerMove(-1, 0),
-    ArrowRight: executePlayerMove(1, 0),
-    ArrowUp: executePlayerMove(0, -1),
+    [keyMap.Get]: beginItemInteraction('Get'),
+    [keyMap.MoveDown]: executePlayerMove(0, 1),
+    [keyMap.MoveLeft]: executePlayerMove(-1, 0),
+    [keyMap.MoveRight]: executePlayerMove(1, 0),
+    [keyMap.MoveUp]: executePlayerMove(0, -1),
   })
 
   const handlePauseMenuSelection = useCallback((item: string) => {
     switch (item) {
       case 'Resume':
-        handleUnpause()
+        setModalMode(ModalMode.None)
         break
 
       case 'Quit Expedition':
         navigateTo('title')
         break
     }
-  }, [handleUnpause, navigateTo])
+  }, [navigateTo])
 
   useGlobalKeyHandler({
     Escape: handleEscape,
@@ -203,52 +255,65 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
     }
   }, [isComplete, navigateTo])
 
-  const renderPauseMenu = () => {
-    return (
-      <PopupMenu
-        items={['Resume', 'Quit Expedition']}
-        onSelectionConfirmed={handlePauseMenuSelection}
-      />
+  const getModalContent = () => {
+    switch (modalMode) {
+      case ModalMode.Pause:
+        return (
+          <ScreenMenu
+            classes="pause-menu"
+            items={['Resume', 'Quit Expedition']}
+            onSelectionConfirmed={handlePauseMenuSelection}
+          />
+        )
+
+      case ModalMode.InteractWithItem:
+        return (
+          <ItemInteractionPanel
+            active={true}
+            columns={SidebarColumns}
+            interaction={modelArgument ?? 'Get'}
+            onNoValidInteractions={handleNoMoreItemInteractions}
+            onInteraction={interactWithItem}
+          />
+        )
+    }
+
+    return undefined
+  }
+
+  const renderModal = () => {
+    const content = getModalContent()
+    return content === undefined ? null : (
+      <Modal>
+        {content}
+      </Modal>
     )
   }
 
-  return (ready && world.current) ? (
+  return (ready) ? (
     <div className="dungeon-screen">
-      {world.current &&
-        <div className="main-content">
-          <MapPanel
-            active={activePanel === SelectablePanels.Map && !game.paused}
-            centerX={viewportCenter.x}
-            centerY={viewportCenter.y}
-            onClick={handleActivatePanel(SelectablePanels.Map)}
-            onKeyDown={mapKeyHandler}
-            onViewportSizeChanged={handleViewportResize}
-            world={world.current}
-          />
+      <div className="main-content">
+        <MapPanel
+          active={activePanel === SelectablePanels.Map && !paused}
+          centerX={viewportCenter.x}
+          centerY={viewportCenter.y}
+          onClick={handleActivatePanel(SelectablePanels.Map)}
+          onKeyDown={mapKeyHandler}
+          onViewportSizeChanged={handleViewportResize}
+        />
 
-          <LogPanel world={world.current} />
-        </div>
-      }
+        <LogPanel world={world} />
+      </div>
 
       <div className="sidebar">
         <PlayerStatusPanel />
 
-        {/* <Panel columns={SidebarColumns} rows={5}>
-          <PreFormattedText>{`You attack kobold!
-
-🗡️ x5: 2  1  0  1  0  1
-🛡️ x3: 0  1  0
-💔 -2
-
-🛡️ x3 - 0  1  0`}</PreFormattedText>
-        </Panel> */}
-
         <InventoryPanel
-          active={activePanel === SelectablePanels.Information && !game.paused}
+          active={activePanel === SelectablePanels.Information && !paused}
           allowSelection={true}
           columns={SidebarColumns}
-          getItemActions={getItemActions}
           onClick={handleActivatePanel(SelectablePanels.Information)}
+          onInventoryAction={handleInventoryAction}
         />
 
         <Panel columns={SidebarColumns} rows={8}>
@@ -256,7 +321,7 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
         </Panel>
       </div>
 
-      {game.paused ? renderPauseMenu() : null}
+      {renderModal()}
     </div>
   ) : null
 }

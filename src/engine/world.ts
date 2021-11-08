@@ -1,15 +1,17 @@
-import { CreatureTypes } from 'db/creatures'
 import { map as mapI } from 'lodash'
 import { compact, filter, forEach, join, map, omit, values } from 'lodash/fp'
 import { TypedEventEmitter } from 'typed-event-emitter'
 
-import { NoopAction } from './actions/noop'
+import { DoNothing } from './actions/do-nothing'
+import { getResultMessage } from './actions/result-handler'
 import { AttackResult } from './combat'
 import { Creature } from './creature'
+import { CreatureTypes } from './creature-db'
 import { createDungeon } from './dungeon/create-dungeon-v1'
 import { WorldEvents } from './events'
 import { createArmor, createWeapon, Item } from './item'
 import { ExpeditionMap } from './map'
+import { Player } from './player'
 import { Action } from './types'
 
 export class World extends TypedEventEmitter<WorldEvents> {
@@ -19,33 +21,41 @@ export class World extends TypedEventEmitter<WorldEvents> {
   // all player-readable log messages from this game
   private _messages: string[] = []
 
-  private _player: Creature
+  private _player: Player
   private _playerAction: Action
 
   constructor () {
     super()
 
+    // eslint-disable-next-line no-console
+    console.log('>>>>>>>>>>>> New World')
+
     const dungeon = createDungeon()
     dungeon.createTerrain(this.map)
     forEach((spawn) => {
-      this.spawn(spawn.type, spawn.x, spawn.y)
+      this._registerCreature(new Creature(CreatureTypes[spawn.type], spawn.x, spawn.y, this.map))
     }, dungeon.creatures)
 
-    this._player = this.spawn('player', 0, 0)
-    this._playerAction = NoopAction
-    this._player.inventory.add(new Item({ name: 'a coconut' }))
-    this._player.inventory.add(new Item({ name: 'hopes and dreams' }))
+    this._player = new Player(CreatureTypes.player, 0, 0, this.map)
+    this._registerCreature(this._player)
+    this._playerAction = DoNothing
+    this._player.inventory.addItem(new Item({ name: 'a coconut' }))
+    this._player.inventory.addItem(new Item({ name: 'hopes and dreams' }))
 
     const spear = createWeapon('+100 spear', 100)
-    this._player.inventory.add(spear)
+    this._player.inventory.addItem(spear)
     // this._player.equip(spear)
 
     const armor = createArmor('amazing, glowing armor', 100, `Lorem ipsum dolor sit amet, 
 consectetur adipiscing elit. Aenean pharetra est id velit laoreet, eu semper lectus ullamcorper.
 Nunc pellentesque nunc ex, eu venenatis orci mattis non. Maecenas in justo mollis, luctus urna 
 porttitor, imperdiet lectus. Quisque sit amet quam venenatis, iaculis sapien in, rutrum dui.`)
-    this._player.inventory.add(armor)
+    this._player.inventory.addItem(armor)
     // this._player.equip(armor)
+
+    this.map.addItem(-2, 0, createWeapon('+1 spear', 1))
+    this.map.addItem(2, 0, createWeapon('+2 spear', 2))
+    this.map.addItem(2, 0, createWeapon('+3 spear', 3))
 
     this.logMessage('Expedition started.')
   }
@@ -75,7 +85,15 @@ porttitor, imperdiet lectus. Quisque sit amet quam venenatis, iaculis sapien in,
     const actions = map((creature) => creature.type.behavior(creature, this), this.creatures)
 
     // once all actions have been determined, execute them
-    forEach((action) => action(this), compact(actions))
+    // TODO: examine success/failure return value
+    forEach((action) => {
+      const result = action.execute(this)
+
+      const message = getResultMessage(result)
+      if (message !== undefined) {
+        this.logMessage(message)
+      }
+    }, compact(actions))
 
     // remove any dead creatures
     const deadCreatures = filter((creature) => creature.dead, values(this.creatures))
@@ -84,19 +102,13 @@ porttitor, imperdiet lectus. Quisque sit amet quam venenatis, iaculis sapien in,
       this.logMessage(`${creature.type.name} is dead!`)
       this.map.removeCreature(creature)
     }, deadCreatures)
+
+    this.emit('turn')
   }
 
-  /**
-   * Creates a creature of a given type at a specific map location.
-   */
-  public spawn (creatureTypeId: string, xLocation: number, yLocation: number) {
-    const type = CreatureTypes[creatureTypeId]
-    const creature = new Creature(type, xLocation, yLocation, this.map)
-    this.creatures[creature.id] = creature
-
-    creature.on('attack', this._logAttack.bind(this))
-
-    return creature
+  /** Returns flag indicating if the current expedition reached an end condition. */
+  public get expeditionEnded () {
+    return this.player.link < 1 || this.player.dead
   }
 
   /**
@@ -130,5 +142,14 @@ porttitor, imperdiet lectus. Quisque sit amet quam venenatis, iaculis sapien in,
     } else {
       this.logMessage(`${attack.attacker.name} misses ${attack.target.name}.`)
     }
+  }
+
+  /**
+   * Registers a newly created by creature with the world.
+   */
+  private _registerCreature (creature: Creature) {
+    this.creatures[creature.id] = creature
+
+    creature.on('attack', this._logAttack.bind(this))
   }
 }
