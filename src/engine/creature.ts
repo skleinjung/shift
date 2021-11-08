@@ -1,4 +1,4 @@
-import { compact, find, flow, map, reduce, values } from 'lodash/fp'
+import { compact, find, findIndex, flow, map, reduce, values } from 'lodash/fp'
 import { TypedEventEmitter } from 'typed-event-emitter'
 
 import {
@@ -119,6 +119,11 @@ export class Creature extends TypedEventEmitter<CreatureEvents> implements
 
   public get equipment (): Readonly<EquipmentSet> {
     return this._equipment
+  }
+
+  /** Returns whether or not a specified item is equipped. */
+  public isEquipped (item: Item): boolean {
+    return findIndex((equippedItem) => item.id === equippedItem?.id, values(this._equipment)) !== -1
   }
 
   /**

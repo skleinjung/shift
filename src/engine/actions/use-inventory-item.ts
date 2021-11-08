@@ -2,6 +2,7 @@ import { Creature } from 'engine/creature'
 import { Item } from 'engine/item'
 import { Action } from 'engine/types'
 import { World } from 'engine/world'
+import { toLower } from 'lodash'
 
 /**
  * Action taken by a creature who wants to invoke an item action on an item in their inventory.
@@ -21,10 +22,9 @@ export class UseInventoryItemAction implements Action {
   public execute (world: World) {
     const action = this._item.getInventoryAction(this._actionName)
     if (action === undefined) {
-      return false
+      return `${this._creature.name} does not know how to "${toLower(this._actionName)}" ${this._item.name}.`
     }
 
-    action.execute(this._item, this._creature, world)
-    return true
+    return action.execute(this._item, this._creature, world)
   }
 }

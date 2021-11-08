@@ -3,13 +3,27 @@ import TypedEmitter from 'typed-emitter'
 import { Attackable, Attacker } from './combat'
 import { World } from './world'
 
+export type ActionResult = {
+  /** optional message to show the user, explaining the action's outcome or reason for failure */
+  message?: string
+
+  /** whether the action succeeded or not */
+  ok: boolean
+}
+
 /**
- * An action taken by a creature during a turn. Will be passed the an instance of the world.
+ * An action taken by a creature during a turn. Will be passed the an instance of the world. To support
+ * easier implementations of actions, the return type provides several options:
  *
- * @return a flag indicating if the action was successful, or void (which indicates success)
+ *   - no return value: indicates success, and no message is logged
+ *   - string value: indicates success, and the returned message is logged
+ *   - boolean value: dictates success/failure status, and no message is logged
+ *   - ActionResult object: specifies both outcome and message
+ *
+ * @return the result of the action
  */
 export interface Action {
-  execute: (world: World) => boolean | void
+  execute: (world: World) => ActionResult | string | boolean | void
 }
 
 /** Methods expoed by objects that emit events defined by type 'T' */

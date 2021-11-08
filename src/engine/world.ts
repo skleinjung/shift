@@ -3,6 +3,7 @@ import { compact, filter, forEach, join, map, omit, values } from 'lodash/fp'
 import { TypedEventEmitter } from 'typed-event-emitter'
 
 import { DoNothing } from './actions/do-nothing'
+import { getResultMessage } from './actions/result-handler'
 import { AttackResult } from './combat'
 import { Creature } from './creature'
 import { CreatureTypes } from './creature-db'
@@ -85,7 +86,14 @@ porttitor, imperdiet lectus. Quisque sit amet quam venenatis, iaculis sapien in,
 
     // once all actions have been determined, execute them
     // TODO: examine success/failure return value
-    forEach((action) => action.execute(this), compact(actions))
+    forEach((action) => {
+      const result = action.execute(this)
+
+      const message = getResultMessage(result)
+      if (message !== undefined) {
+        this.logMessage(message)
+      }
+    }, compact(actions))
 
     // remove any dead creatures
     const deadCreatures = filter((creature) => creature.dead, values(this.creatures))
