@@ -8,7 +8,9 @@ import { World } from './world'
  *
  * @return a flag indicating if the action was successful, or void (which indicates success)
  */
-export type Action = (world: World) => boolean | void
+export interface Action {
+  execute: (world: World) => boolean | void
+}
 
 /** Methods expoed by objects that emit events defined by type 'T' */
 export type EventSource<T> = Omit<TypedEmitter<T>,

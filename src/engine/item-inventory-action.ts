@@ -11,7 +11,6 @@ export interface ItemInventoryAction {
   execute: (item: Item, creature: Creature, world: World) => void
 }
 
-// fails currently, because recoil 'freezes' our player state
 export const drop: ItemInventoryAction = {
   name: 'Drop',
   execute: (item, creature, world) => {

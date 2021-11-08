@@ -1,4 +1,4 @@
-import { findIndex } from 'lodash/fp'
+import { filter, findIndex } from 'lodash/fp'
 
 import { Creature } from './creature'
 import { Item } from './item'
@@ -84,6 +84,26 @@ export class ExpeditionMap {
         cell.items.splice(index, 1)
       }
     }
+  }
+
+  /**
+   * Returns a list of items in the specified map cell.
+   */
+  public getItems (x: number, y: number) {
+    return this._getCell(x, y)?.items ?? []
+  }
+
+  /**
+   * Returns a list of items in the given cell that have any available item interactions. If the
+   * interactionName parameter is specified, then only items that support that type of interaction
+   * are returned.
+   */
+  public getInteractableItems (x: number, y: number, interactionName?: string) {
+    return filter((item) => {
+      return interactionName === undefined
+        ? item.interactions.length > 1
+        : item.getInteraction(interactionName) !== undefined
+    }, this.getItems(x, y))
   }
 
   /**

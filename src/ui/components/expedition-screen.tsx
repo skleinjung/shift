@@ -1,4 +1,5 @@
 import { AttackAction } from 'engine/actions/attack'
+import { InteractWithItemAction } from 'engine/actions/interact-with-item'
 import { MoveByAction } from 'engine/actions/move-by'
 import { UseInventoryItemAction } from 'engine/actions/use-inventory-item'
 import { Item } from 'engine/item'
@@ -31,6 +32,33 @@ enum SelectablePanels {
   __LENGTH,
   Options,
 }
+
+interface KeyMap {
+  Get: string
+  MoveUp: string
+  MoveDown: string
+  MoveLeft: string
+  MoveRight: string
+}
+
+const KeyMaps = {
+  Sean: {
+    Get: 'g',
+    MoveUp: 'e',
+    MoveDown: 'd',
+    MoveLeft: 's',
+    MoveRight: 'f',
+  },
+  EveryoneElse: {
+    Get: 'g',
+    MoveUp: 'w',
+    MoveDown: 's',
+    MoveLeft: 'a',
+    MoveRight: 'd',
+  },
+}
+
+const keyMap: KeyMap = KeyMaps.Sean
 
 export interface ExpeditionScreenProps {
   /** function that allows inter-screen navigation */
@@ -142,15 +170,31 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
       const player = world.player
       const creature = world.map.getCreature(player.x + x, player.y + y)
       if (creature === undefined) {
-        executeTurn(MoveByAction(player, x, y))
+        executeTurn(new MoveByAction(player, x, y))
       } else {
-        executeTurn(AttackAction(player, creature))
+        executeTurn(new AttackAction(player, creature))
       }
     }
   }, [executeTurn, game.paused, world.map, world.player])
 
+  const beginItemInteraction = useCallback((interactionName: string) => () => {
+    const player = world.player
+    const candidateItems = world.map.getInteractableItems(player.x, player.y, interactionName)
+    if (candidateItems.length === 0) {
+      // no items
+      world.logMessage('There are no items here to get.')
+    } else if (candidateItems.length === 1) {
+      // just one item, pick it up directly
+      executeTurn(new InteractWithItemAction(
+        world.player,
+        interactionName,
+        candidateItems[0]
+      ))
+    }
+  }, [executeTurn, world])
+
   const handleInventoryAction = useCallback((item: Item, action: ItemInventoryAction) => {
-    executeTurn(UseInventoryItemAction(
+    executeTurn(new UseInventoryItemAction(
       world.player,
       action.name,
       item
@@ -159,10 +203,11 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
   }, [executeTurn, world])
 
   const mapKeyHandler = useKeyHandler({
-    ArrowDown: executePlayerMove(0, 1),
-    ArrowLeft: executePlayerMove(-1, 0),
-    ArrowRight: executePlayerMove(1, 0),
-    ArrowUp: executePlayerMove(0, -1),
+    [keyMap.Get]: beginItemInteraction('Get'),
+    [keyMap.MoveDown]: executePlayerMove(0, 1),
+    [keyMap.MoveLeft]: executePlayerMove(-1, 0),
+    [keyMap.MoveRight]: executePlayerMove(1, 0),
+    [keyMap.MoveUp]: executePlayerMove(0, -1),
   })
 
   const handlePauseMenuSelection = useCallback((item: string) => {

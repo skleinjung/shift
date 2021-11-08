@@ -1,6 +1,7 @@
 import { find, findIndex } from 'lodash/fp'
 
 import { CreatureAttributeModifiers } from './creature'
+import { get } from './item-interaction'
 import { drop, equip, unequip } from './item-inventory-action'
 import { newId } from './new-id'
 import { Entity } from './types'
@@ -64,6 +65,16 @@ export class Item implements Entity {
     this.equipmentEffects = equipment?.effects
     this.description = description
     this.name = name
+  }
+
+  /** ItemInteractions that apply to this item */
+  public get interactions () {
+    return [get]
+  }
+
+  /** gets a specific item interaction by name, or undefined if there is none */
+  public getInteraction (name: string) {
+    return find((availableInteraction) => availableInteraction.name === name, this.interactions)
   }
 
   /** ItemInventoryActions that apply to this item */

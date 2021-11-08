@@ -2,7 +2,7 @@ import { map as mapI } from 'lodash'
 import { compact, filter, forEach, join, map, omit, values } from 'lodash/fp'
 import { TypedEventEmitter } from 'typed-event-emitter'
 
-import { NoopAction } from './actions/noop'
+import { DoNothing } from './actions/do-nothing'
 import { AttackResult } from './combat'
 import { Creature } from './creature'
 import { CreatureTypes } from './creature-db'
@@ -34,7 +34,7 @@ export class World extends TypedEventEmitter<WorldEvents> {
 
     this._player = new Player(CreatureTypes.player, 0, 0, this.map)
     this._registerCreature(this._player)
-    this._playerAction = NoopAction
+    this._playerAction = DoNothing
     this._player.inventory.add(new Item({ name: 'a coconut' }))
     this._player.inventory.add(new Item({ name: 'hopes and dreams' }))
 
@@ -82,7 +82,7 @@ porttitor, imperdiet lectus. Quisque sit amet quam venenatis, iaculis sapien in,
 
     // once all actions have been determined, execute them
     // TODO: examine success/failure return value
-    forEach((action) => action(this), compact(actions))
+    forEach((action) => action.execute(this), compact(actions))
 
     // remove any dead creatures
     const deadCreatures = filter((creature) => creature.dead, values(this.creatures))
