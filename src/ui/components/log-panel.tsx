@@ -17,16 +17,16 @@ export interface LogPanelOptions {
 export const LogPanel = ({ rows = 8, world }: LogPanelOptions) => {
   const [lines, setLines] = useState<string[]>(world.messages)
 
-  const appendMessage = useCallback((message: string) => {
-    setLines((lines) => [...lines, message])
-  }, [])
+  const messageAdded = useCallback(() => {
+    setLines([...world.messages])
+  }, [world.messages])
 
   useEffect(() => {
-    world.on('message', appendMessage)
+    world.on('message', messageAdded)
     return () => {
-      world.off('message', appendMessage)
+      world.off('message', messageAdded)
     }
-  }, [appendMessage, world])
+  }, [messageAdded, world])
 
   let index = 0
 
