@@ -5,7 +5,7 @@ import { TypedEventEmitter } from 'typed-event-emitter'
 import { NoopAction } from './actions/noop'
 import { AttackResult } from './combat'
 import { Creature } from './creature'
-import { CreatureTypes } from './creature-db'
+import { CreatureTypeId, CreatureTypes } from './creature-db'
 import { createDungeon } from './dungeon/create-dungeon-v1'
 import { WorldEvents } from './events'
 import { createArmor, createWeapon, Item } from './item'
@@ -46,6 +46,10 @@ Nunc pellentesque nunc ex, eu venenatis orci mattis non. Maecenas in justo molli
 porttitor, imperdiet lectus. Quisque sit amet quam venenatis, iaculis sapien in, rutrum dui.`)
     this._player.inventory.add(armor)
     // this._player.equip(armor)
+
+    this.map.addItem(-2, 0, armor)
+    this.map.addItem(2, 0, spear)
+    this.map.addItem(2, 0, armor)
 
     this.logMessage('Expedition started.')
   }
@@ -89,7 +93,7 @@ porttitor, imperdiet lectus. Quisque sit amet quam venenatis, iaculis sapien in,
   /**
    * Creates a creature of a given type at a specific map location.
    */
-  public spawn (creatureTypeId: string, xLocation: number, yLocation: number) {
+  public spawn (creatureTypeId: CreatureTypeId, xLocation: number, yLocation: number) {
     const type = CreatureTypes[creatureTypeId]
     const creature = new Creature(type, xLocation, yLocation, this.map)
     this.creatures[creature.id] = creature

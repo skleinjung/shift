@@ -1,47 +1,40 @@
-import { MapFeature } from './map-feature'
+import { keys, reduce } from 'lodash/fp'
 
-export class TerrainType implements MapFeature {
-  constructor (
-    public readonly symbol: string,
-    public readonly color: number,
-    public readonly background = 0
-  ) { }
-}
+export interface TerrainType {
+  /** unique id for this type of terrain */
+  id: TerrainTypeId
 
-export interface TerrainType extends MapFeature {
   /** indicates whether creatures can walk over this type of terrain */
   traversable: boolean
 }
 
-export const Terrain = {
-  Default: {
-    symbol: ' ',
-    color: 0,
-    background: 0,
+const terrainTypeArray = [
+  {
+    id: 'default',
     traversable: false,
   },
-  Door: {
-    symbol: '+',
-    color: 0x555555,
-    background: 0x111111,
+  {
+    id: 'door',
     traversable: true,
   },
-  Floor: {
-    symbol: '.',
-    color: 0x222222,
-    background: 0x111111,
+  {
+    id: 'floor',
     traversable: true,
   },
-  Water: {
-    symbol: '`',
-    color: 0x0096ff,
-    background: 0x0000cc,
+  {
+    id: 'water',
     traversable: false,
   },
-  Wall: {
-    symbol: '#',
-    color: 0x555555,
-    background: 0x333333,
+  {
+    id: 'wall',
     traversable: false,
   },
-}
+] as const
+
+export const TerrainTypes = reduce((result, type) => ({
+  ...result,
+  [type.id]: type,
+}), {}, terrainTypeArray) as Record<typeof terrainTypeArray[number]['id'], TerrainType>
+
+export type TerrainTypeId = keyof typeof TerrainTypes
+export const CreatureTypeIds = keys(TerrainTypes) as TerrainTypeId[]

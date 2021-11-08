@@ -1,5 +1,5 @@
 import { ExpeditionMap } from 'engine/map'
-import { Terrain } from 'engine/terrain-db'
+import { TerrainTypes } from 'engine/terrain-db'
 
 export interface CreatureSpawn {
   type: string
@@ -89,34 +89,34 @@ export class Region {
     // create floors
     for (let y = this.top; y <= this.bottom; y++) {
       for (let x = this.left; x <= this.right; x++) {
-        if (this.type === 'tunnel' && map.getTerrain(x, y) === Terrain.Wall) {
-          const terrain = Math.random() < 0.35 ? Terrain.Door : Terrain.Floor
+        if (this.type === 'tunnel' && map.getTerrain(x, y) === TerrainTypes.wall) {
+          const terrain = Math.random() < 0.35 ? TerrainTypes.door : TerrainTypes.floor
           map.setTerrain(x, y, terrain)
         } else {
-          map.setTerrain(x, y, Terrain.Floor)
+          map.setTerrain(x, y, TerrainTypes.floor)
         }
       }
     }
 
     // create vertical walls
     for (let y = this.top - 1; y <= this.bottom + 1; y++) {
-      if (map.getTerrain(this.left - 1, y) === Terrain.Default) {
-        map.setTerrain(this.left - 1, y, Terrain.Wall)
+      if (map.getTerrain(this.left - 1, y) === TerrainTypes.default) {
+        map.setTerrain(this.left - 1, y, TerrainTypes.wall)
       }
 
-      if (map.getTerrain(this.right + 1, y) === Terrain.Default) {
-        map.setTerrain(this.right + 1, y, Terrain.Wall)
+      if (map.getTerrain(this.right + 1, y) === TerrainTypes.default) {
+        map.setTerrain(this.right + 1, y, TerrainTypes.wall)
       }
     }
 
     // create horizontal walls
     for (let x = this.left - 1; x <= this.right + 1; x++) {
-      if (map.getTerrain(x, this.top - 1) === Terrain.Default) {
-        map.setTerrain(x, this.top - 1, Terrain.Wall)
+      if (map.getTerrain(x, this.top - 1) === TerrainTypes.default) {
+        map.setTerrain(x, this.top - 1, TerrainTypes.wall)
       }
 
-      if (map.getTerrain(x, this.bottom + 1) === Terrain.Default) {
-        map.setTerrain(x, this.bottom + 1, Terrain.Wall)
+      if (map.getTerrain(x, this.bottom + 1) === TerrainTypes.default) {
+        map.setTerrain(x, this.bottom + 1, TerrainTypes.wall)
       }
     }
   }

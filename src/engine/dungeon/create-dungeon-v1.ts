@@ -1,3 +1,4 @@
+import { MonsterTypeIds } from 'engine/creature-db'
 import { sample, times } from 'lodash/fp'
 
 import { Dungeon } from './dungeon'
@@ -175,7 +176,7 @@ const createDungeonRecursive = (
 const populate = (dungeon: Dungeon, { monsterCountMaximum, monsterCountMinimum }: CreateDungeonOptions) => {
   const monsterCount = random(monsterCountMinimum, monsterCountMaximum)
   times(() => {
-    const type = sample(['kobold', 'goblin', 'orc']) ?? 'kobold'
+    const type = sample(MonsterTypeIds) ?? 'kobold'
     const rooms = dungeon.rooms
     const room = rooms[random(0, rooms.length - 1)]
     const x = random(room.left, room.right)

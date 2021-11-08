@@ -5,11 +5,9 @@ import {
   MoveRandomlyBehavior,
   PlayerBehavior,
 } from 'engine/behavior'
-import { snakeCase, toLower } from 'lodash/fp'
+import { filter, keys, reduce } from 'lodash/fp'
 
-import { MapFeature } from './map-feature'
-
-export type CreatureType = Readonly<MapFeature & {
+export type CreatureType = Readonly<{
   /** behavior used to determine this creature's actions */
   behavior: Behavior
 
@@ -20,7 +18,7 @@ export type CreatureType = Readonly<MapFeature & {
   healthMax: number
 
   /** unique id for this creature type */
-  id: string
+  id: CreatureTypeId
 
   /** melee stat for this creature */
   melee: number
@@ -29,57 +27,47 @@ export type CreatureType = Readonly<MapFeature & {
   name: string
 }>
 
-export const CreatureTypes: Record<CreatureType['id'], CreatureType> = {}
+const creatureTypeArray = [
+  {
+    behavior: CompoundBehavior(AttackAdjacentPlayerBehavior, MoveRandomlyBehavior(100)),
+    defense: 1,
+    healthMax: 5,
+    id: 'goblin',
+    melee: 1,
+    name: 'Goblin',
+  },
+  {
+    behavior: AttackAdjacentPlayerBehavior,
+    defense: 0,
+    healthMax: 2,
+    id: 'kobold',
+    melee: 1,
+    name: 'Kobold',
+  },
+  {
+    behavior: CompoundBehavior(AttackAdjacentPlayerBehavior, MoveRandomlyBehavior(20)),
+    defense: 1,
+    healthMax: 8,
+    id: 'orc',
+    melee: 2,
+    name: 'Orc',
+  },
+  {
+    behavior: PlayerBehavior,
+    defense: 0,
+    healthMax: 10,
+    id: 'player',
+    melee: 1,
+    name: 'Player',
+  },
+] as const
 
-const addCreatureType = (creature: Omit<CreatureType, 'id'>, id?: string) => {
-  const resolvedId = id ?? snakeCase(toLower(creature.name))
-  CreatureTypes[resolvedId] = {
-    ...creature,
-    id: resolvedId,
-  }
-  return id
-}
+export const CreatureTypes = reduce((result, type) => ({
+  ...result,
+  [type.id]: type,
+}), {}, creatureTypeArray) as Record<typeof creatureTypeArray[number]['id'], CreatureType>
 
-addCreatureType({
-  background: 0x002200,
-  behavior: PlayerBehavior,
-  color: 0xffffff,
-  defense: 0,
-  healthMax: 10,
-  melee: 1,
-  name: 'Player',
-  symbol: '@',
-})
-
-addCreatureType({
-  background: 0x220000,
-  behavior: AttackAdjacentPlayerBehavior,
-  color: 0x990000,
-  defense: 0,
-  healthMax: 2,
-  melee: 1,
-  name: 'Kobold',
-  symbol: 'k',
-})
-
-addCreatureType({
-  background: 0x220000,
-  behavior: CompoundBehavior(AttackAdjacentPlayerBehavior, MoveRandomlyBehavior(100)),
-  color: 0x990000,
-  defense: 1,
-  healthMax: 5,
-  melee: 1,
-  name: 'Goblin',
-  symbol: 'g',
-})
-
-addCreatureType({
-  background: 0x220000,
-  behavior: CompoundBehavior(AttackAdjacentPlayerBehavior, MoveRandomlyBehavior(20)),
-  color: 0x990000,
-  defense: 1,
-  healthMax: 8,
-  melee: 2,
-  name: 'Orc',
-  symbol: 'o',
-})
+export type CreatureTypeId = keyof typeof CreatureTypes
+export const CreatureTypeIds = keys(CreatureTypes) as CreatureTypeId[]
+export const MonsterTypeIds =
+  filter((id) => id !== 'player', CreatureTypeIds) as Exclude<CreatureTypeId, 'player'>[]

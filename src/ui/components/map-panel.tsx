@@ -1,6 +1,6 @@
 import { ShaderSystem } from '@pixi/core'
 import { install } from '@pixi/unsafe-eval'
-import { Terrain } from 'engine/terrain-db'
+import { toSymbol } from 'engine/map-symbolizer'
 import { World } from 'engine/world'
 import { isArray, noop } from 'lodash/fp'
 import * as PIXI from 'pixi.js'
@@ -18,26 +18,6 @@ install({ ShaderSystem })
 const CellFontSize = 16
 const CellHeight = 16
 const CellWidth = 16
-
-const getRenderable = (world: World, x: number, y: number) => {
-  const cell = world.map.getCell(x, y)
-  if (cell?.creatureId !== undefined) {
-    return world.getCreature(cell.creatureId).type
-  }
-
-  return cell?.terrain !== undefined
-    ? cell.terrain
-    : Terrain.Default
-}
-
-const getBackgroundAt = (world: World, x: number, y: number) =>
-  getRenderable(world, x, y).background ?? 0
-
-const getColorAt = (world: World, x: number, y: number) =>
-  getRenderable(world, x, y).color
-
-const getSymbolAt = (world: World, x: number, y: number) =>
-  getRenderable(world, x, y).symbol
 
 interface RenderCell {
   background: PIXI.Graphics
@@ -143,9 +123,10 @@ export const MapPanel = ({
             const mapX = x + offsetX
             const mapY = y + offsetY
 
-            cells[y][x].background.tint = getBackgroundAt(world, mapX, mapY)
-            cells[y][x].symbol.text = getSymbolAt(world, mapX, mapY)
-            cells[y][x].symbol.tint = getColorAt(world, mapX, mapY)
+            const mapSymbol = toSymbol(world.map.getCell(mapX, mapY))
+            cells[y][x].background.tint = mapSymbol.background ?? 0
+            cells[y][x].symbol.text = mapSymbol.symbol
+            cells[y][x].symbol.tint = mapSymbol.color
           }
         }
       }

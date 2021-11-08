@@ -143,11 +143,11 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
   const executePlayerMove = useCallback((x: number, y: number) => () => {
     if (!game.paused && world.current) {
       const player = world.current.player
-      const creatureId = world.current.map.getCreatureId(player.x + x, player.y + y)
-      if (creatureId === undefined) {
+      const creature = world.current.map.getCreature(player.x + x, player.y + y)
+      if (creature === undefined) {
         executeTurn(MoveByAction(player, x, y))
       } else {
-        executeTurn(AttackAction(player, world.current.creatures[creatureId]))
+        executeTurn(AttackAction(player, creature))
       }
     }
   }, [executeTurn, game.paused])

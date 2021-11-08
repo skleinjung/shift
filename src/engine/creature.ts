@@ -74,13 +74,13 @@ export class Creature extends TypedEventEmitter<CreatureEvents> implements
   ) {
     super()
 
-    if (this._map.getCreatureId(this._x, this._y) !== undefined) {
+    if (this._map.getCreature(this._x, this._y) !== undefined) {
       throw new Error('TODO: do not fail when adding creature to occupied cell')
     }
 
     this._health = this._type.healthMax
     this.inventory = new Container({ name: `inv_creature_${this._id}` })
-    this._map.setCreatureId(this._x, this._y, this.id)
+    this._map.setCreature(this._x, this._y, this)
   }
 
   public get type () {
@@ -268,14 +268,14 @@ export class Creature extends TypedEventEmitter<CreatureEvents> implements
       return false
     }
 
-    if (this._map.getCreatureId(this._x, this._y) === this.id) {
-      this._map.setCreatureId(this._x, this._y, undefined)
+    if (this._map.getCreature(this._x, this._y) === this) {
+      this._map.setCreature(this._x, this._y, undefined)
     }
 
     this._x = newX
     this._y = newY
 
-    this._map.setCreatureId(this._x, this._y, this.id)
+    this._map.setCreature(this._x, this._y, this)
     return true
   }
 
