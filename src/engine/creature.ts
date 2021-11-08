@@ -1,4 +1,3 @@
-import { CreatureType } from 'db/creatures'
 import { compact, find, flow, map, reduce, values } from 'lodash/fp'
 import { TypedEventEmitter } from 'typed-event-emitter'
 
@@ -12,6 +11,7 @@ import {
   PendingAttack,
 } from './combat'
 import { Container } from './container'
+import { CreatureType } from './creature-db'
 import { CreatureEvents } from './events'
 import { EquipmentSet, EquipmentSlot, Item } from './item'
 import { ExpeditionMap } from './map'

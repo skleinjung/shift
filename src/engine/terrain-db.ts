@@ -1,6 +1,6 @@
-import { Renderable } from './renderable'
+import { MapFeature } from './map-feature'
 
-export class TerrainType implements Renderable {
+export class TerrainType implements MapFeature {
   constructor (
     public readonly symbol: string,
     public readonly color: number,
@@ -8,7 +8,7 @@ export class TerrainType implements Renderable {
   ) { }
 }
 
-export interface TerrainType extends Renderable {
+export interface TerrainType extends MapFeature {
   /** indicates whether creatures can walk over this type of terrain */
   traversable: boolean
 }

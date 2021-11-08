@@ -1,4 +1,3 @@
-import { Renderable } from 'db/renderable'
 import {
   AttackAdjacentPlayerBehavior,
   Behavior,
@@ -8,7 +7,9 @@ import {
 } from 'engine/behavior'
 import { snakeCase, toLower } from 'lodash/fp'
 
-export type CreatureType = Readonly<Renderable & {
+import { MapFeature } from './map-feature'
+
+export type CreatureType = Readonly<MapFeature & {
   /** behavior used to determine this creature's actions */
   behavior: Behavior
 

@@ -1,7 +1,7 @@
-import { CreatureTypes } from 'db/creatures'
 import { keys } from 'lodash/fp'
 
 import { Creature } from './creature'
+import { CreatureTypes } from './creature-db'
 import { createWeapon, Item } from './item'
 import { ExpeditionMap } from './map'
 

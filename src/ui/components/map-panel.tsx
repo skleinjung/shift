@@ -1,6 +1,6 @@
 import { ShaderSystem } from '@pixi/core'
 import { install } from '@pixi/unsafe-eval'
-import { Terrain } from 'db/terrain'
+import { Terrain } from 'engine/terrain-db'
 import { World } from 'engine/world'
 import { isArray, noop } from 'lodash/fp'
 import * as PIXI from 'pixi.js'
