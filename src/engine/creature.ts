@@ -1,4 +1,4 @@
-import { compact, find, findIndex, flow, map, reduce, values } from 'lodash/fp'
+import { compact, find, findIndex, flow, keys, map, reduce, values } from 'lodash/fp'
 import { TypedEventEmitter } from 'typed-event-emitter'
 
 import {
@@ -78,9 +78,7 @@ export class Creature extends TypedEventEmitter<CreatureEvents> implements
     super()
 
     if (this._map.getCreature(this._x, this._y) !== undefined) {
-      // throw new Error('TODO: do not fail when adding creature to occupied cell')
-      // eslint-disable-next-line no-console
-      console.log('big failure')
+      throw new Error('TODO: do not fail when adding creature to occupied cell')
     }
 
     this._health = this._type.healthMax
@@ -167,8 +165,11 @@ export class Creature extends TypedEventEmitter<CreatureEvents> implements
    * Unequips the item at the specified slot. Returns true if the item was successfully unequipped,
    * or false if it could not be for some reason (i.e. no item at that slot, item is cursed, etc.).
    **/
-  public unequip (slot: EquipmentSlot) {
-    if (this._equipment[slot] !== undefined) {
+  public unequip (item: Item) {
+    const allSlots = keys(this._equipment) as (keyof EquipmentSet)[]
+    const slot = find((slot) => this._equipment[slot] === item, allSlots)
+
+    if (slot !== undefined) {
       delete this._equipment[slot]
       return true
     }

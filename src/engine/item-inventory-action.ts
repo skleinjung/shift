@@ -44,7 +44,22 @@ export const equip: ItemInventoryAction = {
 
 export const unequip: ItemInventoryAction = {
   name: 'Unequip',
-  execute: (_item, _creature) => {
-    // creature.unequip(item) ??
+  execute: (item, creature) => {
+    if (!creature.isEquipped(item)) {
+      return {
+        message: `${creature.name} does not have the ${item.name} equipped.`,
+        ok: false,
+      }
+    }
+
+    const result = creature.unequip(item)
+    if (!result) {
+      return {
+        message: `${creature.name} was unable to unequip the ${item.name}.`,
+        ok: false,
+      }
+    }
+
+    return `${creature.name} unequipped the ${item.name}.`
   },
 }
