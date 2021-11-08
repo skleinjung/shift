@@ -6,12 +6,11 @@ import { Item } from 'engine/item'
 import { ItemInventoryAction } from 'engine/item-inventory-action'
 import { Action } from 'engine/types'
 import { useCallback, useEffect, useState } from 'react'
-import { useRecoilState, useResetRecoilState, useSetRecoilState } from 'recoil'
+import { useResetRecoilState, useSetRecoilState } from 'recoil'
 import { useGlobalKeyHandler } from 'ui/hooks/use-global-key-handler'
 import { useKeyHandler } from 'ui/hooks/use-key-handler'
 import { useWorld } from 'ui/hooks/use-world'
 import { endTurn, expeditionState } from 'ui/state/expedition'
-import { gameState, pause, unpause } from 'ui/state/game'
 
 import { ScreenName } from './app'
 import { InventoryPanel } from './inventory-panel'
@@ -69,39 +68,33 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
   const world = useWorld()
 
   const [ready, setReady] = useState(false)
+  const [paused, setPaused] = useState(false)
   const [activePanel, setActivePanel] = useState<SelectablePanels>(SelectablePanels.Map)
 
   const resetExpedition = useResetRecoilState(expeditionState)
-  const resetGame = useResetRecoilState(gameState)
 
   const updateExpedition = useSetRecoilState(expeditionState)
 
   const isComplete = world.expeditionEnded
   const [viewportSize, setViewportSize] = useState({ width: 0, height: 0 })
   const [viewportCenter, setViewportCenter] = useState({ x: 0, y: 0 })
-  const [game, updateGame] = useRecoilState(gameState)
 
   useEffect(() => {
     resetExpedition()
-    resetGame()
     setReady(true)
-  }, [resetExpedition, resetGame])
+  }, [resetExpedition])
 
   const handleActivatePanel = useCallback((panel: SelectablePanels) => () => {
     setActivePanel(panel)
   }, [])
 
-  const handleEscape = useCallback(() => {
-    if (game.paused) {
-      updateGame(unpause)
-    } else {
-      updateGame(pause)
-    }
-  }, [game.paused, updateGame])
+  const togglePause = useCallback(() => {
+    setPaused((paused) => !paused)
+  }, [])
 
-  const handleUnpause = useCallback(() => {
-    updateGame(unpause)
-  }, [updateGame])
+  const unpause = useCallback(() => {
+    setPaused(false)
+  }, [])
 
   const updateViewport = useCallback((
     viewportSize: { width: number; height: number },
@@ -154,7 +147,7 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
   }, [updateViewport, viewportCenter])
 
   const executeTurn = useCallback((playerAction: Action) => {
-    if (!game.paused) {
+    if (!paused) {
       world.nextTurn(playerAction)
 
       // update our recoil state based on the new world state
@@ -163,10 +156,10 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
       // recenter viewport based on player movement, if needed
       updateViewport(viewportSize, viewportCenter)
     }
-  }, [game.paused, updateExpedition, updateViewport, viewportCenter, viewportSize, world])
+  }, [paused, updateExpedition, updateViewport, viewportCenter, viewportSize, world])
 
   const executePlayerMove = useCallback((x: number, y: number) => () => {
-    if (!game.paused) {
+    if (!paused) {
       const player = world.player
       const creature = world.map.getCreature(player.x + x, player.y + y)
       if (creature === undefined) {
@@ -175,7 +168,7 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
         executeTurn(new AttackAction(player, creature))
       }
     }
-  }, [executeTurn, game.paused, world.map, world.player])
+  }, [executeTurn, paused, world.map, world.player])
 
   const beginItemInteraction = useCallback((interactionName: string) => () => {
     const player = world.player
@@ -213,17 +206,17 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
   const handlePauseMenuSelection = useCallback((item: string) => {
     switch (item) {
       case 'Resume':
-        handleUnpause()
+        unpause()
         break
 
       case 'Quit Expedition':
         navigateTo('title')
         break
     }
-  }, [handleUnpause, navigateTo])
+  }, [navigateTo, unpause])
 
   useGlobalKeyHandler({
-    Escape: handleEscape,
+    Escape: togglePause,
     Tab: () => setActivePanel((current) => (current + 1) % SelectablePanels.__LENGTH),
   })
 
@@ -233,20 +226,20 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
     }
   }, [isComplete, navigateTo])
 
-  const renderPauseMenu = () => {
-    return (
+  const renderModal = () => {
+    return paused ? (
       <PopupMenu
         items={['Resume', 'Quit Expedition']}
         onSelectionConfirmed={handlePauseMenuSelection}
       />
-    )
+    ) : null
   }
 
   return (ready) ? (
     <div className="dungeon-screen">
       <div className="main-content">
         <MapPanel
-          active={activePanel === SelectablePanels.Map && !game.paused}
+          active={activePanel === SelectablePanels.Map && !paused}
           centerX={viewportCenter.x}
           centerY={viewportCenter.y}
           onClick={handleActivatePanel(SelectablePanels.Map)}
@@ -260,18 +253,8 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
       <div className="sidebar">
         <PlayerStatusPanel />
 
-        {/* <Panel columns={SidebarColumns} rows={5}>
-          <PreFormattedText>{`You attack kobold!
-
-🗡️ x5: 2  1  0  1  0  1
-🛡️ x3: 0  1  0
-💔 -2
-
-🛡️ x3 - 0  1  0`}</PreFormattedText>
-        </Panel> */}
-
         <InventoryPanel
-          active={activePanel === SelectablePanels.Information && !game.paused}
+          active={activePanel === SelectablePanels.Information && !paused}
           allowSelection={true}
           columns={SidebarColumns}
           onClick={handleActivatePanel(SelectablePanels.Information)}
@@ -283,7 +266,7 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
         </Panel>
       </div>
 
-      {game.paused ? renderPauseMenu() : null}
+      {renderModal()}
     </div>
   ) : null
 }
