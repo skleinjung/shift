@@ -1,0 +1,9 @@
+.modal {
+  background-color: black;
+  display: flex;
+  left: 50%;
+  max-width: 50%;
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
