@@ -5,9 +5,16 @@
   padding: 0;
 }
 
+/* child content displayed before the list */
+.list-panel-summary {
+  border-top: solid 1px #550;
+  color: #abd;
+  margin: 12px 0 0 0;
+  padding: 4px 0 0 0;
+}
+
 .list-panel-title {
-  background-color: #222;
-  border: 1px solid #333;
+  background-color: #111;
   font-size: 1em;
   margin: 0 0 6px 0;
   padding: 2px;
@@ -16,12 +23,14 @@
 }
 
 .list-panel-row {
-  cursor: pointer;
   display: flex;
   flex-direction: row;
   list-style-type: none;
   margin: 0;
   padding: 0
+}
+.list-panel-row.selectable {
+  cursor: pointer;
 }
 
 .list-panel-row.selectable:before {
@@ -32,7 +41,7 @@
   content: '>\00a0';
 }
 
-.list-panel-row.selected, .list-panel-row:hover {
+.list-panel-row.selected, .list-panel-row.selectable:hover {
   color: #aa0;
 }
 

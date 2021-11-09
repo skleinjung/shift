@@ -1,11 +1,11 @@
 import { Item } from 'engine/item'
 import { ItemInventoryAction } from 'engine/item-inventory-action'
-import { get, head, map, noop } from 'lodash/fp'
+import { get, map, noop } from 'lodash/fp'
 import { useCallback, useEffect, useState } from 'react'
 import { useWorld } from 'ui/hooks/use-world'
 
 import { ContainerContentsPanel } from './container-contents-panel'
-import { ListPanel, ListPanelProps } from './list-panel'
+import { ListItem, ListPanel, ListPanelProps } from './list-panel'
 
 import './inventory-panel.css'
 
@@ -14,15 +14,19 @@ ListPanelProps, 'items' | 'title' | 'container' | 'onItemConsidered' | 'onItemSe
 > & {
   /** callback invoked when a user attempts to execute an inventory action on an item */
   onInventoryAction?: (item: Item, action: ItemInventoryAction) => void
+
+  /** if true, inventory items will show what slot they are equipped/held in */
+  showSlot?: boolean
 }
 
 export const InventoryPanel = ({
   active,
   onInventoryAction = noop,
+  showSlot = false,
   ...rest
 }: InventoryPanelProps) => {
   const creature = useWorld().player
-  const [selectedItem, setSelectedItem] = useState(head(creature.inventory.items))
+  const [selectedItem, setSelectedItem] = useState<Item | undefined>()
 
   // if the user tabs out of the list, clear the item selection to avoid confusion
   useEffect(() => {
@@ -31,12 +35,30 @@ export const InventoryPanel = ({
     }
   }, [active])
 
+  const toListItem = useCallback((item: Item): ListItem => {
+    const slot = creature.getEquippedSlot(item)
+    const rightContent = slot === undefined ? '' : `[${slot}]`
+
+    return showSlot ? {
+      content: item.name,
+      rightContent,
+    } : {
+      content: item.name,
+    }
+  }, [creature, showSlot])
+
   const handleItemAction = useCallback((name: string) => {
     if (selectedItem !== undefined) {
-      const action = selectedItem.getInventoryAction(name)
-      if (action !== undefined) {
-        onInventoryAction(selectedItem, action)
+      if (name === 'Back') {
+        // just go back to inventory screen
         setSelectedItem(undefined)
+      } else {
+        // real item action, let's invoke it
+        const action = selectedItem.getInventoryAction(name)
+        if (action !== undefined) {
+          onInventoryAction(selectedItem, action)
+          setSelectedItem(undefined)
+        }
       }
     }
   }, [onInventoryAction, selectedItem])
@@ -47,6 +69,7 @@ export const InventoryPanel = ({
       container={creature.inventory}
       onItemSelected={setSelectedItem}
       title="Inventory"
+      toListItem={toListItem}
     />
   ) : (
     <ListPanel {...rest}

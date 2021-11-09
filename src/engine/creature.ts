@@ -1,4 +1,4 @@
-import { compact, find, findIndex, flow, forEach, keys, map, reduce, values } from 'lodash/fp'
+import { compact, find, flow, forEach, keys, map, reduce, values } from 'lodash/fp'
 import { TypedEventEmitter } from 'typed-event-emitter'
 
 import {
@@ -13,8 +13,7 @@ import {
 import { BasicContainer } from './container'
 import { CreatureType } from './creature-db'
 import { CreatureEvents } from './events'
-import { EquipmentSet, EquipmentSlot, Item } from './item'
-import { ExpeditionMap } from './map'
+import { EquipmentSet, EquipmentSlot, EquipmentSlots, Item } from './item'
 import { newId } from './new-id'
 import { Actor, Combatant, Damageable, EventSource, Moveable } from './types'
 import { World } from './world'
@@ -72,24 +71,16 @@ export class Creature extends TypedEventEmitter<CreatureEvents> implements
   constructor (
     private _type: CreatureType,
     private _x: number,
-    private _y: number,
-    private _map: ExpeditionMap
+    private _y: number
   ) {
     super()
 
-    if (this._map.getCreature(this._x, this._y) !== undefined) {
-      throw new Error('TODO: do not fail when adding creature to occupied cell')
-    }
-
     this._health = this._type.healthMax
     this.inventory = new Inventory()
-    this._map.setCreature(this._x, this._y, this)
 
     const loot = this._type.lootTable?.collect() ?? []
     forEach((itemTemplate) => {
       this.inventory.addItem(itemTemplate.create())
-      // eslint-disable-next-line no-console
-      console.log(`${this.name} ${this.id} has ${itemTemplate.id}`)
     }, loot)
   }
 
@@ -128,7 +119,18 @@ export class Creature extends TypedEventEmitter<CreatureEvents> implements
 
   /** Returns whether or not a specified item is equipped. */
   public isEquipped (item: Item): boolean {
-    return findIndex((equippedItem) => item.id === equippedItem?.id, values(this._equipment)) !== -1
+    return this.getEquippedSlot(item) !== undefined
+  }
+
+  /** Returns the slot this item is equipped in, or undefined if none */
+  public getEquippedSlot (item: Item): EquipmentSlot | undefined {
+    for (const slot of EquipmentSlots) {
+      if (this.equipment[slot] === item) {
+        return slot
+      }
+    }
+
+    return undefined
   }
 
   /**
@@ -279,26 +281,12 @@ export class Creature extends TypedEventEmitter<CreatureEvents> implements
   }
 
   /**
-   * Moves a creature the specified distance in each axis. If the move is impossible, will return false.
-   * If the move is completed, then true is returned.
+   * Move the creature to the specified location.
    */
-  public moveBy (x: number, y: number) {
-    const newX = this._x + x
-    const newY = this._y + y
-
-    if (!this._map.isTraversable(newX, newY)) {
-      return false
-    }
-
-    if (this._map.getCreature(this._x, this._y) === this) {
-      this._map.setCreature(this._x, this._y, undefined)
-    }
-
-    this._x = newX
-    this._y = newY
-
-    this._map.setCreature(this._x, this._y, this)
-    return true
+  public moveTo (x: number, y: number) {
+    this._x = x
+    this._y = y
+    this.emit('move', x, y, this)
   }
 
   private _getModifiedAttribute (baseValue: number, modifierName: CreatureAttributeModifierMethodName) {

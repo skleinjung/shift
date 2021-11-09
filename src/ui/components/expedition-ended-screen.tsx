@@ -1,5 +1,6 @@
 import { useCallback } from 'react'
 import { useRecoilValue, useResetRecoilState } from 'recoil'
+import { useGlobalKeyHandler } from 'ui/hooks/use-global-key-handler'
 import { useWorld } from 'ui/hooks/use-world'
 import { expeditionState } from 'ui/state/expedition'
 
@@ -36,6 +37,10 @@ export const ExpeditionEndedScreen = ({ navigateTo }: ExpeditionEndedScreenProps
 
   const fate = player.dead ? 'was killed' : 'lost his connection to this world'
 
+  useGlobalKeyHandler({
+    Escape: returnToTitle,
+  })
+
   const expeditionSummary =
     `${player.name} ${fate}.
     
@@ -46,7 +51,6 @@ Turns: ${expedition.turn - 1}`
       className="screen-container"
       onBlur={handleBlur}
       onClick={returnToTitle}
-      onKeyPress={returnToTitle}
       ref={refCallback}
       tabIndex={0}
     >
@@ -59,7 +63,9 @@ Turns: ${expedition.turn - 1}`
           <PreFormattedText>{expeditionSummary}</PreFormattedText>
         </Panel>
       </div>
-      <p className="screen-footer animated-option" style={{ cursor: 'pointer' }}>Press any key to continue </p>
+      <p className="screen-footer animated-option" style={{ cursor: 'pointer' }}>
+        Press &apos;Escape&apos; to continue
+      </p>
     </div>
   )
 }

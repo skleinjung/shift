@@ -11,6 +11,7 @@ import { useResetRecoilState, useSetRecoilState } from 'recoil'
 import { useGlobalKeyHandler } from 'ui/hooks/use-global-key-handler'
 import { useKeyHandler } from 'ui/hooks/use-key-handler'
 import { useWorld } from 'ui/hooks/use-world'
+import { getKeyMap } from 'ui/key-map'
 import { endTurn, expeditionState } from 'ui/state/expedition'
 
 import { ScreenName } from './app'
@@ -25,13 +26,13 @@ import { ScreenMenu } from './screen-menu'
 
 import './expedition-screen.css'
 
-const SidebarColumns = 45
+const SidebarColumns = 35
 
 enum SelectablePanels {
   Map = 0,
-  Information,
   // eslint-disable-next-line @typescript-eslint/naming-convention
   __LENGTH,
+  Information,
   Options,
 }
 
@@ -39,35 +40,9 @@ enum SelectablePanels {
 enum ModalMode {
   None = 0,
   Pause,
-  InteractWithItem
+  InteractWithItem,
+  Inventory
 }
-
-interface KeyMap {
-  Get: string
-  MoveUp: string
-  MoveDown: string
-  MoveLeft: string
-  MoveRight: string
-}
-
-const KeyMaps = {
-  Sean: {
-    Get: 'g',
-    MoveUp: 'e',
-    MoveDown: 'd',
-    MoveLeft: 's',
-    MoveRight: 'f',
-  },
-  EveryoneElse: {
-    Get: 'g',
-    MoveUp: 'w',
-    MoveDown: 's',
-    MoveLeft: 'a',
-    MoveRight: 'd',
-  },
-}
-
-const keyMap: KeyMap = KeyMaps.Sean
 
 export interface ExpeditionScreenProps {
   /** function that allows inter-screen navigation */
@@ -106,6 +81,7 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
       // close any open modals
       setModalMode(ModalMode.None)
       setModalArgument(undefined)
+      setActivePanel(SelectablePanels.Map)
     } else {
       // pause, with the default pause modal visible
       setModalMode(ModalMode.Pause)
@@ -224,6 +200,7 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
     setActivePanel(SelectablePanels.Map)
   }, [executeTurn, world])
 
+  const keyMap = getKeyMap()
   const mapKeyHandler = useKeyHandler({
     [keyMap.Get]: beginItemInteraction('Get'),
     [keyMap.MoveDown]: executePlayerMove(0, 1),
@@ -244,8 +221,17 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
     }
   }, [navigateTo])
 
+  const toggleModal = useCallback((modal: ModalMode) => () => {
+    if (modalMode === modal) {
+      setModalMode(ModalMode.None)
+    } else {
+      setModalMode(modal)
+    }
+  }, [modalMode])
+
   useGlobalKeyHandler({
     Escape: handleEscape,
+    [keyMap.OpenInventory]: toggleModal(ModalMode.Inventory),
     Tab: () => setActivePanel((current) => (current + 1) % SelectablePanels.__LENGTH),
   })
 
@@ -276,6 +262,18 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
             onInteraction={interactWithItem}
           />
         )
+
+      case ModalMode.Inventory:
+        return (
+          <InventoryPanel
+            active={true}
+            allowSelection={true}
+            columns={SidebarColumns}
+            onClick={handleActivatePanel(SelectablePanels.Information)}
+            onInventoryAction={handleInventoryAction}
+            showSlot={true}
+          />
+        )
     }
 
     return undefined
@@ -297,26 +295,38 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
           active={activePanel === SelectablePanels.Map && !paused}
           centerX={viewportCenter.x}
           centerY={viewportCenter.y}
+          containerClass="expedition-panel"
           onClick={handleActivatePanel(SelectablePanels.Map)}
           onKeyDown={mapKeyHandler}
           onViewportSizeChanged={handleViewportResize}
         />
 
-        <LogPanel world={world} />
+        <LogPanel
+          containerClass="expedition-panel"
+          world={world}
+        />
       </div>
 
       <div className="sidebar">
-        <PlayerStatusPanel />
-
-        <InventoryPanel
-          active={activePanel === SelectablePanels.Information && !paused}
-          allowSelection={true}
-          columns={SidebarColumns}
-          onClick={handleActivatePanel(SelectablePanels.Information)}
-          onInventoryAction={handleInventoryAction}
+        <PlayerStatusPanel
+          containerClass="expedition-panel"
         />
 
-        <Panel columns={SidebarColumns} rows={8}>
+        <InventoryPanel
+          active={false}
+          allowSelection={false}
+          columns={SidebarColumns}
+          containerClass="expedition-panel"
+          onClick={handleActivatePanel(SelectablePanels.Information)}
+          onInventoryAction={handleInventoryAction}
+          showSlot={true}
+        />
+
+        <Panel
+          containerClass="expedition-panel"
+          columns={SidebarColumns}
+          rows={8}
+        >
           Lorem ipsum dolor sit amet.
         </Panel>
       </div>

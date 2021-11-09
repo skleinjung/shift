@@ -3,7 +3,6 @@
   display: flex;
   align-content: stretch;
   flex: 0;
-  margin: 8px 0;
   padding: 1px;
   color: #aaa;
 }
@@ -11,7 +10,7 @@
 
 .container.active {
   border-width: 2px;
-  border-color: #660;
+  border-color: #330;
   padding: 0;
   color: #fff;
 }
