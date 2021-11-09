@@ -14,7 +14,6 @@ import { BasicContainer } from './container'
 import { CreatureType } from './creature-db'
 import { CreatureEvents } from './events'
 import { EquipmentSet, EquipmentSlot, EquipmentSlots, Item } from './item'
-import { ExpeditionMap } from './map'
 import { newId } from './new-id'
 import { Actor, Combatant, Damageable, EventSource, Moveable } from './types'
 import { World } from './world'
@@ -72,18 +71,12 @@ export class Creature extends TypedEventEmitter<CreatureEvents> implements
   constructor (
     private _type: CreatureType,
     private _x: number,
-    private _y: number,
-    private _map: ExpeditionMap
+    private _y: number
   ) {
     super()
 
-    if (this._map.getCreature(this._x, this._y) !== undefined) {
-      throw new Error('TODO: do not fail when adding creature to occupied cell')
-    }
-
     this._health = this._type.healthMax
     this.inventory = new Inventory()
-    this._map.setCreature(this._x, this._y, this)
 
     const loot = this._type.lootTable?.collect() ?? []
     forEach((itemTemplate) => {

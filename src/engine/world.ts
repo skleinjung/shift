@@ -32,15 +32,15 @@ export class World extends TypedEventEmitter<WorldEvents> {
 
     const dungeon = createDungeon()
     dungeon.createTerrain(this.map)
-    forEach((spawn) => {
-      this._registerCreature(new Creature(CreatureTypes[spawn.type], spawn.x, spawn.y, this.map))
+    forEach((creature) => {
+      this._registerCreature(creature)
     }, dungeon.creatures)
 
     forEach((treasure) => {
       this.map.getCell(treasure.x, treasure.y).addItem(treasure.item)
     }, dungeon.treasure)
 
-    this._player = new Player(CreatureTypes.player, 0, 0, this.map)
+    this._player = new Player(CreatureTypes.player, 0, 0)
     this._registerCreature(this._player)
     this._playerAction = DoNothing
     // this._player.inventory.addItem(new Item({ name: 'a coconut' }))
@@ -157,9 +157,17 @@ porttitor, imperdiet lectus. Quisque sit amet quam venenatis, iaculis sapien in,
   }
 
   /**
-   * Registers a newly created by creature with the world.
+   * Registers a newly created creature with the world. This includes adding it to the creature list,
+   * adding to the map, and registering any event listeners.
    */
   private _registerCreature (creature: Creature) {
+    if (creature.type.id !== 'player' && this.map.getCreature(creature.x, creature.y) !== undefined) {
+      // if the cell is occupied, skip placing the creature unless it is the player
+      // this represents an error in the dungeon generator...
+      return
+    }
+
+    this.map.setCreature(creature.x, creature.y, creature)
     this.creatures[creature.id] = creature
 
     creature.on('attack', this._logAttack.bind(this))

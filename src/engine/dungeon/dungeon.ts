@@ -1,4 +1,4 @@
-import { CreatureTypeId } from 'engine/creature-db'
+import { Creature } from 'engine/creature'
 import { Item } from 'engine/item'
 import { ExpeditionMap } from 'engine/map'
 import { filter, forEach, some } from 'lodash/fp'
@@ -8,11 +8,8 @@ import { Region, RegionTypeName } from './region'
 export class Dungeon {
   /**
    * set of creatures in this dungeon
-   *
-   * TODO: this should be real creature objects, to avoid the post-processing by the World
-   * this is awkward, due to the requirement from Creature to have a map (which we should remove)
    */
-  public readonly creatures: { type: CreatureTypeId; x: number; y: number }[] = []
+  public readonly creatures: Creature[] = []
 
   public readonly treasure: { item: Item; x: number; y: number }[] = []
 

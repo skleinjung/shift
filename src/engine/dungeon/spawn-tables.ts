@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import { CreatureTypeId } from 'engine/creature-db'
+import { Creature } from 'engine/creature'
+import { CreatureTypeId, CreatureTypes } from 'engine/creature-db'
 import { ProductGroup } from 'engine/spawnable'
 import { find, random } from 'lodash/fp'
 
@@ -7,46 +8,6 @@ import { ItemTemplate, ItemTemplates } from '../item-db'
 
 import { Dungeon } from './dungeon'
 import { Region } from './region'
-
-const armor = ProductGroup.rollOne(
-  [
-    [25, ItemTemplates.leather_armor],
-    [25, ItemTemplates.leather_boots],
-    [25, ItemTemplates.soft_leather_gloves],
-    [25, ItemTemplates.wooden_buckler],
-  ]
-)
-
-const weapons = ProductGroup.rollOne(
-  [
-    [60, ItemTemplates.dagger],
-    [30, ItemTemplates.spear],
-    [10, ItemTemplates.glowing_spear],
-  ]
-)
-
-const jewelry = ProductGroup.rollOne(
-  [
-    [40, ItemTemplates.ring_of_protection],
-    [30, ItemTemplates.gold_circlet],
-    [15, ItemTemplates.necrotic_amulet],
-    [15, ItemTemplates.girdle_of_punching],
-  ]
-)
-
-const armorOrWeapon = ProductGroup.rollOne(
-  [
-    [50, armor],
-    [50, weapons],
-  ]
-)
-
-export const TreasureTable = ProductGroup.rollMany(
-  [
-    [100, armorOrWeapon],
-    [20, jewelry],
-  ]
-)
 
 /** function that adds 'something' to a dungeon */
 type Spawner = (dungeon: Dungeon, room: Region) => void
@@ -73,7 +34,7 @@ const monsterSpawner = (creatureType: CreatureTypeId): Spawner => (dungeon, room
   } while (spaceOccupied(x, y) && loopCount++ < 50)
 
   if (!spaceOccupied(x, y)) {
-    dungeon.creatures.push({ type: creatureType, x, y })
+    dungeon.creatures.push(new Creature(CreatureTypes[creatureType], x, y))
   }
 }
 
