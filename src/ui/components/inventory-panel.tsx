@@ -1,6 +1,6 @@
 import { Item } from 'engine/item'
 import { ItemInventoryAction } from 'engine/item-inventory-action'
-import { get, head, map, noop } from 'lodash/fp'
+import { get, map, noop } from 'lodash/fp'
 import { useCallback, useEffect, useState } from 'react'
 import { useWorld } from 'ui/hooks/use-world'
 
@@ -22,7 +22,7 @@ export const InventoryPanel = ({
   ...rest
 }: InventoryPanelProps) => {
   const creature = useWorld().player
-  const [selectedItem, setSelectedItem] = useState(head(creature.inventory.items))
+  const [selectedItem, setSelectedItem] = useState<Item | undefined>()
 
   // if the user tabs out of the list, clear the item selection to avoid confusion
   useEffect(() => {
@@ -33,10 +33,16 @@ export const InventoryPanel = ({
 
   const handleItemAction = useCallback((name: string) => {
     if (selectedItem !== undefined) {
-      const action = selectedItem.getInventoryAction(name)
-      if (action !== undefined) {
-        onInventoryAction(selectedItem, action)
+      if (name === 'Back') {
+        // just go back to inventory screen
         setSelectedItem(undefined)
+      } else {
+        // real item action, let's invoke it
+        const action = selectedItem.getInventoryAction(name)
+        if (action !== undefined) {
+          onInventoryAction(selectedItem, action)
+          setSelectedItem(undefined)
+        }
       }
     }
   }, [onInventoryAction, selectedItem])

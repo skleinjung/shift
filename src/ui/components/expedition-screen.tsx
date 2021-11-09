@@ -30,9 +30,9 @@ const SidebarColumns = 45
 
 enum SelectablePanels {
   Map = 0,
-  Information,
   // eslint-disable-next-line @typescript-eslint/naming-convention
   __LENGTH,
+  Information,
   Options,
 }
 
@@ -40,7 +40,8 @@ enum SelectablePanels {
 enum ModalMode {
   None = 0,
   Pause,
-  InteractWithItem
+  InteractWithItem,
+  Inventory
 }
 
 export interface ExpeditionScreenProps {
@@ -219,8 +220,17 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
     }
   }, [navigateTo])
 
+  const toggleModal = useCallback((modal: ModalMode) => () => {
+    if (modalMode === modal) {
+      setModalMode(ModalMode.None)
+    } else {
+      setModalMode(modal)
+    }
+  }, [modalMode])
+
   useGlobalKeyHandler({
     Escape: handleEscape,
+    [keyMap.OpenInventory]: toggleModal(ModalMode.Inventory),
     Tab: () => setActivePanel((current) => (current + 1) % SelectablePanels.__LENGTH),
   })
 
@@ -249,6 +259,17 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
             interaction={modelArgument ?? 'Get'}
             onNoValidInteractions={handleNoMoreItemInteractions}
             onInteraction={interactWithItem}
+          />
+        )
+
+      case ModalMode.Inventory:
+        return (
+          <InventoryPanel
+            active={true}
+            allowSelection={true}
+            columns={SidebarColumns}
+            onClick={handleActivatePanel(SelectablePanels.Information)}
+            onInventoryAction={handleInventoryAction}
           />
         )
     }
@@ -284,8 +305,8 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
         <PlayerStatusPanel />
 
         <InventoryPanel
-          active={activePanel === SelectablePanels.Information && !paused}
-          allowSelection={true}
+          active={false}
+          allowSelection={false}
           columns={SidebarColumns}
           onClick={handleActivatePanel(SelectablePanels.Information)}
           onInventoryAction={handleInventoryAction}
