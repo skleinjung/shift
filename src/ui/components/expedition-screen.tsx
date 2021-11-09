@@ -294,27 +294,38 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
           active={activePanel === SelectablePanels.Map && !paused}
           centerX={viewportCenter.x}
           centerY={viewportCenter.y}
+          containerClass="expedition-panel"
           onClick={handleActivatePanel(SelectablePanels.Map)}
           onKeyDown={mapKeyHandler}
           onViewportSizeChanged={handleViewportResize}
         />
 
-        <LogPanel world={world} />
+        <LogPanel
+          containerClass="expedition-panel"
+          world={world}
+        />
       </div>
 
       <div className="sidebar">
-        <PlayerStatusPanel />
+        <PlayerStatusPanel
+          containerClass="expedition-panel"
+        />
 
         <InventoryPanel
           active={false}
           allowSelection={false}
           columns={SidebarColumns}
+          containerClass="expedition-panel"
           onClick={handleActivatePanel(SelectablePanels.Information)}
           onInventoryAction={handleInventoryAction}
           showSlot={true}
         />
 
-        <Panel columns={SidebarColumns} rows={8}>
+        <Panel
+          containerClass="expedition-panel"
+          columns={SidebarColumns}
+          rows={8}
+        >
           Lorem ipsum dolor sit amet.
         </Panel>
       </div>

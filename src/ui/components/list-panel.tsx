@@ -130,10 +130,13 @@ export const ListPanel = ({
       onKeyDown={handleKeyDown}
     >
       {title && <h2 className="list-panel-title">{title}</h2>}
-      {children}
       <ul className="list-panel">
         {mapS(items, createRow)}
       </ul>
+      {children &&
+      <div className="list-panel-summary">
+        {children}
+      </div>}
     </Panel>
   )
 }

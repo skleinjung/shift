@@ -2,11 +2,11 @@ import { World } from 'engine/world'
 import { map, reverse } from 'lodash/fp'
 import { useCallback, useEffect, useState } from 'react'
 
-import { Panel } from './panel'
+import { Panel, PanelProps } from './panel'
 
 import './log-panel.css'
 
-export interface LogPanelOptions {
+export interface LogPanelOptions extends Omit<PanelProps, 'rows'> {
   /** number of log rows to display */
   rows?: number
 
@@ -14,7 +14,7 @@ export interface LogPanelOptions {
   world: World
 }
 
-export const LogPanel = ({ rows = 8, world }: LogPanelOptions) => {
+export const LogPanel = ({ rows = 8, world, ...rest }: LogPanelOptions) => {
   const [lines, setLines] = useState<string[]>(world.messages)
 
   const messageAdded = useCallback(() => {
@@ -31,7 +31,10 @@ export const LogPanel = ({ rows = 8, world }: LogPanelOptions) => {
   let index = 0
 
   return (
-    <Panel className="log-panel" rows={rows}>
+    <Panel {...rest}
+      className="log-panel"
+      rows={rows}
+    >
       {map((line) => <div key={index++}>{line}</div>, reverse(lines))}
     </Panel>
   )
