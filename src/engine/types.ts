@@ -82,9 +82,9 @@ export interface Positionable extends Entity {
 /** A Moveable entity has a map position, and methods for updating that position. */
 export interface Moveable extends Positionable {
   /**
-   * Moves a creature the specified distance in each axis.
+   * Move an entity to the specified location.
    */
-  moveBy: (x: number, y: number) => void
+  moveTo: (x: number, y: number) => void
 }
 
 /** A Damageable entity has a health pool, and can take damage and 'die'. */

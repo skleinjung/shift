@@ -288,26 +288,12 @@ export class Creature extends TypedEventEmitter<CreatureEvents> implements
   }
 
   /**
-   * Moves a creature the specified distance in each axis. If the move is impossible, will return false.
-   * If the move is completed, then true is returned.
+   * Move the creature to the specified location.
    */
-  public moveBy (x: number, y: number) {
-    const newX = this._x + x
-    const newY = this._y + y
-
-    if (!this._map.isTraversable(newX, newY)) {
-      return false
-    }
-
-    if (this._map.getCreature(this._x, this._y) === this) {
-      this._map.setCreature(this._x, this._y, undefined)
-    }
-
-    this._x = newX
-    this._y = newY
-
-    this._map.setCreature(this._x, this._y, this)
-    return true
+  public moveTo (x: number, y: number) {
+    this._x = x
+    this._y = y
+    this.emit('move', x, y, this)
   }
 
   private _getModifiedAttribute (baseValue: number, modifierName: CreatureAttributeModifierMethodName) {
