@@ -7,9 +7,15 @@ import { newId } from './new-id'
 import { Entity } from './types'
 
 export const EquipmentSlots = [
-  'Body',
+  'Body', // and legs, and arms.. i.e. armor
+  'Feet',
+  'Finger',
+  'Hands', // i.e. gloves, not weapons
+  'Head',
   'MainHand',
+  'Neck',
   'OffHand',
+  'Waist',
 ] as const
 export type EquipmentSlot = (typeof EquipmentSlots)[number]
 
