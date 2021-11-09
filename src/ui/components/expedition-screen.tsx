@@ -26,7 +26,7 @@ import { ScreenMenu } from './screen-menu'
 
 import './expedition-screen.css'
 
-const SidebarColumns = 45
+const SidebarColumns = 35
 
 enum SelectablePanels {
   Map = 0,
@@ -81,6 +81,7 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
       // close any open modals
       setModalMode(ModalMode.None)
       setModalArgument(undefined)
+      setActivePanel(SelectablePanels.Map)
     } else {
       // pause, with the default pause modal visible
       setModalMode(ModalMode.Pause)

@@ -86,9 +86,11 @@ export const ListPanel = ({
   }, [items, onItemSelected])
 
   const handleClick = useCallback((index: number) => () => {
-    consider(index)
-    confirmSelection(index)
-  }, [confirmSelection, consider])
+    if (allowSelection) {
+      consider(index)
+      confirmSelection(index)
+    }
+  }, [allowSelection, confirmSelection, consider])
 
   const handleConfirmKey = useCallback(() => {
     confirmSelection(selectedIndex)

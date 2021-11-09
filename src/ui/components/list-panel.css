@@ -23,12 +23,14 @@
 }
 
 .list-panel-row {
-  cursor: pointer;
   display: flex;
   flex-direction: row;
   list-style-type: none;
   margin: 0;
   padding: 0
+}
+.list-panel-row.selectable {
+  cursor: pointer;
 }
 
 .list-panel-row.selectable:before {
@@ -39,7 +41,7 @@
   content: '>\00a0';
 }
 
-.list-panel-row.selected, .list-panel-row:hover {
+.list-panel-row.selected, .list-panel-row.selectable:hover {
   color: #aa0;
 }
 
