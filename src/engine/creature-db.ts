@@ -7,6 +7,10 @@ import {
 } from 'engine/behavior'
 import { filter, keys, reduce } from 'lodash/fp'
 
+import { MonsterLootTables } from './data/loot-tables'
+import { ItemTemplate } from './item-db'
+import { Generator } from './spawnable'
+
 export type CreatureType = Readonly<{
   /** behavior used to determine this creature's actions */
   behavior: Behavior
@@ -19,6 +23,9 @@ export type CreatureType = Readonly<{
 
   /** unique id for this creature type */
   id: CreatureTypeId
+
+  /** loot table for this creature type, if any */
+  lootTable?: Generator<ItemTemplate>
 
   /** melee stat for this creature */
   melee: number
@@ -33,6 +40,7 @@ const creatureTypeArray = [
     defense: 1,
     healthMax: 5,
     id: 'goblin',
+    lootTable: MonsterLootTables[1],
     melee: 1,
     name: 'Goblin',
   },
@@ -41,6 +49,7 @@ const creatureTypeArray = [
     defense: 0,
     healthMax: 2,
     id: 'kobold',
+    lootTable: MonsterLootTables[0],
     melee: 1,
     name: 'Kobold',
   },
@@ -49,6 +58,7 @@ const creatureTypeArray = [
     defense: 1,
     healthMax: 8,
     id: 'orc',
+    lootTable: MonsterLootTables[2],
     melee: 2,
     name: 'Orc',
   },
