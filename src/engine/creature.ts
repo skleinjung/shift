@@ -1,4 +1,4 @@
-import { compact, find, findIndex, flow, keys, map, reduce, values } from 'lodash/fp'
+import { compact, find, findIndex, flow, forEach, keys, map, reduce, values } from 'lodash/fp'
 import { TypedEventEmitter } from 'typed-event-emitter'
 
 import {
@@ -84,6 +84,13 @@ export class Creature extends TypedEventEmitter<CreatureEvents> implements
     this._health = this._type.healthMax
     this.inventory = new Inventory()
     this._map.setCreature(this._x, this._y, this)
+
+    const loot = this._type.lootTable?.collect() ?? []
+    forEach((itemTemplate) => {
+      this.inventory.addItem(itemTemplate.create())
+      // eslint-disable-next-line no-console
+      console.log(`${this.name} ${this.id} has ${itemTemplate.id}`)
+    }, loot)
   }
 
   public get type () {

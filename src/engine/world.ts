@@ -9,7 +9,7 @@ import { Creature } from './creature'
 import { CreatureTypes } from './creature-db'
 import { createDungeon } from './dungeon/create-dungeon-v1'
 import { WorldEvents } from './events'
-import { createArmor, createWeapon, Item } from './item'
+import { createArmor, createWeapon } from './item'
 import { ExpeditionMap } from './map'
 import { Player } from './player'
 import { Action } from './types'
@@ -43,17 +43,19 @@ export class World extends TypedEventEmitter<WorldEvents> {
     this._player = new Player(CreatureTypes.player, 0, 0, this.map)
     this._registerCreature(this._player)
     this._playerAction = DoNothing
-    this._player.inventory.addItem(new Item({ name: 'a coconut' }))
-    this._player.inventory.addItem(new Item({ name: 'hopes and dreams' }))
+    // this._player.inventory.addItem(new Item({ name: 'a coconut' }))
+    // this._player.inventory.addItem(new Item({ name: 'hopes and dreams' }))
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const spear = createWeapon('+100 spear', 100)
-    this._player.inventory.addItem(spear)
+    // this._player.inventory.addItem(spear)
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const armor = createArmor('amazing, glowing armor', 100, `Lorem ipsum dolor sit amet, 
 consectetur adipiscing elit. Aenean pharetra est id velit laoreet, eu semper lectus ullamcorper.
 Nunc pellentesque nunc ex, eu venenatis orci mattis non. Maecenas in justo mollis, luctus urna 
 porttitor, imperdiet lectus. Quisque sit amet quam venenatis, iaculis sapien in, rutrum dui.`)
-    this._player.inventory.addItem(armor)
+    // this._player.inventory.addItem(armor)
 
     // this.map.addItem(-2, 0, createWeapon('+1 spear', 1))
     // this.map.addItem(2, 0, createWeapon('+2 spear', 2))
@@ -106,6 +108,11 @@ porttitor, imperdiet lectus. Quisque sit amet quam venenatis, iaculis sapien in,
       delete this.creatures[creature.id]
       this.logMessage(`${creature.type.name} is dead!`)
       this.map.removeCreature(creature)
+
+      // drop the creatures inventory
+      forEach((item) => {
+        this.map.getCell(creature.x, creature.y).addItem(item)
+      }, creature.inventory.items)
     }, deadCreatures)
 
     this.emit('turn')
