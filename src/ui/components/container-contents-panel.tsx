@@ -1,8 +1,8 @@
 import { Container } from 'engine/container'
 import { Item } from 'engine/item'
 import { noop, stubTrue } from 'lodash'
-import { filter, find, flow, map } from 'lodash/fp'
-import { ReactNode, useCallback, useEffect } from 'react'
+import { filter, find, flow, head, map } from 'lodash/fp'
+import { ReactNode, useCallback, useEffect, useState } from 'react'
 
 import { ListItem, ListPanel, ListPanelProps } from './list-panel'
 
@@ -28,6 +28,9 @@ export interface ContainerContentsPanelProps extends Omit<ListPanelProps,
   /** Called when an item is selected via clicking or the 'enter' key */
   onItemSelected?: (item: Item) => void
 
+  /** if true, the description of the considered item will be shown below the list */
+  showItemDescription?: boolean
+
   /** Method used to create the 'left' and 'right' content for an item. (default: item name) */
   toListItem?: (item: Item) => Omit<ListItem, 'id'>
 }
@@ -43,9 +46,12 @@ export const ContainerContentsPanel = ({
   onEmpty = noop,
   onItemConsidered = noop,
   onItemSelected = noop,
+  showItemDescription = false,
   toListItem = defaultToListItem,
   ...listPanelProps
 }: ContainerContentsPanelProps) => {
+  const [consideredItem, setConsideredItem] = useState<Item | undefined>(head(container.items))
+
   const getListItem = useCallback((item: Item): ListItem => ({
     id: `${item.id}`,
     ...toListItem(item),
@@ -61,6 +67,9 @@ export const ContainerContentsPanel = ({
 
   const handleItemConsidered = useCallback((itemId: string) => {
     const item = find((item) => `${item.id}` === itemId, container.items)
+    setConsideredItem(item)
+    // eslint-disable-next-line no-console
+    console.log('considering', item)
     if (item !== undefined) {
       onItemConsidered(item)
     }
@@ -73,13 +82,23 @@ export const ContainerContentsPanel = ({
     }
   }, [container.items, onItemSelected])
 
+  const getFooter = () => {
+    if (items.length === 0) {
+      return children
+    } else if (showItemDescription && consideredItem !== undefined) {
+      return <p className="container-contents-panel-item-description">{consideredItem.description}</p>
+    }
+
+    return null
+  }
+
   return (
     <ListPanel {...listPanelProps}
       items={items}
       onItemConsidered={handleItemConsidered}
       onItemSelected={handleItemSelected}
     >
-      {items.length === 0 && children}
+      {getFooter()}
     </ListPanel>
   )
 }
