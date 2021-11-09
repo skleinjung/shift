@@ -5,7 +5,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useWorld } from 'ui/hooks/use-world'
 
 import { ContainerContentsPanel } from './container-contents-panel'
-import { ListPanel, ListPanelProps } from './list-panel'
+import { ListItem, ListPanel, ListPanelProps } from './list-panel'
 
 import './inventory-panel.css'
 
@@ -14,11 +14,15 @@ ListPanelProps, 'items' | 'title' | 'container' | 'onItemConsidered' | 'onItemSe
 > & {
   /** callback invoked when a user attempts to execute an inventory action on an item */
   onInventoryAction?: (item: Item, action: ItemInventoryAction) => void
+
+  /** if true, inventory items will show what slot they are equipped/held in */
+  showSlot?: boolean
 }
 
 export const InventoryPanel = ({
   active,
   onInventoryAction = noop,
+  showSlot = false,
   ...rest
 }: InventoryPanelProps) => {
   const creature = useWorld().player
@@ -30,6 +34,18 @@ export const InventoryPanel = ({
       setSelectedItem(undefined)
     }
   }, [active])
+
+  const toListItem = useCallback((item: Item): ListItem => {
+    const slot = creature.getEquippedSlot(item)
+    const rightContent = slot === undefined ? '' : `[${slot}]`
+
+    return showSlot ? {
+      content: item.name,
+      rightContent,
+    } : {
+      content: item.name,
+    }
+  }, [creature, showSlot])
 
   const handleItemAction = useCallback((name: string) => {
     if (selectedItem !== undefined) {
@@ -53,6 +69,7 @@ export const InventoryPanel = ({
       container={creature.inventory}
       onItemSelected={setSelectedItem}
       title="Inventory"
+      toListItem={toListItem}
     />
   ) : (
     <ListPanel {...rest}

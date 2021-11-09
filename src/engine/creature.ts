@@ -1,4 +1,4 @@
-import { compact, find, findIndex, flow, forEach, keys, map, reduce, values } from 'lodash/fp'
+import { compact, find, flow, forEach, keys, map, reduce, values } from 'lodash/fp'
 import { TypedEventEmitter } from 'typed-event-emitter'
 
 import {
@@ -13,7 +13,7 @@ import {
 import { BasicContainer } from './container'
 import { CreatureType } from './creature-db'
 import { CreatureEvents } from './events'
-import { EquipmentSet, EquipmentSlot, Item } from './item'
+import { EquipmentSet, EquipmentSlot, EquipmentSlots, Item } from './item'
 import { ExpeditionMap } from './map'
 import { newId } from './new-id'
 import { Actor, Combatant, Damageable, EventSource, Moveable } from './types'
@@ -126,7 +126,18 @@ export class Creature extends TypedEventEmitter<CreatureEvents> implements
 
   /** Returns whether or not a specified item is equipped. */
   public isEquipped (item: Item): boolean {
-    return findIndex((equippedItem) => item.id === equippedItem?.id, values(this._equipment)) !== -1
+    return this.getEquippedSlot(item) !== undefined
+  }
+
+  /** Returns the slot this item is equipped in, or undefined if none */
+  public getEquippedSlot (item: Item): EquipmentSlot | undefined {
+    for (const slot of EquipmentSlots) {
+      if (this.equipment[slot] === item) {
+        return slot
+      }
+    }
+
+    return undefined
   }
 
   /**
