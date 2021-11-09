@@ -124,7 +124,7 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
     let newCenterY = oldCenter.y
 
     const SMALL_MAP_THRESHOLD = 15
-    const SCROLL_THRESHOLD_PERCENT = 0.25
+    const SCROLL_THRESHOLD_PERCENT = 0.40
 
     if (player !== undefined) {
       if (viewportSize.width > SMALL_MAP_THRESHOLD && viewportSize.height > SMALL_MAP_THRESHOLD) {

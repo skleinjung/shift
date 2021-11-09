@@ -13,9 +13,9 @@ import { Panel, PanelProps } from './panel'
 // Apply the patch to PIXI
 install({ ShaderSystem })
 
-const CellFontSize = 16
-const CellHeight = 16
-const CellWidth = 16
+const CellFontSize = 28
+const CellHeight = 28
+const CellWidth = 28
 
 interface RenderCell {
   background: PIXI.Graphics
