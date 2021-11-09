@@ -27,14 +27,14 @@ export interface ContainerContentsPanelProps extends Omit<ListPanelProps,
 
   /** Called when an item is selected via clicking or the 'enter' key */
   onItemSelected?: (item: Item) => void
+
+  /** Method used to create the 'left' and 'right' content for an item. (default: item name) */
+  toListItem?: (item: Item) => Omit<ListItem, 'id'>
 }
 
-const toListItem = (item: Item): ListItem => {
-  return {
-    id: `${item.id}`,
-    content: item.name,
-  }
-}
+const defaultToListItem = (item: Item) => ({
+  content: item.name,
+})
 
 export const ContainerContentsPanel = ({
   children = <p>There are no items to display.</p>,
@@ -43,9 +43,15 @@ export const ContainerContentsPanel = ({
   onEmpty = noop,
   onItemConsidered = noop,
   onItemSelected = noop,
+  toListItem = defaultToListItem,
   ...listPanelProps
 }: ContainerContentsPanelProps) => {
-  const items = flow(filter(itemFilter), map(toListItem))(container.items)
+  const getListItem = useCallback((item: Item): ListItem => ({
+    id: `${item.id}`,
+    ...toListItem(item),
+  }), [toListItem])
+
+  const items = flow(filter(itemFilter), map(getListItem))(container.items)
 
   useEffect(() => {
     if (items.length === 0) {
