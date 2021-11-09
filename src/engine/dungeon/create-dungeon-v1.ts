@@ -1,9 +1,10 @@
-import { MonsterTypeIds } from 'engine/creature-db'
-import { find, sample, times } from 'lodash/fp'
+import { random } from 'engine/random'
+import { tail } from 'lodash/fp'
 
 import { Dungeon } from './dungeon'
 import { Region } from './region'
-import { generateRoomDimensions, random } from './utils'
+import { RoomSpawnTable } from './spawn-tables'
+import { generateRoomDimensions } from './utils'
 
 export interface CreateDungeonOptions {
   /** maximum number of room placements that can fail before a level is terminated */
@@ -33,6 +34,12 @@ export interface CreateDungeonOptions {
   /** minimum # of monsters to spawn */
   monsterCountMinimum: number
 
+  /** maximum # of treasures to spawn */
+  treasureCountMaximum: number
+
+  /** minimum # of treasures to spawn */
+  treasureCountMinimum: number
+
   /**
    * How square the room shapes will be. Using zero will generate approximately perfect squares
    * Decimals allowed.
@@ -42,15 +49,17 @@ export interface CreateDungeonOptions {
 
 const withDefaults = (options: Partial<CreateDungeonOptions>): CreateDungeonOptions => ({
   maximumPlacementFailures: 500,
-  maximumRoomArea: 100,
+  maximumRoomArea: 50,
   maximumRoomCount: 20,
-  maximumHallwayLength: 7,
+  maximumHallwayLength: 5,
   minimumRoomArea: 4,
   minimumHallwayLength: 1,
   minimumDimensionSize: 2,
   monsterCountMaximum: 12,
   monsterCountMinimum: 10,
   roomIrregularity: 0.75,
+  treasureCountMaximum: 12,
+  treasureCountMinimum: 10,
   ...options,
 })
 
@@ -173,31 +182,64 @@ const createDungeonRecursive = (
     ))
 }
 
-const populate = (dungeon: Dungeon, { monsterCountMaximum, monsterCountMinimum }: CreateDungeonOptions) => {
-  const monsterCount = random(monsterCountMinimum, monsterCountMaximum)
-  times(() => {
-    const type = sample(MonsterTypeIds) ?? 'kobold'
-    const rooms = dungeon.rooms
-    const room = rooms[random(0, rooms.length - 1)]
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const populate = (dungeon: Dungeon, _: CreateDungeonOptions) => {
+  // populate every room except starting room
+  for (const room of tail(dungeon.rooms)) {
+    const contents = RoomSpawnTable.collect()
 
-    let loopCount = 0
-    let x = 0
-    let y = 0
-
-    const spaceOccupied = (x: number, y: number) => {
-      return find((monster) => monster.x === x && monster.y === y, dungeon.creatures) !== undefined
+    for (const spawner of contents) {
+      spawner(dungeon, room)
     }
-
-    do {
-      x = random(room.left, room.right)
-      y = random(room.top, room.bottom)
-    } while (spaceOccupied(x, y) && loopCount++ < 50)
-
-    if (!spaceOccupied(x, y)) {
-      dungeon.creatures.push({ type, x, y })
-    }
-  }, monsterCount)
+  }
 }
+
+// const addMonsters = (dungeon: Dungeon, { monsterCountMaximum, monsterCountMinimum }: CreateDungeonOptions) => {
+//   const monsterCount = random(monsterCountMinimum, monsterCountMaximum)
+//   times(() => {
+//     const type = sample(MonsterTypeIds) ?? 'kobold'
+//     const rooms = dungeon.rooms
+//     const room = rooms[random(0, rooms.length - 1)]
+
+//     let loopCount = 0
+//     let x = 0
+//     let y = 0
+
+//     const spaceOccupied = (x: number, y: number) => {
+//       return find((monster) => monster.x === x && monster.y === y, dungeon.creatures) !== undefined
+//     }
+
+//     do {
+//       x = random(room.left, room.right)
+//       y = random(room.top, room.bottom)
+//     } while (spaceOccupied(x, y) && loopCount++ < 50)
+
+//     if (!spaceOccupied(x, y)) {
+//       dungeon.creatures.push({ type, x, y })
+//     }
+//   }, monsterCount)
+// }
+
+// const addTreasure = (
+//   dungeon: Dungeon,
+//   { treasureCountMaximum, treasureCountMinimum }: CreateDungeonOptions
+// ) => {
+//   const treasureCount = random(treasureCountMinimum, treasureCountMaximum)
+//   times(() => {
+//     const rooms = dungeon.rooms
+//     const room = rooms[random(0, rooms.length - 1)]
+
+//     const templates = TreasureTable.collect()
+//     const items = map((template) => template.create(), templates)
+
+//     const x = random(room.left, room.right)
+//     const y = random(room.top, room.bottom)
+
+//     forEach((item) => {
+//       dungeon.treasure.push({ item, x, y })
+//     }, items)
+//   }, treasureCount)
+// }
 
 export const createDungeon = (options: Partial<CreateDungeonOptions> = {}) => {
   const optionsWithDefaults = withDefaults(options)
@@ -212,6 +254,9 @@ export const createDungeon = (options: Partial<CreateDungeonOptions> = {}) => {
       height,
     })]
   ))
+
+  // addMonsters(dungeon, optionsWithDefaults)
+  // addTreasure(dungeon, optionsWithDefaults)
 
   populate(dungeon, optionsWithDefaults)
 

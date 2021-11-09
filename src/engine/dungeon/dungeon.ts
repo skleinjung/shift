@@ -1,4 +1,5 @@
 import { CreatureTypeId } from 'engine/creature-db'
+import { Item } from 'engine/item'
 import { ExpeditionMap } from 'engine/map'
 import { filter, forEach, some } from 'lodash/fp'
 
@@ -12,6 +13,8 @@ export class Dungeon {
    * this is awkward, due to the requirement from Creature to have a map (which we should remove)
    */
   public readonly creatures: { type: CreatureTypeId; x: number; y: number }[] = []
+
+  public readonly treasure: { item: Item; x: number; y: number }[] = []
 
   constructor (
     /** set of regions in this dungeon */
