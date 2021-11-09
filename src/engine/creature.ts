@@ -30,7 +30,7 @@ export const CreatureAttributes = [
 /** Union type equal to the names of all numeric creature attributes. */
 export type CreatureAttributeName = (typeof CreatureAttributes)[number]
 
-type CreatureAttributeModifierMethodName = `modify${Capitalize<CreatureAttributeName>}`
+export type CreatureAttributeModifierMethodName = `modify${Capitalize<CreatureAttributeName>}`
 
 /** Object type that has a numeric value for all CreatureAttributes. Implemented by Creature. */
 export type CreatureAttributeSet = { [k in CreatureAttributeName]: number }
