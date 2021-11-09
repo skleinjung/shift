@@ -88,8 +88,6 @@ export class Creature extends TypedEventEmitter<CreatureEvents> implements
     const loot = this._type.lootTable?.collect() ?? []
     forEach((itemTemplate) => {
       this.inventory.addItem(itemTemplate.create())
-      // eslint-disable-next-line no-console
-      console.log(`${this.name} ${this.id} has ${itemTemplate.id}`)
     }, loot)
   }
 
