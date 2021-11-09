@@ -270,7 +270,7 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
             columns={SidebarColumns}
             onClick={handleActivatePanel(SelectablePanels.Information)}
             onInventoryAction={handleInventoryAction}
-            showSlot={false}
+            showSlot={true}
           />
         )
     }

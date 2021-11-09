@@ -20,7 +20,7 @@ export interface ListItem {
 }
 
 // extracts the id from a list item
-const getId = (item: string | ListItem) => isString(item) ? item : item.id ?? item.content
+const getId = (item: string | ListItem) => isString(item) ? item : item?.id ?? item.content
 
 // extracts the left-side content from a list item
 const getLeftContent = (item: string | ListItem) => isString(item) ? item : item.content

@@ -1,5 +1,5 @@
 import { map as mapI } from 'lodash'
-import { compact, filter, forEach, join, map, omit, values } from 'lodash/fp'
+import { compact, filter, forEach, get, initial, join, last, map, omit, values } from 'lodash/fp'
 import { TypedEventEmitter } from 'typed-event-emitter'
 
 import { DoNothing } from './actions/do-nothing'
@@ -9,7 +9,6 @@ import { Creature } from './creature'
 import { CreatureTypes } from './creature-db'
 import { createDungeon } from './dungeon/create-dungeon-v1'
 import { WorldEvents } from './events'
-import { createArmor, createWeapon } from './item'
 import { ExpeditionMap } from './map'
 import { Player } from './player'
 import { Action } from './types'
@@ -41,28 +40,8 @@ export class World extends TypedEventEmitter<WorldEvents> {
     }, dungeon.treasure)
 
     this._player = new Player(CreatureTypes.player, 0, 0)
-    this._registerCreature(this._player)
     this._playerAction = DoNothing
-    // this._player.inventory.addItem(new Item({ name: 'a coconut' }))
-    // this._player.inventory.addItem(new Item({ name: 'hopes and dreams' }))
-
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const spear = createWeapon('+100 spear', 100)
-    // this._player.inventory.addItem(spear)
-
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const armor = createArmor('amazing, glowing armor', 100, `Lorem ipsum dolor sit amet, 
-consectetur adipiscing elit. Aenean pharetra est id velit laoreet, eu semper lectus ullamcorper.
-Nunc pellentesque nunc ex, eu venenatis orci mattis non. Maecenas in justo mollis, luctus urna 
-porttitor, imperdiet lectus. Quisque sit amet quam venenatis, iaculis sapien in, rutrum dui.`)
-    // this._player.inventory.addItem(armor)
-
-    // this.map.addItem(-2, 0, createWeapon('+1 spear', 1))
-    // this.map.addItem(2, 0, createWeapon('+2 spear', 2))
-    // this.map.addItem(2, 0, createWeapon('+3 spear', 3))
-
-    // const leather = ItemTemplates.leather_armor.create()
-    // this.map.addItem(0, 2, leather)
+    this._initializePlayer()
 
     this.logMessage('Expedition started.')
   }
@@ -137,6 +116,44 @@ porttitor, imperdiet lectus. Quisque sit amet quam venenatis, iaculis sapien in,
   /** Gets the action being performed by the player in the current turn. */
   public get playerAction () {
     return this._playerAction
+  }
+
+  private _initializePlayer () {
+    this._registerCreature(this._player)
+
+    this._player.on('move', (x, y) => {
+      const itemNames = map(get('name'), this.map.getItems(x, y))
+      if (itemNames.length > 2) {
+        // list of three or more, so use commas with 'and'
+        const listContents = [...initial(itemNames), `and ${last(itemNames)}`]
+        this.logMessage(`You see some items here: ${join(', ', listContents)}.`)
+      } else if (itemNames.length === 2) {
+        // two items, just put 'and' between them
+        this.logMessage(`You see ${itemNames[0]} and ${itemNames[1]} here.`)
+      } else if (itemNames.length === 1) {
+        this.logMessage(`You see a ${itemNames[0]} here.`)
+      }
+    })
+
+    // fake inventory for testing
+    // this._player.inventory.addItem(new Item({ name: 'a coconut' }))
+    // this._player.inventory.addItem(new Item({ name: 'hopes and dreams' }))
+
+    // const spear = createWeapon('+100 spear', 100)
+    // this._player.inventory.addItem(spear)
+
+    //     const armor = createArmor('amazing, glowing armor', 100, `Lorem ipsum dolor sit amet,
+    // consectetur adipiscing elit. Aenean pharetra est id velit laoreet, eu semper lectus ullamcorper.
+    // Nunc pellentesque nunc ex, eu venenatis orci mattis non. Maecenas in justo mollis, luctus urna
+    // porttitor, imperdiet lectus. Quisque sit amet quam venenatis, iaculis sapien in, rutrum dui.`)
+    // this._player.inventory.addItem(armor)
+
+    // this.map.addItem(-2, 0, createWeapon('+1 spear', 1))
+    // this.map.addItem(2, 0, createWeapon('+2 spear', 2))
+    // this.map.addItem(2, 0, createWeapon('+3 spear', 3))
+
+    // const leather = ItemTemplates.leather_armor.create()
+    // this.map.addItem(0, 2, leather)
   }
 
   /** Adds the results of an attack to the message log. */
