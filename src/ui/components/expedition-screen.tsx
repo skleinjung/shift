@@ -11,6 +11,7 @@ import { useResetRecoilState, useSetRecoilState } from 'recoil'
 import { useGlobalKeyHandler } from 'ui/hooks/use-global-key-handler'
 import { useKeyHandler } from 'ui/hooks/use-key-handler'
 import { useWorld } from 'ui/hooks/use-world'
+import { getKeyMap } from 'ui/key-map'
 import { endTurn, expeditionState } from 'ui/state/expedition'
 
 import { ScreenName } from './app'
@@ -41,33 +42,6 @@ enum ModalMode {
   Pause,
   InteractWithItem
 }
-
-interface KeyMap {
-  Get: string
-  MoveUp: string
-  MoveDown: string
-  MoveLeft: string
-  MoveRight: string
-}
-
-const KeyMaps = {
-  Sean: {
-    Get: 'g',
-    MoveUp: 'e',
-    MoveDown: 'd',
-    MoveLeft: 's',
-    MoveRight: 'f',
-  },
-  EveryoneElse: {
-    Get: 'g',
-    MoveUp: 'w',
-    MoveDown: 's',
-    MoveLeft: 'a',
-    MoveRight: 'd',
-  },
-}
-
-const keyMap: KeyMap = KeyMaps.Sean
 
 export interface ExpeditionScreenProps {
   /** function that allows inter-screen navigation */
@@ -224,6 +198,7 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
     setActivePanel(SelectablePanels.Map)
   }, [executeTurn, world])
 
+  const keyMap = getKeyMap()
   const mapKeyHandler = useKeyHandler({
     [keyMap.Get]: beginItemInteraction('Get'),
     [keyMap.MoveDown]: executePlayerMove(0, 1),

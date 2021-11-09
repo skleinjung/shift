@@ -1,5 +1,6 @@
 import { findIndex, map, noop } from 'lodash/fp'
 import React, { HTMLAttributes, PropsWithChildren, useCallback, useState } from 'react'
+import { getKeyMap } from 'ui/key-map'
 import { toClassName, WithExtraClasses } from 'ui/to-class-name'
 
 import './screen-menu.css'
@@ -57,27 +58,28 @@ export const ScreenMenu = ({
   }, [onSelectionConfirmed])
 
   // navigate the menu via arrow keys
+  const keyMap = getKeyMap()
   const handleKeyPress = useCallback((event: React.KeyboardEvent) => {
     switch (event.key) {
-      case 'ArrowDown': {
+      case keyMap.MoveDown: {
         const index = findIndex((item) => item === selectedItem, items)
         const nextIndex = (index + 1) % items.length
         select(items[nextIndex])
         break
       }
 
-      case 'ArrowUp': {
+      case keyMap.MoveUp: {
         const index = findIndex((item) => item === selectedItem, items)
         const nextIndex = index === 0 ? items.length - 1 : index - 1
         select(items[nextIndex])
         break
       }
 
-      case 'Enter':
+      case keyMap.Confirm:
         confirmSelection(selectedItem)
         break
     }
-  }, [confirmSelection, items, select, selectedItem])
+  }, [confirmSelection, items, keyMap.Confirm, keyMap.MoveDown, keyMap.MoveUp, select, selectedItem])
 
   // navigate the menu via mouse
   const handleHover = useCallback((item: string) => () => {

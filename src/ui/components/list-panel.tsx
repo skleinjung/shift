@@ -2,6 +2,7 @@ import { map as mapS } from 'lodash'
 import { compact, flow, isString, join, noop } from 'lodash/fp'
 import { useCallback, useState } from 'react'
 import { useKeyHandler } from 'ui/hooks/use-key-handler'
+import { getKeyMap } from 'ui/key-map'
 
 import { Panel, PanelProps } from './panel'
 
@@ -89,14 +90,15 @@ export const ListPanel = ({
     confirmSelection(index)
   }, [confirmSelection, consider])
 
-  const handleEnterKey = useCallback(() => {
+  const handleConfirmKey = useCallback(() => {
     confirmSelection(selectedIndex)
   }, [confirmSelection, selectedIndex])
 
+  const keyMap = getKeyMap()
   const handleKeyDown = useKeyHandler({
-    ArrowUp: moveSelectionUp,
-    ArrowDown: moveSelectionDown,
-    Enter: handleEnterKey,
+    [keyMap.MoveUp]: moveSelectionUp,
+    [keyMap.MoveDown]: moveSelectionDown,
+    [keyMap.Confirm]: handleConfirmKey,
   })
 
   const createRow = (item: string | ListItem, index: number) => {
