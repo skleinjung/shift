@@ -1,9 +1,16 @@
 import { filter, findIndex } from 'lodash/fp'
+import { manhattanDistance } from 'math'
 
+import { aStar } from './ai/a-star'
 import { BasicContainer } from './container'
 import { Creature } from './creature'
 import { Item } from './item'
 import { TerrainType, TerrainTypes } from './terrain-db'
+
+export type CellCoordinate = {
+  x: number
+  y: number
+}
 
 export class MapCell extends BasicContainer {
   constructor (
@@ -109,6 +116,21 @@ export class ExpeditionMap {
   }
 
   /**
+   * Calculates the shortest path between two map cells. Returns an array of each cell in the path,
+   * including the start and goal cells. If there is no valid path, an empty array will be returned.
+   * If the start and goal are the same, then the array will contain a single item -- the shared
+   * start/goal cell.
+   */
+  public getPath (start: CellCoordinate, goal: CellCoordinate): CellCoordinate[] {
+    return aStar({
+      getNeighbors: this._getTraversableNeighbors.bind(this),
+      goal,
+      heuristic: manhattanDistance,
+      start,
+    })
+  }
+
+  /**
    * Updates the terrain for a given map cell. Will create the cell if it does not yet exist.
    */
   public setTerrain (x: number, y: number, terrain: TerrainType) {
@@ -125,5 +147,16 @@ export class ExpeditionMap {
     }
 
     return this._cells[y]?.[x]
+  }
+
+  private _getTraversableNeighbors ({ x, y }: CellCoordinate) {
+    const possibilities = [
+      { x: x - 1, y },
+      { x: x + 1, y },
+      { x, y: y - 1 },
+      { x, y: y + 1 },
+    ]
+
+    return filter(({ x, y }) => this.getTerrain(x, y).traversable, possibilities)
   }
 }
