@@ -140,7 +140,7 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
   }, [updateViewport, viewportCenter])
 
   const executeTurn = useCallback((playerAction: Action) => {
-    world.nextTurn(playerAction)
+    world.player.nextAction = playerAction
 
     // update our recoil state based on the new world state
     updateExpedition(endTurn)

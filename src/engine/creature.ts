@@ -1,6 +1,7 @@
 import { compact, find, flow, forEach, keys, map, reduce, values } from 'lodash/fp'
 import { TypedEventEmitter } from 'typed-event-emitter'
 
+import { Behavior } from './behavior'
 import {
   Attack,
   Attackable,
@@ -86,6 +87,10 @@ export class Creature extends TypedEventEmitter<CreatureEvents> implements
 
   public get type () {
     return this._type
+  }
+
+  public get behavior (): Behavior {
+    return this._type.behavior
   }
 
   /// ////////////////////////////////////////////

@@ -8,9 +8,9 @@ export interface WorldEvents {
   message: (message: string) => void
 
   /**
-   * Emitted after each game turn is processed.
+   * Emitted after the state is updated.
    */
-  turn: () => void
+  update: () => void
 }
 
 /**

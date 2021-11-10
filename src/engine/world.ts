@@ -1,8 +1,7 @@
 import { map as mapI } from 'lodash'
-import { compact, filter, forEach, get, initial, join, last, map, omit, values } from 'lodash/fp'
+import { filter, find, findIndex, forEach, get, initial, join, last, map, omit, values } from 'lodash/fp'
 import { TypedEventEmitter } from 'typed-event-emitter'
 
-import { DoNothing } from './actions/do-nothing'
 import { getResultMessage } from './actions/result-handler'
 import { AttackResult } from './combat'
 import { Creature } from './creature'
@@ -11,23 +10,37 @@ import { createDungeon } from './dungeon/create-dungeon-v1'
 import { WorldEvents } from './events'
 import { ExpeditionMap } from './map'
 import { Player } from './player'
-import { Action } from './types'
 
+const TURNS_PER_SECOND = 15
+
+/**
+ * Calling 'start' will cause the game to process turns at the rate of TURNS_PER_SECOND. If, during
+ * their turn, the Player actor returns an undefined action, then turn execution will halt. The player
+ * will be checked periodically, and once they provide an action the loop will resume.
+ */
 export class World extends TypedEventEmitter<WorldEvents> {
   public readonly map = new ExpeditionMap()
-  public readonly creatures: Record<number, Creature> = {}
+
+  // all the world's creatures
+  private _creatures: Creature[] = []
 
   // all player-readable log messages from this game
   private _messages: string[] = []
 
+  // the creature whose turn is next
+  private _nextActor = 0
+
+  // data used to control the timer loop
+  private _previousTurnTime = 0
+  private _running = false
+
   private _player: Player
-  private _playerAction: Action
 
   constructor () {
     super()
 
-    // eslint-disable-next-line no-console
-    console.log('>>>>>>>>>>>> New World')
+    this._player = new Player(CreatureTypes.player, 0, 0)
+    this._initializePlayer()
 
     const dungeon = createDungeon()
     dungeon.createTerrain(this.map)
@@ -38,10 +51,6 @@ export class World extends TypedEventEmitter<WorldEvents> {
     forEach((treasure) => {
       this.map.getCell(treasure.x, treasure.y).addItem(treasure.item)
     }, dungeon.treasure)
-
-    this._player = new Player(CreatureTypes.player, 0, 0)
-    this._playerAction = DoNothing
-    this._initializePlayer()
 
     this.logMessage('Expedition started.')
   }
@@ -58,43 +67,7 @@ export class World extends TypedEventEmitter<WorldEvents> {
    * Gets the creature with a specified ID. If there is no creature with that ID, will return undefined.
    */
   public getCreature (id: number) {
-    return this.creatures[id]
-  }
-
-  /**
-   * Submit the player's next action, and update the world state for the next turn.
-   */
-  public nextTurn (playerAction: Action) {
-    this._playerAction = playerAction
-
-    // iterate over each creature, and get the action determined by its behavior
-    const actions = map((creature) => creature.type.behavior(creature, this), this.creatures)
-
-    // once all actions have been determined, execute them
-    // TODO: examine success/failure return value
-    forEach((action) => {
-      const result = action.execute(this)
-
-      const message = getResultMessage(result)
-      if (message !== undefined) {
-        this.logMessage(message)
-      }
-    }, compact(actions))
-
-    // remove any dead creatures
-    const deadCreatures = filter((creature) => creature.dead, values(this.creatures))
-    forEach((creature) => {
-      delete this.creatures[creature.id]
-      this.logMessage(`${creature.type.name} is dead!`)
-      this.map.removeCreature(creature)
-
-      // drop the creatures inventory
-      forEach((item) => {
-        this.map.getCell(creature.x, creature.y).addItem(item)
-      }, creature.inventory.items)
-    }, deadCreatures)
-
-    this.emit('turn')
+    return find((creature) => creature.id === id, this._creatures)
   }
 
   /** Returns flag indicating if the current expedition reached an end condition. */
@@ -113,9 +86,16 @@ export class World extends TypedEventEmitter<WorldEvents> {
     return this._player
   }
 
-  /** Gets the action being performed by the player in the current turn. */
-  public get playerAction () {
-    return this._playerAction
+  public start () {
+    if (!this._running) {
+      this._previousTurnTime = 0
+      this._running = true
+      window.requestAnimationFrame(this._onTimer.bind(this))
+    }
+  }
+
+  public stop () {
+    this._running = false
   }
 
   private _initializePlayer () {
@@ -134,26 +114,6 @@ export class World extends TypedEventEmitter<WorldEvents> {
         this.logMessage(`You see a ${itemNames[0]} here.`)
       }
     })
-
-    // fake inventory for testing
-    // this._player.inventory.addItem(new Item({ name: 'a coconut' }))
-    // this._player.inventory.addItem(new Item({ name: 'hopes and dreams' }))
-
-    // const spear = createWeapon('+100 spear', 100)
-    // this._player.inventory.addItem(spear)
-
-    //     const armor = createArmor('amazing, glowing armor', 100, `Lorem ipsum dolor sit amet,
-    // consectetur adipiscing elit. Aenean pharetra est id velit laoreet, eu semper lectus ullamcorper.
-    // Nunc pellentesque nunc ex, eu venenatis orci mattis non. Maecenas in justo mollis, luctus urna
-    // porttitor, imperdiet lectus. Quisque sit amet quam venenatis, iaculis sapien in, rutrum dui.`)
-    // this._player.inventory.addItem(armor)
-
-    // this.map.addItem(-2, 0, createWeapon('+1 spear', 1))
-    // this.map.addItem(2, 0, createWeapon('+2 spear', 2))
-    // this.map.addItem(2, 0, createWeapon('+3 spear', 3))
-
-    // const leather = ItemTemplates.leather_armor.create()
-    // this.map.addItem(0, 2, leather)
   }
 
   /** Adds the results of an attack to the message log. */
@@ -185,8 +145,106 @@ export class World extends TypedEventEmitter<WorldEvents> {
     }
 
     this.map.setCreature(creature.x, creature.y, creature)
-    this.creatures[creature.id] = creature
+    this._creatures.push(creature)
 
     creature.on('attack', this._logAttack.bind(this))
+  }
+
+  private _removeDeadCreatures () {
+    const deadCreatures = filter((creature) => creature.dead, values(this._creatures))
+    if (deadCreatures.length > 0) {
+      // remove any dead creatures
+      forEach((creature) => {
+        this._removeCreature(creature)
+        this.logMessage(`${creature.type.name} is dead!`)
+
+        // drop the creatures inventory
+        forEach((item) => {
+          this.map.getCell(creature.x, creature.y).addItem(item)
+        }, creature.inventory.items)
+      }, deadCreatures)
+    }
+  }
+
+  /** Removes a creature from the map and actor list */
+  private _removeCreature (creature: Creature) {
+    const index = findIndex((candidate) => candidate.id === creature.id, this._creatures)
+
+    // we track next actor by index, so we need to move the index back after deleting an actor
+    if (this._nextActor > index) {
+      this._nextActor--
+    }
+
+    if (index > -1) {
+      this._creatures.splice(index, 1)
+    }
+
+    this.map.removeCreature(creature)
+  }
+
+  /**
+   * Execute the action for the next actor in the list. Will return true if the actor was processed
+   * successfully, or false if we need to wait for additional input.
+   */
+  private _turnStep (): boolean {
+    if (this._creatures.length === 0) {
+      return true
+    }
+
+    const creature = this._creatures[this._nextActor]
+    const action = creature?.behavior?.(creature, this)
+
+    if (action === undefined && creature.id === this.player.id) {
+      // if it's the player's turn and there is no action, return and wait for the UI to supply one
+      return false
+    }
+
+    if (creature !== undefined && action !== undefined) {
+      // TODO: examine success/failure return value
+      const result = action.execute(this)
+
+      const message = getResultMessage(result)
+      if (message !== undefined) {
+        this.logMessage(message)
+      }
+
+      this._removeDeadCreatures()
+    }
+
+    this._nextActor = (this._nextActor + 1) % this._creatures.length
+    return true
+  }
+
+  private _turn () {
+    // flag that indicates we are waiting, and nothing has happened. Used to avoid sending spurious 'update' events
+    let stillWaiting = true
+    let exit = true
+
+    do {
+      exit = !this._turnStep()
+
+      if (!exit) {
+        // we had at least one turn, clear 'stillWaiting'
+        stillWaiting = false
+      }
+    } while (!exit && this._nextActor !== 0)
+
+    // emit a final update at the end of the turn if we aren't waiting
+    if (!stillWaiting) {
+      this.emit('update')
+    }
+  }
+
+  private _onTimer (timestamp: number) {
+    const msPerTurn = 1000 / TURNS_PER_SECOND
+
+    if ((timestamp - this._previousTurnTime) > msPerTurn) {
+      this._turn()
+      this._previousTurnTime = timestamp
+    }
+
+    if (this._running) {
+      window.requestAnimationFrame(this._onTimer.bind(this))
+    }
   }
 }
