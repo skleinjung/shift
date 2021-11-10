@@ -62,10 +62,13 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
   const updateExpedition = useSetRecoilState(expeditionState)
 
   const isComplete = world.expeditionEnded
-  const [viewportSize, setViewportSize] = useState({ width: 0, height: 0 })
+  const [, setViewportSize] = useState({ width: 0, height: 0 })
   const [viewportCenter, setViewportCenter] = useState({ x: 0, y: 0 })
 
   const paused = modalMode !== ModalMode.None
+
+  const playerX = world.player.x
+  const playerY = world.player.y
 
   useEffect(() => {
     resetExpedition()
@@ -93,8 +96,6 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
     viewportSize: { width: number; height: number },
     viewportCenter: { x: number; y: number }
   ) => {
-    const player = world.player
-
     const oldCenter = viewportCenter
     let newCenterX = oldCenter.x
     let newCenterY = oldCenter.y
@@ -102,36 +103,34 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
     const SMALL_MAP_THRESHOLD = 15
     const SCROLL_THRESHOLD_PERCENT = 0.40
 
-    if (player !== undefined) {
-      if (viewportSize.width > SMALL_MAP_THRESHOLD && viewportSize.height > SMALL_MAP_THRESHOLD) {
-        const left = Math.floor(oldCenter.x - (viewportSize.width / 2))
-        const right = Math.floor(oldCenter.x + (viewportSize.width / 2) - 1)
-        const top = Math.floor(oldCenter.y - (viewportSize.height / 2))
-        const bottom = Math.floor(oldCenter.y + (viewportSize.height / 2) - 1)
+    if (viewportSize.width > SMALL_MAP_THRESHOLD && viewportSize.height > SMALL_MAP_THRESHOLD) {
+      const left = Math.floor(oldCenter.x - (viewportSize.width / 2))
+      const right = Math.floor(oldCenter.x + (viewportSize.width / 2) - 1)
+      const top = Math.floor(oldCenter.y - (viewportSize.height / 2))
+      const bottom = Math.floor(oldCenter.y + (viewportSize.height / 2) - 1)
 
-        const minPeekColumns = Math.max(5, Math.floor(SCROLL_THRESHOLD_PERCENT * viewportSize.width))
-        const minPeekRows = Math.max(5, Math.floor(SCROLL_THRESHOLD_PERCENT * viewportSize.height))
+      const minPeekColumns = Math.max(5, Math.floor(SCROLL_THRESHOLD_PERCENT * viewportSize.width))
+      const minPeekRows = Math.max(5, Math.floor(SCROLL_THRESHOLD_PERCENT * viewportSize.height))
 
-        const leftAdjust = Math.min(0, player.x - (left + minPeekColumns))
-        const rightAdjust = Math.max(0, player.x - (right - minPeekColumns))
-        const horizontalAdjust = leftAdjust !== 0 ? leftAdjust : rightAdjust
-        newCenterX = oldCenter.x + horizontalAdjust
+      const leftAdjust = Math.min(0, playerX - (left + minPeekColumns))
+      const rightAdjust = Math.max(0, playerX - (right - minPeekColumns))
+      const horizontalAdjust = leftAdjust !== 0 ? leftAdjust : rightAdjust
+      newCenterX = oldCenter.x + horizontalAdjust
 
-        const upAdjust = Math.min(0, player.y - (top + minPeekRows - 1))
-        const downAdjust = Math.max(0, player.y - (bottom - minPeekRows + 1))
-        const verticalAdjust = upAdjust !== 0 ? upAdjust : downAdjust
-        newCenterY = oldCenter.y + verticalAdjust
-      } else if (viewportSize.width > 0 && viewportSize.height > 0) {
-        // just always center small maps
-        newCenterX = player.x
-        newCenterY = player.y
-      }
+      const upAdjust = Math.min(0, playerY - (top + minPeekRows - 1))
+      const downAdjust = Math.max(0, playerY - (bottom - minPeekRows + 1))
+      const verticalAdjust = upAdjust !== 0 ? upAdjust : downAdjust
+      newCenterY = oldCenter.y + verticalAdjust
+    } else if (viewportSize.width > 0 && viewportSize.height > 0) {
+      // just always center small maps
+      newCenterX = playerX
+      newCenterY = playerY
     }
 
     if (newCenterX !== oldCenter.x || newCenterY !== oldCenter.y) {
       setViewportCenter({ x: newCenterX, y: newCenterY })
     }
-  }, [world.player])
+  }, [playerX, playerY])
 
   const handleViewportResize = useCallback((width, height) => {
     const size = { width, height }
@@ -144,10 +143,7 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
 
     // update our recoil state based on the new world state
     updateExpedition(endTurn)
-
-    // recenter viewport based on player movement, if needed
-    updateViewport(viewportSize, viewportCenter)
-  }, [updateExpedition, updateViewport, viewportCenter, viewportSize, world])
+  }, [updateExpedition, world])
 
   const executePlayerMove = useCallback((x: number, y: number) => () => {
     if (!paused) {
@@ -160,6 +156,10 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
       }
     }
   }, [executeTurn, paused, world.map, world.player])
+
+  const handleMapClick = useCallback((x: number, y: number) => {
+    world.player.destination = { x, y }
+  }, [world.player])
 
   const interactWithItem = useCallback((item: Item, interaction: string) => {
     executeTurn(new InteractWithItemAction(
@@ -297,6 +297,7 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
           centerY={viewportCenter.y}
           containerClass="expedition-panel"
           onClick={handleActivatePanel(SelectablePanels.Map)}
+          onMapClick={handleMapClick}
           onKeyDown={mapKeyHandler}
           onViewportSizeChanged={handleViewportResize}
         />
