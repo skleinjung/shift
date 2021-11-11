@@ -69,6 +69,10 @@ export class Creature extends TypedEventEmitter<CreatureEvents> implements
   /** inventory of items held by this creature */
   public readonly inventory: Inventory
 
+  /** behavior controlling this creature */
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  protected _behavior: Behavior
+
   constructor (
     private _type: CreatureType,
     private _x: number,
@@ -78,6 +82,7 @@ export class Creature extends TypedEventEmitter<CreatureEvents> implements
 
     this._health = this._type.healthMax
     this.inventory = new Inventory()
+    this._behavior = this._type.createBehavior()
 
     const loot = this._type.lootTable?.collect() ?? []
     forEach((itemTemplate) => {
@@ -90,7 +95,7 @@ export class Creature extends TypedEventEmitter<CreatureEvents> implements
   }
 
   public get behavior (): Behavior {
-    return this._type.behavior
+    return this._behavior
   }
 
   /// ////////////////////////////////////////////
@@ -207,7 +212,7 @@ export class Creature extends TypedEventEmitter<CreatureEvents> implements
   // Actor
 
   public getAction (world: World) {
-    return this._type.behavior(this, world)
+    return this._behavior(this, world)
   }
 
   public turnEnded (_world: World) {

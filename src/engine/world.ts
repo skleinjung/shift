@@ -5,8 +5,8 @@ import { TypedEventEmitter } from 'typed-event-emitter'
 import { getResultMessage } from './actions/result-handler'
 import { AttackResult } from './combat'
 import { Creature } from './creature'
-import { CreatureTypes } from './creature-db'
 import { createDungeon } from './dungeon/create-dungeon-v1'
+import { Dungeon } from './dungeon/dungeon'
 import { WorldEvents } from './events'
 import { ExpeditionMap } from './map'
 import { Player } from './player'
@@ -19,6 +19,7 @@ const TURNS_PER_SECOND = 15
  * will be checked periodically, and once they provide an action the loop will resume.
  */
 export class World extends TypedEventEmitter<WorldEvents> {
+  public readonly dungeon: Dungeon
   public readonly map = new ExpeditionMap()
 
   // all the world's creatures
@@ -39,7 +40,7 @@ export class World extends TypedEventEmitter<WorldEvents> {
   constructor () {
     super()
 
-    this._player = new Player(CreatureTypes.player, 0, 0)
+    this._player = new Player()
     this._initializePlayer()
 
     const dungeon = createDungeon()
@@ -51,6 +52,8 @@ export class World extends TypedEventEmitter<WorldEvents> {
     forEach((treasure) => {
       this.map.getCell(treasure.x, treasure.y).addItem(treasure.item)
     }, dungeon.treasure)
+
+    this.dungeon = dungeon
 
     this.logMessage('Expedition started.')
   }
@@ -200,6 +203,8 @@ export class World extends TypedEventEmitter<WorldEvents> {
     }
 
     if (creature !== undefined && action !== undefined) {
+      // eslint-disable-next-line no-console
+      console.log('act', action)
       // TODO: examine success/failure return value
       const result = action.execute(this)
 

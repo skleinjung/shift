@@ -5,7 +5,18 @@ import { filter, forEach, some } from 'lodash/fp'
 
 import { Region, RegionTypeName } from './region'
 
-export class Dungeon {
+export interface DungeonGeography {
+  /** Gets all regions of a specifie type */
+  getRegions: (type: RegionTypeName) => Region[]
+
+  /** Helper accessor to get all 'room' regions. */
+  rooms: Region[]
+
+  /** Helper accessor to get all 'tunnel' regions. */
+  tunnels: Region[]
+}
+
+export class Dungeon implements DungeonGeography {
   /**
    * set of creatures in this dungeon
    */
@@ -18,7 +29,7 @@ export class Dungeon {
     public readonly regions: Region[]
   ) { }
 
-  /** Gets all regions of a specifie typ0e */
+  /** Gets all regions of a specifie type */
   public getRegions (type: RegionTypeName) {
     return filter((region) => region.type === type, this.regions)
   }
