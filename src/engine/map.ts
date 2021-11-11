@@ -2,14 +2,21 @@ import { filter, findIndex } from 'lodash/fp'
 import { manhattanDistance } from 'math'
 
 import { aStar } from './ai/a-star'
+import { PathCostFunction, uniformCost } from './ai/path-cost-functions'
 import { BasicContainer } from './container'
 import { Creature } from './creature'
 import { Item } from './item'
+import { getAdjacentCoordinates } from './map-utils'
 import { TerrainType, TerrainTypes } from './terrain-db'
 
 export type CellCoordinate = {
   x: number
   y: number
+}
+
+export interface PathFindingOptions {
+  /** function used to calculate the relative costs of moving between two cells. (default = all cells cost '1') */
+  costFunction?: PathCostFunction
 }
 
 export class MapCell extends BasicContainer {
@@ -121,8 +128,13 @@ export class ExpeditionMap {
    * If the start and goal are the same, then the array will contain a single item -- the shared
    * start/goal cell.
    */
-  public getPath (start: CellCoordinate, goal: CellCoordinate): CellCoordinate[] {
+  public getPath (
+    start: CellCoordinate,
+    goal: CellCoordinate,
+    { costFunction = uniformCost }: PathFindingOptions = {}
+  ): CellCoordinate[] {
     return aStar({
+      distance: costFunction,
       getNeighbors: this._getTraversableNeighbors.bind(this),
       goal,
       heuristic: manhattanDistance,
@@ -149,14 +161,8 @@ export class ExpeditionMap {
     return this._cells[y]?.[x]
   }
 
-  private _getTraversableNeighbors ({ x, y }: CellCoordinate) {
-    const possibilities = [
-      { x: x - 1, y },
-      { x: x + 1, y },
-      { x, y: y - 1 },
-      { x, y: y + 1 },
-    ]
-
+  private _getTraversableNeighbors (cell: CellCoordinate) {
+    const possibilities = getAdjacentCoordinates(cell)
     return filter(({ x, y }) => this.getTerrain(x, y).traversable, possibilities)
   }
 }

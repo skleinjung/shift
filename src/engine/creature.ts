@@ -1,7 +1,7 @@
 import { compact, find, flow, forEach, keys, map, reduce, values } from 'lodash/fp'
 import { TypedEventEmitter } from 'typed-event-emitter'
 
-import { Behavior } from './behavior'
+import { Behavior } from './ai/behavior'
 import {
   Attack,
   Attackable,

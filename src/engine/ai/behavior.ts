@@ -1,12 +1,14 @@
 import { filter, isEmpty, sample } from 'lodash/fp'
 
-import { AttackAction } from './actions/attack'
-import { DoNothing } from './actions/do-nothing'
-import { MoveByAction } from './actions/move-by'
-import { Creature } from './creature'
-import { Player } from './player'
-import { Action } from './types'
-import { World } from './world'
+import { AttackAction } from '../actions/attack'
+import { DoNothing } from '../actions/do-nothing'
+import { MoveByAction } from '../actions/move-by'
+import { Creature } from '../creature'
+import { Player } from '../player'
+import { Action } from '../types'
+import { World } from '../world'
+
+import { creatureAdjustedCost } from './path-cost-functions'
 
 /**
  * A behavior is a function that generates an action for a creature during each turn. If a
@@ -69,7 +71,11 @@ export const MoveRandomlyBehavior = (chanceToMove = 100): Behavior => (creature,
 export const PlayerBehavior = (player: Player): Behavior => (_, world) => {
   // player is auto-moving?
   if (player.destination !== undefined) {
-    const path = world.map.getPath(player, player.destination)
+    const path = world.map.getPath(
+      player,
+      player.destination,
+      { costFunction: creatureAdjustedCost({ ignore: [player], map: world.map }) }
+    )
 
     // if we have a path that consists of more than the start node, move to the next node
     if (path.length > 1) {

@@ -1,4 +1,4 @@
-import { Behavior, PlayerBehavior } from './behavior'
+import { Behavior, PlayerBehavior } from './ai/behavior'
 import { Creature } from './creature'
 import { CellCoordinate } from './map'
 import { Action } from './types'

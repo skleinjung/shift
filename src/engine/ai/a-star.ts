@@ -1,12 +1,12 @@
 import { CellCoordinate } from 'engine/map'
 import { findIndex, minBy } from 'lodash/fp'
 
-export interface PathfindingOptions {
+export interface PathfindingInput {
   goal: CellCoordinate
   start: CellCoordinate
 }
 
-export interface AStarOptions extends PathfindingOptions {
+export interface AStarOptions extends PathfindingInput {
   /** given a cell coordinate, return a list of cell coordinates that are considered neighbors */
   getNeighbors: (cell: CellCoordinate) => CellCoordinate[]
 

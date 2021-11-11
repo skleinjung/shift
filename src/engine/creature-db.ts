@@ -4,7 +4,7 @@ import {
   CompoundBehavior,
   MoveRandomlyBehavior,
   PlayerBehavior,
-} from 'engine/behavior'
+} from 'engine/ai/behavior'
 import { filter, keys, reduce } from 'lodash/fp'
 
 import { MonsterLootTables } from './data/loot-tables'
