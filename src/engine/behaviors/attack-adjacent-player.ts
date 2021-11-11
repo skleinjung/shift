@@ -1,6 +1,5 @@
 import { AttackAction } from 'engine/actions/attack'
-
-import { Behavior } from './behavior'
+import { Behavior } from 'engine/types'
 
 /** Behavior that initiates an attack against the player, if the player is adjacent */
 export const AttackAdjacentPlayerBehavior: Behavior = (creature, world) => {

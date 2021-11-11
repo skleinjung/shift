@@ -1,4 +1,4 @@
-import { Behavior } from './behavior'
+import { Behavior } from 'engine/types'
 
 /**
  * Iterate a list of behaviors, and return the first non-undefined action provided. If all behaviors

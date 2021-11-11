@@ -1,8 +1,8 @@
 import { MoveByAction } from 'engine/actions/move-by'
 import { Player } from 'engine/player'
+import { Behavior } from 'engine/types'
 
-import { Behavior } from './behavior'
-import { creatureAdjustedCost } from './path-cost-functions'
+import { creatureAdjustedCost } from '../ai/path-cost-functions'
 
 /** Special type of behavior where actions are directly controlled by the player. */
 export const PlayerBehavior = (player: Player): Behavior => (_, world) => {

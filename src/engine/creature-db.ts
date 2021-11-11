@@ -1,9 +1,9 @@
-import { BehaviorFactory } from 'engine/ai/behavior'
+import { BehaviorFactory } from 'engine/types'
 import { filter, keys, reduce } from 'lodash/fp'
 
-import { AttackAdjacentPlayerBehavior } from './ai/attack-adjacent-player-behavior'
-import { BehaviorChain } from './ai/behavior-chain'
-import { MoveRandomlyBehavior } from './ai/move-randomly-behavior'
+import { AttackAdjacentPlayerBehavior } from './behaviors/attack-adjacent-player'
+import { BehaviorChain } from './behaviors/behavior-chain'
+import { MoveRandomlyBehavior } from './behaviors/move-randomly'
 import { MonsterLootTables } from './data/loot-tables'
 import { ItemTemplate } from './item-db'
 import { Generator } from './spawnable'

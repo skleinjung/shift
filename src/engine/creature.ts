@@ -1,7 +1,6 @@
 import { compact, find, flow, forEach, keys, map, reduce, values } from 'lodash/fp'
 import { TypedEventEmitter } from 'typed-event-emitter'
 
-import { Behavior } from './ai/behavior'
 import {
   Attack,
   Attackable,
@@ -16,7 +15,7 @@ import { CreatureType } from './creature-db'
 import { CreatureEvents } from './events'
 import { EquipmentSet, EquipmentSlot, EquipmentSlots, Item } from './item'
 import { newId } from './new-id'
-import { Actor, Combatant, Damageable, EventSource, Moveable } from './types'
+import { Actor, Behavior, Combatant, Damageable, EventSource, Moveable } from './types'
 import { World } from './world'
 
 /** Set of names for all numeric attributes of a Creature. */
