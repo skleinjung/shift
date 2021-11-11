@@ -67,6 +67,22 @@ export interface Entity {
  */
 export interface Actor extends Entity {
   /**
+   * Score indicating the acquired 'energy' needed to perform an action.
+   *
+   * Performing an action decrements this value by an amount that varies depending on the action. Each
+   * turn, the actor's initiative is increased by their 'speed' attribute. As long as the initiative
+   * is positive, the actor may take an action. (This action may cause the score to go negative, in
+   * which they will ahve to wait for the initiative to recharge.)
+   */
+  initiative: number
+
+  /**
+   * Rate at which initiative is recovered. Higher values mean an acotr will get more actions in
+   * a given time, relative to actors with lower speeds. See #initiative for more details.
+   */
+  speed: number
+
+  /**
    * Given the current world state, return the actor's next action. If the actor is not ready to
    * select an action, `undefined` is return.
    *
