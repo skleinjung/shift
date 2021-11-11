@@ -118,6 +118,9 @@ dist
 # build files
 .work
 
+# jekyll output from site build (shouldn't be on this branch)
+_site
+
 # local data caches for testing/dev
 /exported-data
 catalog.csv
