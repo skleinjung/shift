@@ -1,14 +1,12 @@
 ---
 ---
 
-# Shift: Prelude
+# Thrashplay
 
-> "Perhaps all the dragons in our lives are princesses who are only waiting to see us act, just  once, with beauty and courage. Perhaps everything that frightens us is, in its deepest essence something helpless that wants our love."
->
-> Rainer Maria Rilke 
+Thrashplay is [Sean Kleinjung](https://github.com/skleinjung/), when he is making games. This site is the 'mask-off', behind-the-scenes look at projects that are incubating, in development, or just plain in trouble! Raw, playable demos of prototypes and the observations and experiences of a hobbyist indie game developer are to be found here. We reserve the right to save the marketing glitz for [another place](https://store.steampowered.com/).
 
----
+## Shift: Prelude
 
-*Shift: Prelude* is a hack-and-slash RPG that allows a player to search procedurally generated dungeons for adventure and treasure while uncovering a story of loss and redemption.
+Thrashplay is currently focused on the recently-launched "game a month" series, and the first project of that event&mdash;*Shift: Prelude*. Shift is a hack-and-slash RPG that allows a player to search procedurally generated dungeons for adventure and treasure while uncovering a story of loss and redemption. You are invited to [enter the worlds of Shift](./shift) on the dedicated project page.
 
-Shift is a Thrashplay game developed by me, [Sean Kleinjung](https://github.com/skleinjung/). It is the first project in my "game a month" series, where I will be experimenting with a new game concept every month and sharing the process of creating (hopefully) interesting games. As an extra bonus this project has been entered in the [Crunchless Challenge on itch.io](https://itch.io/jam/crunchless-challenge), and so&mdash;if all goes well&mdash;will be formally published and available for download in December!
+[![Shift week one screenshot](./assets/shift/week_1.png)](./shift)
