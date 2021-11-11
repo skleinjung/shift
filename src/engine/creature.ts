@@ -76,6 +76,9 @@ export class Creature extends TypedEventEmitter<CreatureEvents> implements
   /** sensors that can be used by behaviors */
   public readonly sensors = createSensors(this)
 
+  public initiative = 0
+  public speed: number
+
   /** behavior controlling this creature */
   // eslint-disable-next-line @typescript-eslint/naming-convention
   protected _behavior: Behavior
@@ -89,6 +92,7 @@ export class Creature extends TypedEventEmitter<CreatureEvents> implements
 
     this._health = this._type.healthMax
     this.inventory = new Inventory()
+    this.speed = this._type.speed
     this._behavior = this._type.createBehavior()
 
     const loot = this._type.lootTable?.collect() ?? []

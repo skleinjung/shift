@@ -32,21 +32,25 @@ export type CreatureType = Readonly<{
 
   /** name of this creature type */
   name: string
+
+  /** rate at which a creature acts; 100 == one move or standard attack per turn */
+  speed: number
 }>
 
-const moveRandom75Percent = maybeIdle(MoveRandomlyBehavior(), 25)
+const moveRandom100Percent = maybeIdle(MoveRandomlyBehavior(), 0)
 const moveRandom20Percent = maybeIdle(MoveRandomlyBehavior(), 80)
 const wander100Percent = maybeIdle(wanderBetweenRooms(), 0)
 
 const creatureTypeArray = [
   {
-    createBehavior: () => BehaviorChain(AttackAdjacentPlayerBehavior, moveRandom75Percent),
+    createBehavior: () => BehaviorChain(AttackAdjacentPlayerBehavior, moveRandom100Percent),
     defense: 1,
     healthMax: 5,
     id: 'goblin',
     lootTable: MonsterLootTables[1],
     melee: 1,
     name: 'Goblin',
+    speed: 100,
   },
   {
     createBehavior: () => BehaviorChain(retaliate, wander100Percent),
@@ -56,6 +60,7 @@ const creatureTypeArray = [
     lootTable: MonsterLootTables[0],
     melee: 1,
     name: 'Kobold',
+    speed: 75,
   },
   {
     createBehavior: () => BehaviorChain(AttackAdjacentPlayerBehavior, moveRandom20Percent),
@@ -65,6 +70,7 @@ const creatureTypeArray = [
     lootTable: MonsterLootTables[2],
     melee: 2,
     name: 'Orc',
+    speed: 100,
   },
   {
     // player creates its own behavior, so implement a noop here
@@ -74,6 +80,7 @@ const creatureTypeArray = [
     id: 'player',
     melee: 1,
     name: 'Player',
+    speed: 100,
   },
 ] as const
 

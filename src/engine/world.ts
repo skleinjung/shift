@@ -10,6 +10,7 @@ import { Dungeon } from './dungeon/dungeon'
 import { WorldEvents } from './events'
 import { ExpeditionMap } from './map/map'
 import { Player } from './player'
+import { random } from './random'
 
 const TURNS_PER_SECOND = 15
 
@@ -195,26 +196,38 @@ export class World extends TypedEventEmitter<WorldEvents> {
     }
 
     const creature = this._creatures[this._nextActor]
-    const action = creature?.behavior?.(creature, this)
 
-    if (action === undefined && creature.id === this.player.id) {
-      // if it's the player's turn and there is no action, return and wait for the UI to supply one
-      return false
-    }
-
-    if (creature !== undefined && action !== undefined) {
-      // TODO: examine success/failure return value
-      const result = action.execute(this)
-
-      const message = getResultMessage(result)
-      if (message !== undefined) {
-        this.logMessage(message)
+    // loop until initiative is exhausted
+    while (creature.initiative > 0 && random(0, 99) < creature.initiative) {
+      const action = creature?.behavior?.(creature, this)
+      if (action === undefined && creature.id === this.player.id) {
+        // if it's the player's turn and there is no action, return and wait for the UI to supply one
+        return false
       }
 
-      this._removeDeadCreatures()
+      if (creature !== undefined && action !== undefined) {
+        // TODO: examine success/failure return value
+        const result = action.execute(this)
+
+        const message = getResultMessage(result)
+        if (message !== undefined) {
+          this.logMessage(message)
+        }
+
+        this._removeDeadCreatures()
+      }
+
+      // deduect initiative for the action
+      // TODO: think through 'undefined' results from monsters
+      creature.initiative -= 100
     }
 
     this._nextActor = (this._nextActor + 1) % this._creatures.length
+
+    // update initaitive for this turn (we add it _after_ decrementing to
+    // more easily handle the 'waiting for input' case)
+    creature.initiative += creature.speed
+
     return true
   }
 
