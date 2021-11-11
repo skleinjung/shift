@@ -1,19 +1,16 @@
-import {
-  AttackAdjacentPlayerBehavior,
-  Behavior,
-  CompoundBehavior,
-  MoveRandomlyBehavior,
-  PlayerBehavior,
-} from 'engine/ai/behavior'
+import { BehaviorFactory } from 'engine/types'
 import { filter, keys, reduce } from 'lodash/fp'
 
+import { AttackAdjacentPlayerBehavior } from './behaviors/attack-adjacent-player'
+import { BehaviorChain } from './behaviors/behavior-chain'
+import { MoveRandomlyBehavior } from './behaviors/move-randomly'
 import { MonsterLootTables } from './data/loot-tables'
 import { ItemTemplate } from './item-db'
 import { Generator } from './spawnable'
 
 export type CreatureType = Readonly<{
-  /** behavior used to determine this creature's actions */
-  behavior: Behavior
+  /** create the behavior used to determine this creature's actions */
+  createBehavior: BehaviorFactory
 
   /** defense stat for this creature */
   defense: number
@@ -36,7 +33,7 @@ export type CreatureType = Readonly<{
 
 const creatureTypeArray = [
   {
-    behavior: CompoundBehavior(AttackAdjacentPlayerBehavior, MoveRandomlyBehavior(100)),
+    createBehavior: () => BehaviorChain(AttackAdjacentPlayerBehavior, MoveRandomlyBehavior(100)),
     defense: 1,
     healthMax: 5,
     id: 'goblin',
@@ -45,7 +42,7 @@ const creatureTypeArray = [
     name: 'Goblin',
   },
   {
-    behavior: AttackAdjacentPlayerBehavior,
+    createBehavior: () => AttackAdjacentPlayerBehavior,
     defense: 0,
     healthMax: 2,
     id: 'kobold',
@@ -54,7 +51,7 @@ const creatureTypeArray = [
     name: 'Kobold',
   },
   {
-    behavior: CompoundBehavior(AttackAdjacentPlayerBehavior, MoveRandomlyBehavior(20)),
+    createBehavior: () => BehaviorChain(AttackAdjacentPlayerBehavior, MoveRandomlyBehavior(20)),
     defense: 1,
     healthMax: 8,
     id: 'orc',
@@ -63,7 +60,8 @@ const creatureTypeArray = [
     name: 'Orc',
   },
   {
-    behavior: PlayerBehavior,
+    // player creates its own behavior, so implement a noop here
+    createBehavior: () => () => undefined,
     defense: 0,
     healthMax: 10,
     id: 'player',

@@ -1,9 +1,18 @@
-import { CreatureTypeId } from './creature-db'
+import { CreatureTypeId } from '../creature-db'
+import { TerrainTypeId } from '../terrain-db'
+
 import { MapSymbol } from './map-symbol'
-import { TerrainTypeId } from './terrain-db'
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const ColorValues = {
+  AggressiveCreature: {
+    background: 0x220000,
+    color: 0x990000,
+  },
+  PassiveCreature: {
+    background: 0x222200,
+    color: 0x999900,
+  },
   White: 0xffffff,
 } as const
 
@@ -16,18 +25,15 @@ export const CreatureSymbols: { [k in CreatureTypeId | 'default']: MapSymbol } =
     symbol: 'z',
   },
   goblin: {
-    background: 0x220000,
-    color: 0x990000,
+    ...ColorValues.AggressiveCreature,
     symbol: 'g',
   },
   kobold: {
-    background: 0x220000,
-    color: 0x990000,
+    ...ColorValues.AggressiveCreature,
     symbol: 'k',
   },
   orc: {
-    background: 0x220000,
-    color: 0x990000,
+    ...ColorValues.AggressiveCreature,
     symbol: 'o',
   },
   player: {

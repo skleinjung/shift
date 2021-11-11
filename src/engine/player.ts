@@ -1,14 +1,13 @@
-import { Behavior, PlayerBehavior } from './ai/behavior'
+import { PlayerBehavior } from './behaviors/player-behavior'
 import { Creature } from './creature'
-import { CellCoordinate } from './map'
+import { CreatureTypes } from './creature-db'
+import { CellCoordinate } from './map/map'
 import { Action } from './types'
 import { World } from './world'
 
 export const InitialLinkValue = 5000
 
 export class Player extends Creature {
-  private _behavior = PlayerBehavior(this)
-
   private _link = InitialLinkValue
 
   /** destination being auto-moved towards */
@@ -17,8 +16,9 @@ export class Player extends Creature {
   /** next action the player has selected */
   public nextAction: Action | undefined
 
-  public get behavior (): Behavior {
-    return this._behavior
+  constructor () {
+    super(CreatureTypes.player, 0, 0)
+    this._behavior = PlayerBehavior(this)
   }
 
   /**

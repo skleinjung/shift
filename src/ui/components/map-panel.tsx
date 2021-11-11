@@ -1,6 +1,6 @@
 import { ShaderSystem } from '@pixi/core'
 import { install } from '@pixi/unsafe-eval'
-import { toSymbol } from 'engine/map-symbolizer'
+import { toSymbol } from 'engine/map/map-symbolizer'
 import { isArray, noop } from 'lodash/fp'
 import * as PIXI from 'pixi.js'
 import React, { useCallback, useEffect, useRef, useState } from 'react'

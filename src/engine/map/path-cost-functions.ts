@@ -1,7 +1,8 @@
 import { Creature } from 'engine/creature'
-import { CellCoordinate, ExpeditionMap } from 'engine/map'
-import { getAdjacentCoordinates } from 'engine/map-utils'
 import { find, findIndex } from 'lodash/fp'
+
+import { CellCoordinate, ExpeditionMap } from './map'
+import { getAdjacentCoordinates } from './map-utils'
 
 export type PathCostFunction = (from: CellCoordinate, to: CellCoordinate) => number
 

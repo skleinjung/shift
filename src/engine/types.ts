@@ -1,6 +1,7 @@
 import TypedEmitter from 'typed-emitter'
 
 import { Attackable, Attacker } from './combat'
+import { Creature } from './creature'
 import { World } from './world'
 
 export type ActionResult = {
@@ -25,6 +26,17 @@ export type ActionResult = {
 export interface Action {
   execute: (world: World) => ActionResult | string | boolean | void
 }
+
+/**
+ * A behavior provides a function that generates an action for a creature during each turn. If a
+ * player actor's behavior returns undefined, the game state will halt updates until it returns a
+ * defined value. If a non-player returns undefined, it will be skipped (it's turn treated as 'do
+ * nothing').
+ **/
+export type Behavior = (creature: Creature, world: World) => Action | undefined
+
+/** function that is able to create behaviors */
+export type BehaviorFactory = () => Behavior
 
 /** Methods expoed by objects that emit events defined by type 'T' */
 export type EventSource<T> = Omit<TypedEmitter<T>,
