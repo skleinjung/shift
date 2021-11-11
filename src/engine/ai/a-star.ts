@@ -1,31 +1,35 @@
-import { CellCoordinate } from 'engine/map'
 import { findIndex, minBy } from 'lodash/fp'
 
+export interface XY {
+  x: number
+  y: number
+}
+
 export interface PathfindingInput {
-  goal: CellCoordinate
-  start: CellCoordinate
+  goal: XY
+  start: XY
 }
 
 export interface AStarOptions extends PathfindingInput {
-  /** given a cell coordinate, return a list of cell coordinates that are considered neighbors */
-  getNeighbors: (cell: CellCoordinate) => CellCoordinate[]
+  /** given an x,y coordinate, return a list of coordinates that are considered neighbors */
+  getNeighbors: (position: XY) => XY[]
 
   /**
-   * Distance function to calculate the weight of the edge between two cells. By default, this
+   * Distance function to calculate the weight of the edge between two locations. By default, this
    * will be a constant value meaning all paths are weighted equally.
    **/
-  distance?: (cell1: CellCoordinate, cell2: CellCoordinate) => number
+  distance?: (position1: XY, position2: XY) => number
 
   /** A* heuristic function, estimates the cost to reach goal from a given node */
-  heuristic: (cell: CellCoordinate, goal: CellCoordinate) => number
+  heuristic: (position: XY, goal: XY) => number
 }
 
-export type PathfindingResult = CellCoordinate[]
+export type PathfindingResult = XY[]
 
-/** converts a cell coordinate to a map key */
-const nodeKey = ({ x, y }: CellCoordinate) => `${x},${y}`
+/** converts an x,y coordinate to a map key */
+const nodeKey = ({ x, y }: XY) => `${x},${y}`
 
-class PathNode implements CellCoordinate {
+class PathNode implements XY {
   public key: string
   public previous: PathNode | undefined
 
@@ -37,7 +41,7 @@ class PathNode implements CellCoordinate {
   }
 }
 
-const buildPath = (previousNeighbors: { [k: string]: CellCoordinate }, goal: CellCoordinate) => {
+const buildPath = (previousNeighbors: { [k: string]: XY }, goal: XY) => {
   const path = []
   let current = goal
 
@@ -62,7 +66,7 @@ export const aStar = ({
 
   const fScores: { [k: string]: number } = {}
   const gScores: { [k: string]: number } = {}
-  const previousNeighbors: { [k: string]: CellCoordinate } = {}
+  const previousNeighbors: { [k: string]: XY } = {}
 
   gScores[startNode.key] = 0
   fScores[startNode.key] = heuristic(startNode, goal)
