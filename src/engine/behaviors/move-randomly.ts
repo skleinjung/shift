@@ -10,7 +10,7 @@ const isValidMove = (creature: Creature, world: World) => ([x, y]: [number, numb
   world.map.isTraversable(creature.x + x, creature.y + y)
 
 /** Behavior that causes a creature to make a random valid move each turn, if able */
-export const MoveRandomlyBehavior = (chanceToMove = 100): Behavior => (creature, world) => {
+export const MoveRandomlyBehavior = (chanceToMove = 75): Behavior => (creature, world) => {
   if (Math.random() >= (chanceToMove / 100)) {
     return undefined
   }
