@@ -1,7 +1,7 @@
 import { BehaviorFactory } from 'engine/types'
 import { filter, keys, reduce } from 'lodash/fp'
 
-import { AttackAdjacentPlayerBehavior } from './behaviors/attack-adjacent-player'
+import { attackPlayer } from './behaviors/attack'
 import { BehaviorChain } from './behaviors/behavior-chain'
 import { maybeIdle } from './behaviors/idle'
 import { MoveRandomlyBehavior } from './behaviors/move-randomly'
@@ -43,9 +43,9 @@ const wander100Percent = maybeIdle(wanderBetweenRooms(), 0)
 
 const creatureTypeArray = [
   {
-    createBehavior: () => BehaviorChain(AttackAdjacentPlayerBehavior, moveRandom100Percent),
+    createBehavior: () => BehaviorChain(retaliate, attackPlayer, moveRandom100Percent),
     defense: 1,
-    healthMax: 5,
+    healthMax: 3,
     id: 'goblin',
     lootTable: MonsterLootTables[1],
     melee: 1,
@@ -63,7 +63,7 @@ const creatureTypeArray = [
     speed: 75,
   },
   {
-    createBehavior: () => BehaviorChain(AttackAdjacentPlayerBehavior, moveRandom20Percent),
+    createBehavior: () => BehaviorChain(retaliate, attackPlayer, moveRandom20Percent),
     defense: 1,
     healthMax: 8,
     id: 'orc',
