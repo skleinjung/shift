@@ -1,6 +1,7 @@
 import { MoveToAction } from 'engine/actions/move-to'
 import { Creature } from 'engine/creature'
 import { CellCoordinate } from 'engine/map/map'
+import { creatureAdjustedCost } from 'engine/map/path-cost-functions'
 import { Behavior } from 'engine/types'
 import { World } from 'engine/world'
 
@@ -28,7 +29,17 @@ export const pathFindingBehavior = (getDestination: DestinationFunction): Behavi
   do {
     const destination = getDestination(creature, world, attempt !== 0)
     if (destination !== undefined) {
-      const path = world.map.getPath(creature, destination)
+      const path = world.map.getPath(
+        creature,
+        destination,
+        {
+          costFunction: creatureAdjustedCost({
+            adjacent: 1,
+            ignore: [creature],
+            map: world.map,
+          }),
+        }
+      )
 
       if (path.length === 1) {
         // we are at our destination
