@@ -15,8 +15,13 @@ import { CreatureType } from './creature-db'
 import { CreatureEvents } from './events'
 import { EquipmentSet, EquipmentSlot, EquipmentSlots, Item } from './item'
 import { newId } from './new-id'
+import { createSensors } from './sensors/create-sensors'
 import { Actor, Behavior, Combatant, Damageable, EventSource, Moveable } from './types'
 import { World } from './world'
+
+export type Sensor<T> = {
+  value: T
+}
 
 /** Set of names for all numeric attributes of a Creature. */
 export const CreatureAttributes = [
@@ -67,6 +72,9 @@ export class Creature extends TypedEventEmitter<CreatureEvents> implements
 
   /** inventory of items held by this creature */
   public readonly inventory: Inventory
+
+  /** sensors that can be used by behaviors */
+  public readonly sensors = createSensors(this)
 
   /** behavior controlling this creature */
   // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -223,6 +231,7 @@ export class Creature extends TypedEventEmitter<CreatureEvents> implements
 
   public generateAttack (_target: Attackable): Attack {
     return {
+      attacker: this,
       roll: getCombatRollResult(this.melee),
     }
   }
@@ -234,7 +243,9 @@ export class Creature extends TypedEventEmitter<CreatureEvents> implements
   /// ////////////////////////////////////////////
   // Combatant (Attackable)
 
-  public generateDefense (_attack: Attack): Defense {
+  public generateDefense (attack: Attack): Defense {
+    this.emit('defend', attack, this)
+
     return {
       immune: false,
       roll: getCombatRollResult(this.defense),
@@ -246,6 +257,8 @@ export class Creature extends TypedEventEmitter<CreatureEvents> implements
     this.onDamage(attack.damageRolled)
     const taken = Math.max(0, oldHealth - this.health)
     const overkill = attack.damageRolled - taken
+
+    this.emit('damaged', taken, attack.attacker, this)
 
     return overkill > 0 ? {
       taken,
