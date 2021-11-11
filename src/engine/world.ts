@@ -203,6 +203,8 @@ export class World extends TypedEventEmitter<WorldEvents> {
     }
 
     if (creature !== undefined && action !== undefined) {
+      // eslint-disable-next-line no-console
+      console.log('act', action)
       // TODO: examine success/failure return value
       const result = action.execute(this)
 
