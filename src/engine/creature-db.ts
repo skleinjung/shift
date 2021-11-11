@@ -5,6 +5,7 @@ import { AttackAdjacentPlayerBehavior } from './behaviors/attack-adjacent-player
 import { BehaviorChain } from './behaviors/behavior-chain'
 import { maybeIdle } from './behaviors/idle'
 import { MoveRandomlyBehavior } from './behaviors/move-randomly'
+import { retaliate } from './behaviors/retaliate'
 import { wanderBetweenRooms } from './behaviors/wander-between-rooms'
 import { MonsterLootTables } from './data/loot-tables'
 import { ItemTemplate } from './item-db'
@@ -35,7 +36,7 @@ export type CreatureType = Readonly<{
 
 const moveRandom75Percent = maybeIdle(MoveRandomlyBehavior(), 25)
 const moveRandom20Percent = maybeIdle(MoveRandomlyBehavior(), 80)
-const wander65Percent = maybeIdle(wanderBetweenRooms(), 35)
+const wander100Percent = maybeIdle(wanderBetweenRooms(), 0)
 
 const creatureTypeArray = [
   {
@@ -48,7 +49,7 @@ const creatureTypeArray = [
     name: 'Goblin',
   },
   {
-    createBehavior: () => wander65Percent,
+    createBehavior: () => BehaviorChain(retaliate, wander100Percent),
     defense: 0,
     healthMax: 2,
     id: 'kobold',
