@@ -67,6 +67,9 @@ export interface Attacker extends Entity {
  * Details of an attack that is being performed.
  */
 export interface Attack {
+  /** the entity that generated this attack */
+  attacker: Attacker
+
   /** result of the combat dice rolled for the attack */
   roll: AttackRollResult
 }

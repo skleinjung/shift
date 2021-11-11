@@ -1,5 +1,6 @@
-import { AttackResult } from './combat'
+import { Attack, AttackResult } from './combat'
 import { Creature } from './creature'
+import { Entity } from './types'
 
 export interface WorldEvents {
   /**
@@ -23,13 +24,13 @@ export interface CreatureEvents {
   attack: (result: AttackResult, creature: Creature) => void
 
   /** Emitted when a creature is dealt damage. */
-  damaged: (amount: number, creature: Creature) => void
+  damaged: (amount: number, source: Entity, creature: Creature) => void
 
   /** Emitted when a creature is killed */
   death: (creature: Creature) => void
 
-  /** Emitted whenever the creature defends against an attack. */
-  defend: (result: AttackResult, creature: Creature) => void
+  /** Emitted whenever the creature generates a defense against an attack. */
+  defend: (result: Attack, creature: Creature) => void
 
   /** Emitted when a positionable's map location changes. */
   move: (x: number, y: number, creature: Creature) => void

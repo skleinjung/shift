@@ -3,7 +3,10 @@ import { filter, keys, reduce } from 'lodash/fp'
 
 import { AttackAdjacentPlayerBehavior } from './behaviors/attack-adjacent-player'
 import { BehaviorChain } from './behaviors/behavior-chain'
+import { maybeIdle } from './behaviors/idle'
 import { MoveRandomlyBehavior } from './behaviors/move-randomly'
+import { retaliate } from './behaviors/retaliate'
+import { wanderBetweenRooms } from './behaviors/wander-between-rooms'
 import { MonsterLootTables } from './data/loot-tables'
 import { ItemTemplate } from './item-db'
 import { Generator } from './spawnable'
@@ -31,9 +34,13 @@ export type CreatureType = Readonly<{
   name: string
 }>
 
+const moveRandom75Percent = maybeIdle(MoveRandomlyBehavior(), 25)
+const moveRandom20Percent = maybeIdle(MoveRandomlyBehavior(), 80)
+const wander100Percent = maybeIdle(wanderBetweenRooms(), 0)
+
 const creatureTypeArray = [
   {
-    createBehavior: () => BehaviorChain(AttackAdjacentPlayerBehavior, MoveRandomlyBehavior(100)),
+    createBehavior: () => BehaviorChain(AttackAdjacentPlayerBehavior, moveRandom75Percent),
     defense: 1,
     healthMax: 5,
     id: 'goblin',
@@ -42,7 +49,7 @@ const creatureTypeArray = [
     name: 'Goblin',
   },
   {
-    createBehavior: () => AttackAdjacentPlayerBehavior,
+    createBehavior: () => BehaviorChain(retaliate, wander100Percent),
     defense: 0,
     healthMax: 2,
     id: 'kobold',
@@ -51,7 +58,7 @@ const creatureTypeArray = [
     name: 'Kobold',
   },
   {
-    createBehavior: () => BehaviorChain(AttackAdjacentPlayerBehavior, MoveRandomlyBehavior(20)),
+    createBehavior: () => BehaviorChain(AttackAdjacentPlayerBehavior, moveRandom20Percent),
     defense: 1,
     healthMax: 8,
     id: 'orc',
