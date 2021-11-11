@@ -29,7 +29,7 @@ export const CreatureSymbols: { [k in CreatureTypeId | 'default']: MapSymbol } =
     symbol: 'g',
   },
   kobold: {
-    ...ColorValues.AggressiveCreature,
+    ...ColorValues.PassiveCreature,
     symbol: 'k',
   },
   orc: {

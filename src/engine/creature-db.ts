@@ -4,6 +4,7 @@ import { filter, keys, reduce } from 'lodash/fp'
 import { AttackAdjacentPlayerBehavior } from './behaviors/attack-adjacent-player'
 import { BehaviorChain } from './behaviors/behavior-chain'
 import { MoveRandomlyBehavior } from './behaviors/move-randomly'
+import { wanderBetweenRooms } from './behaviors/wander-between-rooms'
 import { MonsterLootTables } from './data/loot-tables'
 import { ItemTemplate } from './item-db'
 import { Generator } from './spawnable'
@@ -42,7 +43,7 @@ const creatureTypeArray = [
     name: 'Goblin',
   },
   {
-    createBehavior: () => AttackAdjacentPlayerBehavior,
+    createBehavior: wanderBetweenRooms,
     defense: 0,
     healthMax: 2,
     id: 'kobold',
