@@ -1,4 +1,4 @@
-import { ExpeditionMap } from 'engine/map'
+import { ExpeditionMap } from 'engine/map/map'
 import { TerrainTypes } from 'engine/terrain-db'
 
 export interface CreatureSpawn {

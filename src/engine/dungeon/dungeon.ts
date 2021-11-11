@@ -1,6 +1,6 @@
 import { Creature } from 'engine/creature'
 import { Item } from 'engine/item'
-import { ExpeditionMap } from 'engine/map'
+import { ExpeditionMap } from 'engine/map/map'
 import { filter, forEach, some } from 'lodash/fp'
 
 import { Region, RegionTypeName } from './region'

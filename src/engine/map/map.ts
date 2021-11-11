@@ -1,13 +1,13 @@
+import { BasicContainer } from 'engine/container'
+import { Creature } from 'engine/creature'
+import { Item } from 'engine/item'
+import { TerrainType, TerrainTypes } from 'engine/terrain-db'
 import { filter, findIndex } from 'lodash/fp'
 import { manhattanDistance } from 'math'
 
-import { aStar } from './ai/a-star'
-import { PathCostFunction, uniformCost } from './ai/path-cost-functions'
-import { BasicContainer } from './container'
-import { Creature } from './creature'
-import { Item } from './item'
+import { aStar } from './a-star'
 import { getAdjacentCoordinates } from './map-utils'
-import { TerrainType, TerrainTypes } from './terrain-db'
+import { PathCostFunction, uniformCost } from './path-cost-functions'
 
 export type CellCoordinate = {
   x: number

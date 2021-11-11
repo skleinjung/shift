@@ -3,10 +3,9 @@ import { keys } from 'lodash/fp'
 import { Creature } from './creature'
 import { CreatureTypes } from './creature-db'
 import { createWeapon, Item } from './item'
-import { ExpeditionMap } from './map'
 
 describe('container', () => {
-  const createCreature = () => new Creature(CreatureTypes['player'], 0, 0, new ExpeditionMap())
+  const createCreature = () => new Creature(CreatureTypes['player'], 0, 0)
 
   describe('equipment', () => {
     test('unequippable item', () => {

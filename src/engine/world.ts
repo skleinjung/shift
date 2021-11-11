@@ -8,7 +8,7 @@ import { Creature } from './creature'
 import { createDungeon } from './dungeon/create-dungeon-v1'
 import { Dungeon } from './dungeon/dungeon'
 import { WorldEvents } from './events'
-import { ExpeditionMap } from './map'
+import { ExpeditionMap } from './map/map'
 import { Player } from './player'
 
 const TURNS_PER_SECOND = 15

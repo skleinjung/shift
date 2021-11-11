@@ -1,7 +1,7 @@
 import { PlayerBehavior } from './behaviors/player-behavior'
 import { Creature } from './creature'
 import { CreatureTypes } from './creature-db'
-import { CellCoordinate } from './map'
+import { CellCoordinate } from './map/map'
 import { Action } from './types'
 import { World } from './world'
 
