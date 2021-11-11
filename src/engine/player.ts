@@ -1,10 +1,25 @@
+import { Behavior, PlayerBehavior } from './ai/behavior'
 import { Creature } from './creature'
+import { CellCoordinate } from './map'
+import { Action } from './types'
 import { World } from './world'
 
 export const InitialLinkValue = 5000
 
 export class Player extends Creature {
+  private _behavior = PlayerBehavior(this)
+
   private _link = InitialLinkValue
+
+  /** destination being auto-moved towards */
+  public destination: CellCoordinate | undefined
+
+  /** next action the player has selected */
+  public nextAction: Action | undefined
+
+  public get behavior (): Behavior {
+    return this._behavior
+  }
 
   /**
    * Returns the current strength of the player's link
@@ -19,3 +34,23 @@ export class Player extends Creature {
     this._link--
   }
 }
+
+// fake inventory for testing
+// this._player.inventory.addItem(new Item({ name: 'a coconut' }))
+// this._player.inventory.addItem(new Item({ name: 'hopes and dreams' }))
+
+// const spear = createWeapon('+100 spear', 100)
+// this._player.inventory.addItem(spear)
+
+//     const armor = createArmor('amazing, glowing armor', 100, `Lorem ipsum dolor sit amet,
+// consectetur adipiscing elit. Aenean pharetra est id velit laoreet, eu semper lectus ullamcorper.
+// Nunc pellentesque nunc ex, eu venenatis orci mattis non. Maecenas in justo mollis, luctus urna
+// porttitor, imperdiet lectus. Quisque sit amet quam venenatis, iaculis sapien in, rutrum dui.`)
+// this._player.inventory.addItem(armor)
+
+// this.map.addItem(-2, 0, createWeapon('+1 spear', 1))
+// this.map.addItem(2, 0, createWeapon('+2 spear', 2))
+// this.map.addItem(2, 0, createWeapon('+3 spear', 3))
+
+// const leather = ItemTemplates.leather_armor.create()
+// this.map.addItem(0, 2, leather)

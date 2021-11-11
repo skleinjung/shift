@@ -68,8 +68,6 @@ export const ContainerContentsPanel = ({
   const handleItemConsidered = useCallback((itemId: string) => {
     const item = find((item) => `${item.id}` === itemId, container.items)
     setConsideredItem(item)
-    // eslint-disable-next-line no-console
-    console.log('considering', item)
     if (item !== undefined) {
       onItemConsidered(item)
     }

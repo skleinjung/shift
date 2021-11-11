@@ -3,7 +3,7 @@ import { install } from '@pixi/unsafe-eval'
 import { toSymbol } from 'engine/map-symbolizer'
 import { isArray, noop } from 'lodash/fp'
 import * as PIXI from 'pixi.js'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { useWorld } from 'ui/hooks/use-world'
 
 import { FontNames } from '../fonts'
@@ -36,6 +36,9 @@ export interface MapPanelProps extends Omit<PanelProps, 'columns' | 'rows'> {
 
   /** x-coordinate of the viewport center; (default: 0) */
   centerX?: number
+
+  /** optional callback that is notified whenever the user clicks on the map */
+  onMapClick?: (mapX: number, mapY: number) => void
 
   /** callback notified whenever the size of the viewport changes, with new dimensions in map cell coordinates */
   onViewportSizeChanged?: (width: number, height: number) => void
@@ -79,6 +82,7 @@ const initializeRenderCells = (app: PIXI.Application, cells: RenderCell[][], gri
 export const MapPanel = ({
   centerX = 0,
   centerY = 0,
+  onMapClick = noop,
   onViewportSizeChanged = noop,
   ...panelProps
 }: MapPanelProps) => {
@@ -88,6 +92,14 @@ export const MapPanel = ({
 
   const resizeObserverRef = useRef<ResizeObserver | null>()
   const [viewportSize, setViewportSize] = useState<ViewportSize | undefined>()
+  const offsetXRef = useRef(0)
+  const offsetYRef = useRef(0)
+
+  if (viewportSize !== undefined) {
+    // -1 in both of these calculations is to account for the row/column we are centering
+    offsetXRef.current = Math.floor(centerX - ((viewportSize.width - 1) / 2))
+    offsetYRef.current = Math.floor(centerY - ((viewportSize.height - 1) / 2))
+  }
 
   const appRef = useRef<PIXI.Application | null>(null)
 
@@ -103,17 +115,13 @@ export const MapPanel = ({
   // update cell contents on every render
   useEffect(() => {
     if (appRef.current !== null && viewportSize !== undefined) {
-      // -1 in both of these calculations is to account for the row/column we are centering
-      const offsetX = Math.floor(centerX - ((viewportSize.width - 1) / 2))
-      const offsetY = Math.floor(centerY - ((viewportSize.height - 1) / 2))
-
       const cells = mapCellsRef.current
 
       if (cells[0] !== undefined) {
         for (let y = 0; y < cells.length; y++) {
           for (let x = 0; x < cells[y].length; x++) {
-            const mapX = x + offsetX
-            const mapY = y + offsetY
+            const mapX = x + offsetXRef.current
+            const mapY = y + offsetYRef.current
 
             const mapSymbol = toSymbol(world.map.getCell(mapX, mapY))
             cells[y][x].background.tint = mapSymbol.background ?? 0
@@ -190,10 +198,17 @@ export const MapPanel = ({
     }
   }, [initializePixiApp, initializeResizeListener])
 
+  const handleClick = useCallback((event: React.MouseEvent) => {
+    const mapX = Math.floor((event.clientX / CellWidth) + offsetXRef.current) - 1
+    const mapY = Math.floor((event.clientY / CellHeight) + offsetYRef.current) - 1
+    onMapClick(mapX, mapY)
+  }, [onMapClick])
+
   return (<>
     <Panel {...panelProps}>
       <div
         className="map-canvas"
+        onClick={handleClick}
         style={{ flex: 1, height: '100%' }}
         ref={pixiRefCallback}
       />

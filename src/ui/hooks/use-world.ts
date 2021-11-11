@@ -16,9 +16,9 @@ export const useWorld = () => {
       rerender()
     }
 
-    world.on('turn', handleTurnEvent)
+    world.on('update', handleTurnEvent)
     return () => {
-      world.off('turn', handleTurnEvent)
+      world.off('update', handleTurnEvent)
     }
   }, [rerender, world])
 
