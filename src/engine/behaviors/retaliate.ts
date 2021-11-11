@@ -1,6 +1,6 @@
-import { AttackAction } from 'engine/actions/attack'
 import { Behavior } from 'engine/types'
 
+import { attack } from './attack'
 import { BehaviorChain } from './behavior-chain'
 import { chase } from './chase'
 
@@ -11,11 +11,11 @@ export const chaseAggressor: Behavior = (creature, world) => {
     : chase(target)(creature, world)
 }
 
-export const attackAggressor: Behavior = (creature) => {
+export const attackAggressor: Behavior = (creature, world) => {
   const target = creature.sensors.lastAggressor.value
   return target === undefined
     ? undefined
-    : new AttackAction(creature, target)
+    : attack(target)(creature, world)
 }
 
-export const retaliate = BehaviorChain(chaseAggressor, attackAggressor)
+export const retaliate = BehaviorChain(attackAggressor, chaseAggressor)
