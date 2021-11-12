@@ -27,6 +27,9 @@ export type PanelProps = InheritedProps & PropsWithChildren<{
 
   /** fixed height of the panel (in text rows), or undefined if it should expand vertically */
   rows?: number | undefined
+
+  /** Optional title to display in a fixed position above the panel content list. */
+  title?: string
 }>
 
 export const Panel = ({
@@ -36,6 +39,7 @@ export const Panel = ({
   columns,
   containerClass,
   rows,
+  title,
   ...divProps
 }: PanelProps) => {
   const containerClasses = ['container']
@@ -73,6 +77,7 @@ export const Panel = ({
             minWidth: width,
             width,
           }}>
+          {title && <h2 className="panel-title">{title}</h2>}
           {children}
         </div>
       </FocusableDiv>

@@ -2,7 +2,7 @@ import { Container } from 'engine/container'
 import { Item } from 'engine/item'
 import { noop, stubTrue } from 'lodash'
 import { filter, find, flow, head, map } from 'lodash/fp'
-import { ReactNode, useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 import { ListItem, ListPanel, ListPanelProps } from './list-panel'
 
@@ -10,9 +10,6 @@ export interface ContainerContentsPanelProps extends Omit<ListPanelProps,
 'items'
 | 'onItemConsidered'
 | 'onItemSelected'> {
-  /** if there are no items, the child content will be displayed in place of the list items */
-  children?: ReactNode
-
   /** the container to render the contents of */
   container: Container
 
@@ -31,7 +28,7 @@ export interface ContainerContentsPanelProps extends Omit<ListPanelProps,
   /** if true, the description of the considered item will be shown below the list */
   showItemDescription?: boolean
 
-  /** Method used to create the 'left' and 'right' content for an item. (default: item name) */
+  /** Method used to create the 'left' anfd 'right' content for an item. (default: item name) */
   toListItem?: (item: Item) => Omit<ListItem, 'id'>
 }
 
@@ -40,7 +37,6 @@ const defaultToListItem = (item: Item) => ({
 })
 
 export const ContainerContentsPanel = ({
-  children = <p>There are no items to display.</p>,
   container,
   itemFilter = stubTrue,
   onEmpty = noop,
@@ -81,22 +77,17 @@ export const ContainerContentsPanel = ({
   }, [container.items, onItemSelected])
 
   const getFooter = () => {
-    if (items.length === 0) {
-      return children
-    } else if (showItemDescription && consideredItem !== undefined) {
-      return <p className="container-contents-panel-item-description">{consideredItem.description}</p>
-    }
-
-    return null
+    return (showItemDescription && consideredItem !== undefined)
+      ? <p className="container-contents-panel-item-description">{consideredItem.description}</p>
+      : null
   }
 
   return (
     <ListPanel {...listPanelProps}
+      footer={getFooter()}
       items={items}
       onItemConsidered={handleItemConsidered}
       onItemSelected={handleItemSelected}
-    >
-      {getFooter()}
-    </ListPanel>
+    />
   )
 }

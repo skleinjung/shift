@@ -1,6 +1,6 @@
 import { map as mapS } from 'lodash'
 import { compact, flow, isString, join, noop } from 'lodash/fp'
-import { useCallback, useState } from 'react'
+import { ReactNode, useCallback, useState } from 'react'
 import { useKeyHandler } from 'ui/hooks/use-key-handler'
 import { getKeyMap } from 'ui/key-map'
 
@@ -28,9 +28,15 @@ const getLeftContent = (item: string | ListItem) => isString(item) ? item : item
 // extracts the (possibly undefined) right-side content from a list item
 const getRightContent = (item: string | ListItem) => isString(item) ? undefined : item.rightContent
 
-export interface ListPanelProps extends PanelProps {
+export interface ListPanelProps extends Omit<PanelProps, 'children'> {
   /** whether this list allows selection or not */
   allowSelection?: boolean
+
+  /** optional content to display when the list is empty */
+  empty?: ReactNode
+
+  /** optional content to display below the list */
+  footer?: ReactNode
 
   /**
    * Items to display in the list. Any items that are simply a string will use that value as both
@@ -43,19 +49,16 @@ export interface ListPanelProps extends PanelProps {
 
   /** called when a user confirms a selection, with 'enter' or clciking */
   onItemSelected?: (itemId: string) => void
-
-  /** Optional title to display in a fixed position above the scrolling list. */
-  title?: string
 }
 
 export const ListPanel = ({
   active = false,
   allowSelection,
-  children,
+  empty = <p>There are no items to display.</p>,
+  footer = null,
   items,
   onItemConsidered = noop,
   onItemSelected = noop,
-  title,
   ...rest
 }: ListPanelProps) => {
   const [selectedIndex, setSelectedIndex] = useState(0)
@@ -126,18 +129,27 @@ export const ListPanel = ({
     )
   }
 
+  const getListItems = () => (
+    <ul className="list-panel">
+      {mapS(items, createRow)}
+    </ul>
+  )
+
+  const getEmptyContent = () => empty && (
+    <div className="list-panel-empty">
+      {empty}
+    </div>
+  )
+
   return (
     <Panel {...rest}
       active={active}
       onKeyDown={handleKeyDown}
     >
-      {title && <h2 className="list-panel-title">{title}</h2>}
-      <ul className="list-panel">
-        {mapS(items, createRow)}
-      </ul>
-      {children &&
-      <div className="list-panel-summary">
-        {children}
+      {items.length > 0 ? getListItems() : getEmptyContent()}
+      {footer &&
+      <div className="list-panel-footer">
+        {footer}
       </div>}
     </Panel>
   )
