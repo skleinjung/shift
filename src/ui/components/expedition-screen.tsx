@@ -6,6 +6,7 @@ import { Action } from 'engine/types'
 import { useCallback, useEffect, useState } from 'react'
 import { useSetRecoilState } from 'recoil'
 import { useKeyHandler } from 'ui/hooks/use-key-handler'
+import { useVignette } from 'ui/hooks/use-vignette'
 import { useWorld } from 'ui/hooks/use-world'
 import { getKeyMap } from 'ui/key-map'
 import { endTurn, expeditionState } from 'ui/state/expedition'
@@ -18,6 +19,7 @@ import { MapPanel } from './map-panel'
 import { ObjectivePanel } from './objective-panel'
 import { Panel } from './panel'
 import { PlayerStatusPanel } from './player-status-panel'
+import { VignetteController } from './vignette-controller'
 
 const SidebarColumns = 35
 
@@ -30,6 +32,7 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
   const [inMenus, setInMenus] = useState(false)
 
   const world = useWorld()
+  const vignette = useVignette()
   const updateExpedition = useSetRecoilState(expeditionState)
 
   const isPaused = inMenus || world.paused
@@ -131,14 +134,16 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
         </Panel>
       </div>
 
-      <>
-        <ExpeditionMenuController
+      {/* menus are disabled during vignettes, so only include of */}
+      {vignette !== undefined
+        ? <VignetteController />
+        : <ExpeditionMenuController
           onHideMenu={handleHideMenu}
           onPlayerAction={executeTurn}
           onQuitExpedition={handleQuitExpedition}
           onShowMenu={handleShowMenu}
         />
-      </>
+      }
     </div>
   )
 }
