@@ -13,6 +13,9 @@ export interface NarrationUnit {
 }
 
 export interface WorldEvents {
+  /** Emitted when any creature is killed */
+  creatureDeath: (creature: Creature) => void
+
   /**
    * Emitted whenever a log message with meaningful content for the player has been generated.
    **/

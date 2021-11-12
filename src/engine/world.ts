@@ -181,6 +181,8 @@ export class World extends TypedEventEmitter<WorldEvents> {
         forEach((item) => {
           this.map.getCell(creature.x, creature.y).addItem(item)
         }, creature.inventory.items)
+
+        this.emit('creatureDeath', creature)
       }, deadCreatures)
     }
   }
