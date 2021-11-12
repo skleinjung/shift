@@ -10,7 +10,7 @@ import { ItemInventoryAction } from 'engine/item-inventory-action'
 import { Action } from 'engine/types'
 import { forEach, toLower } from 'lodash/fp'
 import { useCallback, useEffect, useState } from 'react'
-import { useResetRecoilState, useSetRecoilState } from 'recoil'
+import { useSetRecoilState } from 'recoil'
 import { useGlobalKeyHandler } from 'ui/hooks/use-global-key-handler'
 import { useKeyHandler } from 'ui/hooks/use-key-handler'
 import { useWorld } from 'ui/hooks/use-world'
@@ -60,27 +60,14 @@ export interface ExpeditionScreenProps {
 export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
   const world = useWorld()
 
-  const [ready, setReady] = useState(false)
   const [modal, setModal] = useState<ModalState>({ mode: ModalMode.None })
   const [activePanel, setActivePanel] = useState<SelectablePanels>(SelectablePanels.Map)
-
-  const resetExpedition = useResetRecoilState(expeditionState)
 
   const updateExpedition = useSetRecoilState(expeditionState)
 
   const isComplete = world.expeditionEnded
-  const [, setViewportSize] = useState({ width: 0, height: 0 })
-  const [viewportCenter, setViewportCenter] = useState({ x: 0, y: 0 })
 
   const paused = modal.mode !== ModalMode.None
-
-  const playerX = world.player.x
-  const playerY = world.player.y
-
-  useEffect(() => {
-    resetExpedition()
-    setReady(true)
-  }, [resetExpedition])
 
   // listen for narration events, so we can display them
   useEffect(() => {
@@ -114,52 +101,6 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
       setModal({ mode: ModalMode.Pause })
     }
   }, [closeModal, modal.mode])
-
-  const updateViewport = useCallback((
-    viewportSize: { width: number; height: number },
-    viewportCenter: { x: number; y: number }
-  ) => {
-    const oldCenter = viewportCenter
-    let newCenterX = oldCenter.x
-    let newCenterY = oldCenter.y
-
-    const SMALL_MAP_THRESHOLD = 15
-    const SCROLL_THRESHOLD_PERCENT = 0.40
-
-    if (viewportSize.width > SMALL_MAP_THRESHOLD && viewportSize.height > SMALL_MAP_THRESHOLD) {
-      const left = Math.floor(oldCenter.x - (viewportSize.width / 2))
-      const right = Math.floor(oldCenter.x + (viewportSize.width / 2) - 1)
-      const top = Math.floor(oldCenter.y - (viewportSize.height / 2))
-      const bottom = Math.floor(oldCenter.y + (viewportSize.height / 2) - 1)
-
-      const minPeekColumns = Math.max(5, Math.floor(SCROLL_THRESHOLD_PERCENT * viewportSize.width))
-      const minPeekRows = Math.max(5, Math.floor(SCROLL_THRESHOLD_PERCENT * viewportSize.height))
-
-      const leftAdjust = Math.min(0, playerX - (left + minPeekColumns))
-      const rightAdjust = Math.max(0, playerX - (right - minPeekColumns))
-      const horizontalAdjust = leftAdjust !== 0 ? leftAdjust : rightAdjust
-      newCenterX = oldCenter.x + horizontalAdjust
-
-      const upAdjust = Math.min(0, playerY - (top + minPeekRows - 1))
-      const downAdjust = Math.max(0, playerY - (bottom - minPeekRows + 1))
-      const verticalAdjust = upAdjust !== 0 ? upAdjust : downAdjust
-      newCenterY = oldCenter.y + verticalAdjust
-    } else if (viewportSize.width > 0 && viewportSize.height > 0) {
-      // just always center small maps
-      newCenterX = playerX
-      newCenterY = playerY
-    }
-
-    if (newCenterX !== oldCenter.x || newCenterY !== oldCenter.y) {
-      setViewportCenter({ x: newCenterX, y: newCenterY })
-    }
-  }, [playerX, playerY])
-
-  const handleViewportResize = useCallback((width, height) => {
-    const size = { width, height }
-    setViewportSize(size)
-    updateViewport(size, viewportCenter)
-  }, [updateViewport, viewportCenter])
 
   const executeTurn = useCallback((playerAction: Action) => {
     world.player.nextAction = playerAction
@@ -321,18 +262,15 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
     )
   }
 
-  return (ready) ? (
+  return (
     <div className="dungeon-screen">
       <div className="main-content">
         <MapPanel
           active={activePanel === SelectablePanels.Map && !paused}
-          centerX={viewportCenter.x}
-          centerY={viewportCenter.y}
           containerClass="expedition-panel"
           onClick={handleActivatePanel(SelectablePanels.Map)}
           onMapClick={handleMapClick}
           onKeyDown={mapKeyHandler}
-          onViewportSizeChanged={handleViewportResize}
         />
 
         <LogPanel
@@ -367,5 +305,5 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
 
       {renderModal()}
     </div>
-  ) : null
+  )
 }

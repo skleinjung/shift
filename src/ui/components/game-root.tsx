@@ -1,6 +1,8 @@
 import { World } from 'engine/world'
 import { useEffect, useState } from 'react'
+import { useResetRecoilState } from 'recoil'
 import { GameContext } from 'ui/game-context'
+import { expeditionState } from 'ui/state/expedition'
 
 import { ScreenName } from './app'
 import { ExpeditionEndedScreen } from './expedition-ended-screen'
@@ -16,8 +18,11 @@ export interface GameProps {
 
 export const GameRoot = ({ navigateTo, screen }: GameProps) => {
   const [world, setWorld] = useState<World | undefined>()
+  const resetExpedition = useResetRecoilState(expeditionState)
 
   useEffect(() => {
+    resetExpedition()
+
     const world = new World()
     world.start()
     setWorld(world)
@@ -25,7 +30,7 @@ export const GameRoot = ({ navigateTo, screen }: GameProps) => {
     return () => {
       world.stop()
     }
-  }, [])
+  }, [resetExpedition])
 
   const getActiveScreen = () => {
     switch (screen) {
