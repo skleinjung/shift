@@ -3,12 +3,20 @@ import { EngineEvents } from 'engine/events'
 import { GameTimer } from 'engine/game-timer'
 import { ObjectiveTracker } from 'engine/objective-tracker'
 import { Updateable } from 'engine/types'
-import { Speech, Vignette } from 'engine/vignette'
 import { World } from 'engine/world'
 import { forEach } from 'lodash/fp'
 import { TypedEventEmitter } from 'typed-event-emitter'
 
 import { Objective } from './objective'
+
+/** A single piece of content that should be displayed during a dialog 'cutscene'. */
+export interface Speech {
+  /** the source (i.e. speaker, etc.) of the narration or dialog */
+  speaker: string
+
+  /** the actual message (description, dialog, etc.) */
+  message: string
+}
 
 export interface ScriptContext {
   /** gets the world associated with the current expedition */
@@ -30,17 +38,13 @@ export interface Script {
   onObjectiveProgress: (progress: number, objective: Objective, context: ScriptContext) => void
 }
 
-/** The engine is responsible for triggering vignettes, scripted events, updating quests, etc. */
+/** The engine is responsible for triggering speech, scripted events, updating quests, etc. */
 export class Engine extends TypedEventEmitter<EngineEvents> implements ScriptContext, Updateable {
   // game timer
   private _timer = new GameTimer()
 
   // the currently attached world
   private _world: World
-
-  // currently active vignette, if any
-  private _vignette: Vignette | undefined
-  private _handleVignetteComplete = this._onVignetteComplete.bind(this)
 
   /** objective tracker listens to world events, and updates campaign objectives */
   private _objectiveTracker = new ObjectiveTracker()
@@ -67,10 +71,6 @@ export class Engine extends TypedEventEmitter<EngineEvents> implements ScriptCon
 
   public get world () {
     return this._world
-  }
-
-  public get vignette () {
-    return this._vignette
   }
 
   public start () {
@@ -101,25 +101,6 @@ export class Engine extends TypedEventEmitter<EngineEvents> implements ScriptCon
 
   public showSpeech (speech: Speech[]) {
     this.emit('speech', speech)
-  }
-
-  public playVignette (vignette: Vignette) {
-    if (this._vignette !== undefined) {
-      this.emit('vignetteComplete', this._vignette)
-      this._onVignetteComplete(this._vignette)
-    }
-
-    this._vignette = vignette
-
-    this.emit('vignette', this._vignette)
-    this._world.paused = true
-    this._vignette.on('complete', this._handleVignetteComplete)
-  }
-
-  private _onVignetteComplete (vignette: Vignette) {
-    this._vignette = undefined
-    this.emit('vignetteComplete', vignette)
-    this._world.paused = false
   }
 
   /** detaches the current world in preparation for a new one */

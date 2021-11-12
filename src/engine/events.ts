@@ -1,8 +1,8 @@
 import { Attack, AttackResult } from './combat'
 import { Creature } from './creature'
+import { Speech } from './engine'
 import { Objective } from './objective'
 import { Entity } from './types'
-import { Speech, Vignette } from './vignette'
 
 export interface WorldEvents {
   /** Emitted when any creature is killed */
@@ -49,23 +49,9 @@ export interface ObjectiveEvents {
   progress: (newValue: number, objective: Objective) => void
 }
 
-export interface VignetteEvents {
-  /** emitted when the vignette advances (i.e. to new dialog, new pan action, etc.) */
-  advance: (vignette: Vignette) => void
-
-  /** Emitted when the vignette is completed and control should return to the player */
-  complete: (vignette: Vignette) => void
-}
-
 export interface EngineEvents {
   /** emitted when a script displays speech (i.e. dialog) to the user */
   speech: (speech: Speech[]) => void
-
-  /** emitted when a vignette begins */
-  vignette: (vignette: Vignette) => void
-
-  /** emitted when a vignette ends */
-  vignetteComplete: (vignette: Vignette) => void
 }
 
 export interface ObjectiveTrackerEvents {

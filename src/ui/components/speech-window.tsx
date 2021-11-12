@@ -1,4 +1,4 @@
-import { Speech } from 'engine/vignette'
+import { Speech } from 'engine/engine'
 import { noop } from 'lodash'
 import { useCallback, useEffect, useState } from 'react'
 import { useEngine } from 'ui/hooks/use-engine'
