@@ -16,6 +16,7 @@ body {
     letter-spacing: 0.75px;
   }
 }
+
 .animated-option:after { 
   content: ' <'; 
 }
@@ -29,4 +30,17 @@ body {
   animation-name: breathing;
   animation-iteration-count: infinite;
   color: red;
+}
+
+@keyframes fadeIn {
+  0% {
+      opacity: 0.0;       
+  }
+  100% {
+      opacity: 1; 
+  }       
+}
+.fade-in {
+  animation-name: fadeIn;
+  animation-duration: 1s;
 }

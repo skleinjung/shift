@@ -268,6 +268,7 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
         return (
           <NarrationPanel
             active={true}
+            classes="fade-in"
             content={modal.argument ?? []}
             onComplete={() => {
               closeModal()

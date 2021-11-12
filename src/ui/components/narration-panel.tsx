@@ -4,10 +4,11 @@ import { NarrationUnit } from 'engine/events'
 import { useCallback, useState } from 'react'
 import { useKeyHandler } from 'ui/hooks/use-key-handler'
 import { getKeyMap } from 'ui/key-map'
+import { toClassName, WithExtraClasses } from 'ui/to-class-name'
 
 import { Panel, PanelProps } from './panel'
 
-export interface NarrationPanelProps extends PanelProps {
+export type NarrationPanelProps = WithExtraClasses & Omit<PanelProps, 'className'> & {
   /** narration content to display */
   content: NarrationUnit[]
 
@@ -16,6 +17,7 @@ export interface NarrationPanelProps extends PanelProps {
 }
 
 export const NarrationPanel = ({
+  classes = [],
   content,
   onComplete,
   ...panelProps
@@ -40,7 +42,7 @@ export const NarrationPanel = ({
   return contentIndex >= content.length ? null : (
     <Panel
       {...panelProps}
-      className="narration-panel"
+      className={toClassName(classes, 'narration-panel')}
       onKeyDown={handleKeyDown}
       title={content[contentIndex].speaker}
     >
