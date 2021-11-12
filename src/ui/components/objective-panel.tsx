@@ -1,7 +1,8 @@
+import { Objective } from 'engine/objective'
 import { find, head, map } from 'lodash/fp'
 import { useCallback, useState } from 'react'
 import { useRecoilValue } from 'recoil'
-import { expeditionState, Objective } from 'ui/state/expedition'
+import { expeditionState } from 'ui/state/expedition'
 
 import { ListItem, ListPanel, ListPanelProps } from './list-panel'
 

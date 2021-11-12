@@ -1,18 +1,6 @@
+import { CreatureTypes } from 'engine/creature-db'
+import { Objective } from 'engine/objective'
 import { atom } from 'recoil'
-
-export interface Objective {
-  /** explanatory text or summary of the objective */
-  description: string
-
-  /** total progress required to consider this objective complete */
-  goal: number
-
-  /** human-readable title of the objective */
-  name: string
-
-  /** current progress towards this objective (kill count, # of items, etc.) */
-  progress: number
-}
 
 export interface Expedition {
   /** objectives for the current expedition */
@@ -23,7 +11,24 @@ export interface Expedition {
 }
 
 export const newExpedition = (): Expedition => ({
-  objectives: [],
+  objectives: [
+    new Objective({
+      description: 'The lizards filling these caverns, while mostly harmless, are interfering with Wizardo\'s ' +
+      'experiments. You are to kill "the whole bloody lot of them".',
+      goal: 10,
+      name: 'A Problem of Scale',
+      targetType: CreatureTypes.kobold.id,
+      type: 'kill',
+    }),
+    new Objective({
+      description: 'After dispatching the lizard threat, Wizardo wants you to ' +
+      'find a specific blue stone somewhere nearby.',
+      goal: 1,
+      name: 'Strange Blue Rock',
+      targetType: CreatureTypes.kobold.id,
+      type: 'kill',
+    }),
+  ],
   turn: 1,
 })
 

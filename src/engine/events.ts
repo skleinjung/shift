@@ -1,5 +1,6 @@
 import { Attack, AttackResult } from './combat'
 import { Creature } from './creature'
+import { Objective } from './objective'
 import { Entity } from './types'
 
 /** A single piece of content that should be displayed during a narration 'cutscene'.1 */
@@ -49,4 +50,9 @@ export interface CreatureEvents {
 
   /** Emitted when a positionable's map location changes. */
   move: (x: number, y: number, creature: Creature) => void
+}
+
+export interface ObjectiveEvents {
+  /** Emitted whenever progress is made towards an objective. */
+  progress: (newValue: number, objective: Objective) => void
 }
