@@ -33,6 +33,7 @@ plugins:
   - jekyll-remote-theme
 
 # midnight settings
+google_analytics: UA-135667639-1
 show_downloads: false
 
 # Exclude from processing.
