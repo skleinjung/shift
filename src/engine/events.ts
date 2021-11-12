@@ -56,3 +56,11 @@ export interface VignetteEvents {
   /** Emitted when the vignette is completed and control should return to the player */
   complete: (vignette: Vignette) => void
 }
+
+export interface EngineEvents {
+  /** emitted when a vignette begins */
+  vignette: (vignette: Vignette) => void
+
+  /** emitted when a vignette ends */
+  vignetteComplete: (vignette: Vignette) => void
+}
