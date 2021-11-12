@@ -11,17 +11,19 @@ import { WorldEvents } from './events'
 import { ExpeditionMap } from './map/map'
 import { Player } from './player'
 import { random } from './random'
-
-const TURNS_PER_SECOND = 15
+import { Updateable } from './types'
 
 /**
  * Calling 'start' will cause the game to process turns at the rate of TURNS_PER_SECOND. If, during
  * their turn, the Player actor returns an undefined action, then turn execution will halt. The player
  * will be checked periodically, and once they provide an action the loop will resume.
  */
-export class World extends TypedEventEmitter<WorldEvents> {
+export class World extends TypedEventEmitter<WorldEvents> implements Updateable {
   public readonly dungeon: Dungeon
   public readonly map = new ExpeditionMap()
+
+  // if true, we do not process updates
+  public paused = false
 
   // all the world's creatures
   private _creatures: Creature[] = []
@@ -31,10 +33,6 @@ export class World extends TypedEventEmitter<WorldEvents> {
 
   // the creature whose turn is next
   private _nextActor = 0
-
-  // data used to control the timer loop
-  private _previousTurnTime = 0
-  private _running = false
 
   private _player: Player
 
@@ -90,16 +88,28 @@ export class World extends TypedEventEmitter<WorldEvents> {
     return this._player
   }
 
-  public start () {
-    if (!this._running) {
-      this._previousTurnTime = 0
-      this._running = true
-      window.requestAnimationFrame(this._onTimer.bind(this))
+  public update () {
+    if (this.paused) {
+      return
     }
-  }
 
-  public stop () {
-    this._running = false
+    // flag that indicates we are waiting, and nothing has happened. Used to avoid sending spurious 'update' events
+    let stillWaiting = true
+    let exit = true
+
+    do {
+      exit = !this._turnStep()
+
+      if (!exit) {
+        // we had at least one turn, clear 'stillWaiting'
+        stillWaiting = false
+      }
+    } while (!exit && this._nextActor !== 0)
+
+    // emit a final update at the end of the turn if we aren't waiting
+    if (!stillWaiting) {
+      this.emit('update')
+    }
   }
 
   private _initializePlayer () {
@@ -231,38 +241,5 @@ export class World extends TypedEventEmitter<WorldEvents> {
     creature.initiative += creature.speed
 
     return true
-  }
-
-  private _turn () {
-    // flag that indicates we are waiting, and nothing has happened. Used to avoid sending spurious 'update' events
-    let stillWaiting = true
-    let exit = true
-
-    do {
-      exit = !this._turnStep()
-
-      if (!exit) {
-        // we had at least one turn, clear 'stillWaiting'
-        stillWaiting = false
-      }
-    } while (!exit && this._nextActor !== 0)
-
-    // emit a final update at the end of the turn if we aren't waiting
-    if (!stillWaiting) {
-      this.emit('update')
-    }
-  }
-
-  private _onTimer (timestamp: number) {
-    const msPerTurn = 1000 / TURNS_PER_SECOND
-
-    if ((timestamp - this._previousTurnTime) > msPerTurn) {
-      this._turn()
-      this._previousTurnTime = timestamp
-    }
-
-    if (this._running) {
-      window.requestAnimationFrame(this._onTimer.bind(this))
-    }
   }
 }
