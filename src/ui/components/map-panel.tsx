@@ -31,12 +31,6 @@ interface ViewportSize {
 }
 
 export interface MapPanelProps extends Omit<PanelProps, 'columns' | 'rows'> {
-  /** y-coordinate of the viewport center; (default: 0) */
-  centerY?: number
-
-  /** x-coordinate of the viewport center; (default: 0) */
-  centerX?: number
-
   /** optional callback that is notified whenever the user clicks on the map */
   onMapClick?: (mapX: number, mapY: number) => void
 
@@ -79,9 +73,45 @@ const initializeRenderCells = (app: PIXI.Application, cells: RenderCell[][], gri
   }
 }
 
+const calculateViewportCenter = (
+  width: number,
+  height: number,
+  oldCenterX: number,
+  oldCenterY: number,
+  playerX: number,
+  playerY: number
+): { x: number; y: number } => {
+  const SMALL_MAP_THRESHOLD = 15
+  const SCROLL_THRESHOLD_PERCENT = 0.40
+
+  if (width > SMALL_MAP_THRESHOLD && height > SMALL_MAP_THRESHOLD) {
+    const left = Math.floor(oldCenterX - (width / 2))
+    const right = Math.floor(oldCenterX + (width / 2) - 1)
+    const top = Math.floor(oldCenterY - (height / 2))
+    const bottom = Math.floor(oldCenterY + (height / 2) - 1)
+
+    const minPeekColumns = Math.max(5, Math.floor(SCROLL_THRESHOLD_PERCENT * width))
+    const minPeekRows = Math.max(5, Math.floor(SCROLL_THRESHOLD_PERCENT * height))
+
+    const leftAdjust = Math.min(0, playerX - (left + minPeekColumns))
+    const rightAdjust = Math.max(0, playerX - (right - minPeekColumns))
+    const horizontalAdjust = leftAdjust !== 0 ? leftAdjust : rightAdjust
+
+    const upAdjust = Math.min(0, playerY - (top + minPeekRows - 1))
+    const downAdjust = Math.max(0, playerY - (bottom - minPeekRows + 1))
+    const verticalAdjust = upAdjust !== 0 ? upAdjust : downAdjust
+
+    return {
+      x: oldCenterX + horizontalAdjust,
+      y: oldCenterY + verticalAdjust,
+    }
+  }
+
+  // just always center small maps
+  return { x: playerX, y: playerY }
+}
+
 export const MapPanel = ({
-  centerX = 0,
-  centerY = 0,
   onMapClick = noop,
   onViewportSizeChanged = noop,
   ...panelProps
@@ -92,8 +122,27 @@ export const MapPanel = ({
 
   const resizeObserverRef = useRef<ResizeObserver | null>()
   const [viewportSize, setViewportSize] = useState<ViewportSize | undefined>()
+  const centerXRef = useRef(0)
+  const centerYRef = useRef(0)
   const offsetXRef = useRef(0)
   const offsetYRef = useRef(0)
+
+  if (viewportSize !== undefined) {
+    const { x, y } = calculateViewportCenter(
+      viewportSize.width,
+      viewportSize.height,
+      centerXRef.current,
+      centerYRef.current,
+      world.player.x,
+      world.player.y
+    )
+
+    centerXRef.current = x
+    centerYRef.current = y
+  }
+
+  const centerX = centerXRef.current
+  const centerY = centerYRef.current
 
   if (viewportSize !== undefined) {
     // -1 in both of these calculations is to account for the row/column we are centering

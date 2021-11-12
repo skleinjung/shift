@@ -20,7 +20,7 @@ export interface ListItem {
 }
 
 // extracts the id from a list item
-const getId = (item: string | ListItem) => isString(item) ? item : item?.id ?? item.content
+const getId = (item: string | ListItem) => isString(item) ? item : item?.id ?? item?.content
 
 // extracts the left-side content from a list item
 const getLeftContent = (item: string | ListItem) => isString(item) ? item : item.content
@@ -64,6 +64,10 @@ export const ListPanel = ({
   const [selectedIndex, setSelectedIndex] = useState(0)
 
   const consider = useCallback((index: number) => {
+    if (items.length < 1) {
+      return
+    }
+
     const selection = getId(items[index])
     if (selection !== undefined) {
       onItemConsidered(selection)
@@ -73,14 +77,26 @@ export const ListPanel = ({
   }, [items, onItemConsidered])
 
   const moveSelectionUp = useCallback(() => {
+    if (items.length < 1) {
+      return
+    }
+
     consider(selectedIndex === 0 ? items.length - 1 : selectedIndex - 1)
   }, [items.length, consider, selectedIndex])
 
   const moveSelectionDown = useCallback(() => {
+    if (items.length < 1) {
+      return
+    }
+
     consider((selectedIndex + 1) % items.length)
   }, [items.length, consider, selectedIndex])
 
   const confirmSelection = useCallback((index: number) => {
+    if (items.length < 1) {
+      return
+    }
+
     const selection = getId(items[index])
     if (selection !== undefined) {
       onItemSelected(selection)
@@ -130,13 +146,13 @@ export const ListPanel = ({
   }
 
   const getListItems = () => (
-    <ul className="list-panel">
+    <ul className="list-panel-body">
       {mapS(items, createRow)}
     </ul>
   )
 
   const getEmptyContent = () => empty && (
-    <div className="list-panel-empty">
+    <div className="list-panel-body list-panel-empty">
       {empty}
     </div>
   )

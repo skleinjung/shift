@@ -1,31 +1,35 @@
 import './narration-panel.css'
 
-import { NarrationUnit } from 'engine/events'
+import { Speech } from 'engine/engine'
+import { noop } from 'lodash'
 import { useCallback, useEffect, useState } from 'react'
 import { useKeyHandler } from 'ui/hooks/use-key-handler'
 import { getKeyMap } from 'ui/key-map'
-import { toClassName, WithExtraClasses } from 'ui/to-class-name'
+import { WithExtraClasses } from 'ui/to-class-name'
 
 import { Panel, PanelProps } from './panel'
 
-export type NarrationPanelProps = WithExtraClasses & Omit<PanelProps, 'className'> & {
-  /** narration content to display */
-  content: NarrationUnit[]
+export type SpeechPanelProps = WithExtraClasses & Omit<PanelProps, 'className'> & {
+  /** speech content to display */
+  content: Speech[]
 
   /** callback invoked when the narration has been fully displayed */
-  onComplete: () => void
+  onComplete?: () => void
 
   /** delay in ms between each character */
   textDelay?: number
 }
 
-export const NarrationPanel = ({
+/**
+ * Display speech content (speaker, message) pair using a delayed "type in" effect.
+ */
+export const SpeechPanel = ({
   classes = [],
   content,
-  onComplete,
+  onComplete = noop,
   textDelay = 13,
   ...panelProps
-}: NarrationPanelProps) => {
+}: SpeechPanelProps) => {
   const [contentIndex, setContentIndex] = useState(0)
   const [currentCharacter, setCurrentCharacter] = useState(1)
 
@@ -37,6 +41,11 @@ export const NarrationPanel = ({
       setContentIndex((current) => current + 1)
     }
   }, [content, contentIndex, onComplete])
+
+  // if the message changes, reset the "typing" animation
+  useEffect(() => {
+    setCurrentCharacter(1)
+  }, [content])
 
   useEffect(() => {
     let timeout: ReturnType<typeof setTimeout> | undefined
@@ -62,10 +71,10 @@ export const NarrationPanel = ({
     return content[contentIndex].message.substring(0, currentCharacter)
   }
 
-  return contentIndex >= content.length ? null : (
+  return (
     <Panel
       {...panelProps}
-      className={toClassName(classes, 'narration-panel')}
+      classes={[...classes, 'narration-panel']}
       onKeyDown={handleKeyDown}
       title={content[contentIndex].speaker}
     >

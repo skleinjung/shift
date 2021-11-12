@@ -1,6 +1,11 @@
-import { World } from 'engine/world'
-import { useEffect, useState } from 'react'
-import { GameContext } from 'ui/game-context'
+import { DemoCampaign } from 'engine/campaign'
+import { useEffect, useRef } from 'react'
+import { useResetRecoilState } from 'recoil'
+import { CampaignContext } from 'ui/context-campaign'
+import { EngineContext } from 'ui/context-engine'
+import { expeditionState } from 'ui/state/expedition'
+
+import { Engine } from '../../engine/engine'
 
 import { ScreenName } from './app'
 import { ExpeditionEndedScreen } from './expedition-ended-screen'
@@ -15,17 +20,20 @@ export interface GameProps {
 }
 
 export const GameRoot = ({ navigateTo, screen }: GameProps) => {
-  const [world, setWorld] = useState<World | undefined>()
+  const campaign = useRef(new DemoCampaign())
+  const engine = useRef(new Engine(campaign.current))
+  const resetExpedition = useResetRecoilState(expeditionState)
 
   useEffect(() => {
-    const world = new World()
-    world.start()
-    setWorld(world)
+    resetExpedition()
+
+    const currentEngine = engine.current
+    currentEngine.start()
 
     return () => {
-      world.stop()
+      currentEngine.stop()
     }
-  }, [])
+  }, [resetExpedition])
 
   const getActiveScreen = () => {
     switch (screen) {
@@ -37,9 +45,11 @@ export const GameRoot = ({ navigateTo, screen }: GameProps) => {
     }
   }
 
-  return world === undefined ? null : (
-    <GameContext.Provider value={world}>
-      {getActiveScreen()}
-    </GameContext.Provider>
+  return (
+    <CampaignContext.Provider value={campaign.current}>
+      <EngineContext.Provider value={engine.current}>
+        {getActiveScreen()}
+      </EngineContext.Provider>
+    </CampaignContext.Provider>
   )
 }

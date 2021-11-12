@@ -1,5 +1,6 @@
 import { join } from 'lodash/fp'
 import { HTMLAttributes, PropsWithChildren } from 'react'
+import { toClassName, WithExtraClasses } from 'ui/to-class-name'
 
 import { FocusableDiv } from './focusable-div'
 import './panel.css'
@@ -8,7 +9,7 @@ type InheritedProps = Omit<HTMLAttributes<HTMLDivElement>, 'className'>
 
 const LINE_HEIGHT = 20
 
-export type PanelProps = InheritedProps & PropsWithChildren<{
+export type PanelProps = InheritedProps & WithExtraClasses & PropsWithChildren<{
   /** indicates if this panel is active -- that is, highlighted and receives input */
   active?: boolean
 
@@ -22,9 +23,6 @@ export type PanelProps = InheritedProps & PropsWithChildren<{
   /** additional CSS classes to apply to the container element */
   containerClass?: string
 
-  /** additional CSS classes to apply to the content element */
-  className?: string
-
   /** fixed height of the panel (in text rows), or undefined if it should expand vertically */
   rows?: number | undefined
 
@@ -33,9 +31,9 @@ export type PanelProps = InheritedProps & PropsWithChildren<{
 }>
 
 export const Panel = ({
-  active,
+  active = false,
   children,
-  className,
+  classes = [],
   columns,
   containerClass,
   rows,
@@ -68,7 +66,7 @@ export const Panel = ({
         focused={active}
       >
         <div
-          className={className === undefined ? 'content' : `content ${className}`}
+          className={toClassName(classes, 'content')}
           style={{
             height,
             maxHeight: height,

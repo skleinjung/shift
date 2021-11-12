@@ -1,12 +1,13 @@
-.list-panel {
+.list-panel-body {
   margin: 4px 0 0 0;
   overflow-x: hidden;
   overflow-y: auto;
   padding: 0;
+  flex: 1 1;
 }
 
 /* content displayed when a list is empty */
-.list-panel-empty {
+.list-panel-body.list-panel-empty {
   padding: 4px 0 0 0;
 }
 

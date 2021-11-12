@@ -4,6 +4,18 @@ import { Attackable, Attacker } from './combat'
 import { Creature } from './creature'
 import { World } from './world'
 
+/**
+ * An updateable object recieves timer-based callbacks from the engine, and is able to complete asynchronous
+ * tasks that do not require on events being emitted, callbacks, etc.
+ */
+export interface Updateable {
+  /** whether this entity is current recieving updates */
+  paused: boolean
+
+  /** update is called at the game engine's tick frequency whenever this updateable is active */
+  update: () => void
+}
+
 export type ActionResult = {
   /** optional message to show the user, explaining the action's outcome or reason for failure */
   message?: string
