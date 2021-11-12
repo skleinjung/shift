@@ -6,7 +6,6 @@ import { Action } from 'engine/types'
 import { useCallback, useEffect, useState } from 'react'
 import { useSetRecoilState } from 'recoil'
 import { useKeyHandler } from 'ui/hooks/use-key-handler'
-import { useVignette } from 'ui/hooks/use-vignette'
 import { useWorld } from 'ui/hooks/use-world'
 import { getKeyMap } from 'ui/key-map'
 import { endTurn, expeditionState } from 'ui/state/expedition'
@@ -19,7 +18,7 @@ import { MapPanel } from './map-panel'
 import { ObjectivePanel } from './objective-panel'
 import { Panel } from './panel'
 import { PlayerStatusPanel } from './player-status-panel'
-import { VignetteController } from './vignette-controller'
+import { SpeechWindow } from './speech-window'
 
 const SidebarColumns = 35
 
@@ -30,12 +29,12 @@ export interface ExpeditionScreenProps {
 
 export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
   const [inMenus, setInMenus] = useState(false)
+  const [inSpeech, setInSpeech] = useState(false)
 
   const world = useWorld()
-  const vignette = useVignette()
   const updateExpedition = useSetRecoilState(expeditionState)
 
-  const isPaused = inMenus || world.paused
+  const isPaused = inMenus || inSpeech || world.paused
   const isComplete = world.expeditionEnded
 
   const handleQuitExpedition = useCallback(() => {
@@ -50,24 +49,32 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
     setInMenus(false)
   }, [])
 
-  const executeTurn = useCallback((playerAction: Action) => {
-    if (!isPaused) {
-      world.player.nextAction = playerAction
+  const handleShowSpeech = useCallback(() => {
+    setInSpeech(true)
+  }, [])
 
-      // update our recoil state based on the new world state
-      updateExpedition(endTurn)
-    }
-  }, [isPaused, updateExpedition, world.player])
+  const handleHideSpeech = useCallback(() => {
+    setInSpeech(false)
+  }, [])
+
+  const executeTurn = useCallback((playerAction: Action) => {
+    world.player.nextAction = playerAction
+
+    // update our recoil state based on the new world state
+    updateExpedition(endTurn)
+  }, [updateExpedition, world.player])
 
   const executePlayerMove = useCallback((x: number, y: number) => () => {
-    const player = world.player
-    const creature = world.map.getCreature(player.x + x, player.y + y)
-    if (creature === undefined) {
-      executeTurn(new MoveByAction(player, x, y))
-    } else {
-      executeTurn(new AttackAction(player, creature))
+    if (!isPaused) {
+      const player = world.player
+      const creature = world.map.getCreature(player.x + x, player.y + y)
+      if (creature === undefined) {
+        executeTurn(new MoveByAction(player, x, y))
+      } else {
+        executeTurn(new AttackAction(player, creature))
+      }
     }
-  }, [executeTurn, world.map, world.player])
+  }, [executeTurn, isPaused, world.map, world.player])
 
   const handleMapClick = useCallback((x: number, y: number) => {
     world.player.destination = { x, y }
@@ -134,16 +141,18 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
         </Panel>
       </div>
 
-      {/* menus are disabled during vignettes, so only include of */}
-      {vignette !== undefined
-        ? <VignetteController />
-        : <ExpeditionMenuController
+      <SpeechWindow
+        onHideSpeech={handleHideSpeech}
+        onShowSpeech={handleShowSpeech}
+      />
+      {!inSpeech && (
+        <ExpeditionMenuController
           onHideMenu={handleHideMenu}
           onPlayerAction={executeTurn}
           onQuitExpedition={handleQuitExpedition}
           onShowMenu={handleShowMenu}
         />
-      }
+      ) }
     </div>
   )
 }

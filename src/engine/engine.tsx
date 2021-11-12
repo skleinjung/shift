@@ -5,7 +5,7 @@ import { ObjectiveTracker } from 'engine/objective-tracker'
 import { Updateable } from 'engine/types'
 import { Speech, Vignette } from 'engine/vignette'
 import { World } from 'engine/world'
-import { forEach, map } from 'lodash/fp'
+import { forEach } from 'lodash/fp'
 import { TypedEventEmitter } from 'typed-event-emitter'
 
 import { Objective } from './objective'
@@ -100,10 +100,7 @@ export class Engine extends TypedEventEmitter<EngineEvents> implements ScriptCon
   }
 
   public showSpeech (speech: Speech[]) {
-    this.playVignette(new Vignette(map((speechLine) => ({
-      speech: speechLine,
-      type: 'speech',
-    }), speech)))
+    this.emit('speech', speech)
   }
 
   public playVignette (vignette: Vignette) {

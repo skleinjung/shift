@@ -71,6 +71,14 @@ export const ExpeditionMenuController = ({
     ))
   }, [onPlayerAction, world.player])
 
+  const toggleModal = useCallback((newMenu: MenuState) => () => {
+    if (menu.mode === newMenu.mode) {
+      closeMenu()
+    } else {
+      openMenu(newMenu)
+    }
+  }, [menu.mode, closeMenu, openMenu])
+
   const beginItemInteraction = useCallback((interactionName: string) => () => {
     const player = world.player
     const candidateItems = world.map.getInteractableItems(player.x, player.y, interactionName)
@@ -82,9 +90,9 @@ export const ExpeditionMenuController = ({
       interactWithItem(candidateItems[0], interactionName)
     } else {
       // multiple items, use a modal to pick one
-      setMenu({ mode: MenuMode.InteractWithItem, argument: interactionName })
+      openMenu({ argument: interactionName, mode: MenuMode.InteractWithItem })
     }
-  }, [interactWithItem, world])
+  }, [interactWithItem, openMenu, world])
 
   const handleNoMoreItemInteractions = useCallback((interaction: string) => {
     world.logMessage(`There are no more items to ${toLower(interaction)} here.`)
@@ -99,14 +107,6 @@ export const ExpeditionMenuController = ({
     ))
   }, [onPlayerAction, world])
 
-  const toggleModal = useCallback((mode: MenuMode) => () => {
-    if (menu.mode === mode) {
-      closeMenu()
-    } else {
-      openMenu({ mode })
-    }
-  }, [menu.mode, closeMenu, openMenu])
-
   const handleEscape = useCallback(() => {
     if (menu.mode !== MenuMode.None) {
       closeMenu()
@@ -119,8 +119,8 @@ export const ExpeditionMenuController = ({
   useGlobalKeyHandler({
     Escape: handleEscape,
     [keyMap.Get]: beginItemInteraction('Get'),
-    [keyMap.OpenInventory]: toggleModal(MenuMode.Inventory),
-    [keyMap.OpenObjectives]: toggleModal(MenuMode.Objectives),
+    [keyMap.OpenInventory]: toggleModal({ mode: MenuMode.Inventory }),
+    [keyMap.OpenObjectives]: toggleModal({ mode: MenuMode.Objectives }),
   })
 
   const getModalContent = () => {

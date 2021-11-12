@@ -2,7 +2,7 @@ import { Attack, AttackResult } from './combat'
 import { Creature } from './creature'
 import { Objective } from './objective'
 import { Entity } from './types'
-import { Vignette } from './vignette'
+import { Speech, Vignette } from './vignette'
 
 export interface WorldEvents {
   /** Emitted when any creature is killed */
@@ -58,6 +58,9 @@ export interface VignetteEvents {
 }
 
 export interface EngineEvents {
+  /** emitted when a script displays speech (i.e. dialog) to the user */
+  speech: (speech: Speech[]) => void
+
   /** emitted when a vignette begins */
   vignette: (vignette: Vignette) => void
 

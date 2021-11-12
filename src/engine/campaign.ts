@@ -1,6 +1,7 @@
 import { Objectives } from './data/objective-db'
 import { Script } from './engine'
 import { Objective } from './objective'
+import { ProblemOfScale } from './scripts/problem-of-scale'
 
 /**
  * The Campaign represents all game and player state that persists beyond a single expedition.
@@ -36,5 +37,7 @@ export class DemoCampaign extends Campaign {
 
     this.addObjective(new Objective(Objectives.problem_of_scale))
     this.addObjective(new Objective(Objectives.strange_blue_rock))
+
+    this.addScript(ProblemOfScale)
   }
 }

@@ -2,7 +2,7 @@ import './narration-panel.css'
 
 import { Speech } from 'engine/vignette'
 import { noop } from 'lodash'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useKeyHandler } from 'ui/hooks/use-key-handler'
 import { getKeyMap } from 'ui/key-map'
 import { WithExtraClasses } from 'ui/to-class-name'
@@ -11,13 +11,10 @@ import { Panel, PanelProps } from './panel'
 
 export type SpeechPanelProps = WithExtraClasses & Omit<PanelProps, 'className'> & {
   /** speech content to display */
-  content: Speech
+  content: Speech[]
 
   /** callback invoked when the narration has been fully displayed */
   onComplete?: () => void
-
-  /** invoked when the user advances the narration (clicks 'more', etc.) */
-  onShowNext: () => void
 
   /** delay in ms between each character */
   textDelay?: number
@@ -30,27 +27,29 @@ export const SpeechPanel = ({
   classes = [],
   content,
   onComplete = noop,
-  onShowNext,
   textDelay = 13,
   ...panelProps
 }: SpeechPanelProps) => {
+  const [contentIndex, setContentIndex] = useState(0)
   const [currentCharacter, setCurrentCharacter] = useState(1)
+
+  const handleNextPage = useCallback(() => {
+    if (contentIndex >= content.length - 1) {
+      onComplete()
+    } else {
+      setCurrentCharacter(1)
+      setContentIndex((current) => current + 1)
+    }
+  }, [content, contentIndex, onComplete])
 
   // if the message changes, reset the "typing" animation
   useEffect(() => {
     setCurrentCharacter(1)
-  }, [content.message])
-
-  // once full text is "typed", call onComplete
-  useEffect(() => {
-    if (currentCharacter >= content.message.length) {
-      onComplete()
-    }
-  }, [content.message, currentCharacter, onComplete])
+  }, [content])
 
   useEffect(() => {
     let timeout: ReturnType<typeof setTimeout> | undefined
-    if (content.message.length > currentCharacter) {
+    if (content[contentIndex]?.message?.length > currentCharacter) {
       timeout = setTimeout(() => setCurrentCharacter((current) => current + 1), textDelay)
     }
 
@@ -59,15 +58,17 @@ export const SpeechPanel = ({
         clearTimeout(timeout)
       }
     }
-  }, [content, currentCharacter, textDelay])
+  }, [content, contentIndex, currentCharacter, textDelay])
 
   const keyMap = getKeyMap()
   const handleKeyDown = useKeyHandler({
-    [keyMap.Confirm]: onShowNext,
+    [keyMap.Confirm]: handleNextPage,
   })
 
+  const lastPage = contentIndex >= content.length - 1
+
   const getText = () => {
-    return content.message.substring(0, currentCharacter)
+    return content[contentIndex].message.substring(0, currentCharacter)
   }
 
   return (
@@ -75,10 +76,10 @@ export const SpeechPanel = ({
       {...panelProps}
       classes={[...classes, 'narration-panel']}
       onKeyDown={handleKeyDown}
-      title={content.speaker}
+      title={content[contentIndex].speaker}
     >
       <div className="narration-panel-message">{getText()}</div>
-      <div className="narration-panel-controls" onClick={onShowNext}>(next)</div>
+      <div className="narration-panel-controls" onClick={handleNextPage}>{lastPage ? '(close)' : '(more)'}</div>
     </Panel>
   )
 }
