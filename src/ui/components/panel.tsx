@@ -31,7 +31,7 @@ export type PanelProps = InheritedProps & WithExtraClasses & PropsWithChildren<{
 }>
 
 export const Panel = ({
-  active,
+  active = false,
   children,
   classes = [],
   columns,
