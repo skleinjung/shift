@@ -1,4 +1,5 @@
 import { Objectives } from './data/objective-db'
+import { Script } from './engine'
 import { Objective } from './objective'
 
 /**
@@ -8,6 +9,9 @@ export class Campaign {
   /** the hero's current objectives */
   private _objectives: Objective[] = []
 
+  /** script's active in this campaign */
+  private _scripts: Script[] = []
+
   /** Retrieves the player's active objectives */
   public get objectives (): readonly Objective[] {
     return this._objectives
@@ -15,6 +19,14 @@ export class Campaign {
 
   public addObjective (objective: Objective) {
     this._objectives.push(objective)
+  }
+
+  public get scripts (): readonly Script[] {
+    return this._scripts
+  }
+
+  public addScript (script: Script) {
+    this._scripts.push(script)
   }
 }
 

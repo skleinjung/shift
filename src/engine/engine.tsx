@@ -3,13 +3,35 @@ import { EngineEvents } from 'engine/events'
 import { GameTimer } from 'engine/game-timer'
 import { ObjectiveTracker } from 'engine/objective-tracker'
 import { Updateable } from 'engine/types'
-import { Vignette } from 'engine/vignette'
+import { Speech, Vignette } from 'engine/vignette'
 import { World } from 'engine/world'
-import { forEach } from 'lodash/fp'
+import { forEach, map } from 'lodash/fp'
 import { TypedEventEmitter } from 'typed-event-emitter'
 
+import { Objective } from './objective'
+
+export interface ScriptContext {
+  /** gets the world associated with the current expedition */
+  world: World
+
+  /**
+   * Show the supplied speech content to the user.
+   * TODO: determine when it's done, so scripts can do more...
+   */
+  showSpeech: (speech: Speech[]) => void
+}
+
+/**
+ * A script is a piece of automation that can be inserted into the normal game flow, to display
+ * dialog, pan the map to interesting areas, etc. The script interface exposes a number of event
+ * handlers that are called by the engine whenever the relevant event occurs.
+ */
+export interface Script {
+  onObjectiveProgress: (progress: number, objective: Objective, context: ScriptContext) => void
+}
+
 /** The engine is responsible for triggering vignettes, scripted events, updating quests, etc. */
-export class Engine extends TypedEventEmitter<EngineEvents> implements Updateable {
+export class Engine extends TypedEventEmitter<EngineEvents> implements ScriptContext, Updateable {
   // game timer
   private _timer = new GameTimer()
 
@@ -32,6 +54,12 @@ export class Engine extends TypedEventEmitter<EngineEvents> implements Updateabl
     forEach((objective) => {
       this._objectiveTracker.addObjective(objective)
     }, this._campaign.objectives)
+
+    this._objectiveTracker.on('objectiveProgress', (progress, objective) => {
+      forEach((script) => {
+        script.onObjectiveProgress(progress, objective, this)
+      }, this._campaign.scripts)
+    })
 
     this._world = new World()
     this.attach(this._world)
@@ -69,6 +97,13 @@ export class Engine extends TypedEventEmitter<EngineEvents> implements Updateabl
 
   public update () {
     // no nothing currently
+  }
+
+  public showSpeech (speech: Speech[]) {
+    this.playVignette(new Vignette(map((speechLine) => ({
+      speech: speechLine,
+      type: 'speech',
+    }), speech)))
   }
 
   public playVignette (vignette: Vignette) {

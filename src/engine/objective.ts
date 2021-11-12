@@ -1,6 +1,7 @@
 import { TypedEventEmitter } from 'typed-event-emitter'
 
 import { CreatureTypeId } from './creature-db'
+import { ObjectiveId } from './data/objective-db'
 import { ObjectiveEvents } from './events'
 
 export type ObjectiveType = 'kill'
@@ -13,7 +14,7 @@ export type ObjectiveData = Readonly<{
   goal: number
 
   /** unique identifier for this objective */
-  id: string
+  id: ObjectiveId
 
   /** human-readable title of the objective */
   name: string
@@ -27,7 +28,7 @@ export type ObjectiveData = Readonly<{
 
 export class Objective extends TypedEventEmitter<ObjectiveEvents> implements ObjectiveData {
   /** unique identifier for this objective */
-  public readonly id: string
+  public readonly id: ObjectiveId
   public readonly description: string
   public readonly goal: number
   public readonly name: string

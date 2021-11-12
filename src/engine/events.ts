@@ -64,3 +64,8 @@ export interface EngineEvents {
   /** emitted when a vignette ends */
   vignetteComplete: (vignette: Vignette) => void
 }
+
+export interface ObjectiveTrackerEvents {
+  /** emitted whenever any tracked objective has progress */
+  objectiveProgress: (progress: number, objective: Objective) => void
+}

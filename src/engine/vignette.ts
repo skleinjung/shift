@@ -13,7 +13,21 @@ export interface Speech {
 }
 
 /** A single step in the scripted sequence of a vignette. */
-export type VignetteStep = () => void
+export interface VignetteStep {
+  /** speech content to display at this step */
+  speech: Speech
+
+  /** type of script event; currently only speech (i.e. dialog) is supported */
+  type: 'speech'
+}
+
+export interface VignetteConfig {
+  /** id of this vignette */
+  id: string
+
+  /** steps to execute when playing this vignette */
+  steps: VignetteStep[]
+}
 
 /**
  * A vignette is a scripted scene that conveys the story. It consists of events like dialog, map panning,
@@ -21,10 +35,15 @@ export type VignetteStep = () => void
  */
 export class Vignette extends TypedEventEmitter<VignetteEvents> implements Updateable {
   private _currentStep = 0
-  private _dialog = []
+  private _steps: VignetteStep[] = []
+
+  constructor (steps: VignetteStep[]) {
+    super()
+    this._steps = steps
+  }
 
   public get speech (): Speech | undefined {
-    return this._dialog[this._currentStep]
+    return this._steps[this._currentStep].speech
   }
 
   public advance () {
@@ -36,7 +55,7 @@ export class Vignette extends TypedEventEmitter<VignetteEvents> implements Updat
   }
 
   public get complete () {
-    return this._currentStep > this._dialog.length - 1
+    return this._currentStep > this._steps.length - 1
   }
 
   public get paused () {

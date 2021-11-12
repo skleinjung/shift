@@ -7,7 +7,7 @@ const objectivesArray = [
     id: 'problem_of_scale',
     description: 'The lizards filling these caverns, while mostly harmless, are interfering with Wizardo\'s ' +
     'experiments. You are to kill "the whole bloody lot of them".',
-    goal: 10,
+    goal: 5,
     name: 'A Problem of Scale',
     targetType: CreatureTypes.kobold.id,
     type: 'kill',
@@ -18,7 +18,7 @@ const objectivesArray = [
     'find a specific blue stone somewhere nearby.',
     goal: 1,
     name: 'Strange Blue Rock',
-    targetType: CreatureTypes.kobold.id,
+    targetType: 'something-fake-just-to-keep-it-at-zero',
     type: 'kill',
   },
 ] as const
