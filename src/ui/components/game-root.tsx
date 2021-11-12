@@ -1,7 +1,9 @@
-import { World } from 'engine/world'
-import { useEffect, useState } from 'react'
+import { DemoCampaign } from 'engine/campaign'
+import { createWorld } from 'engine/world-factory'
+import { useEffect, useRef } from 'react'
 import { useResetRecoilState } from 'recoil'
-import { GameContext } from 'ui/game-context'
+import { CampaignContext } from 'ui/context-campaign'
+import { GameContext } from 'ui/context-game'
 import { expeditionState } from 'ui/state/expedition'
 
 import { ScreenName } from './app'
@@ -17,18 +19,18 @@ export interface GameProps {
 }
 
 export const GameRoot = ({ navigateTo, screen }: GameProps) => {
-  const [world, setWorld] = useState<World | undefined>()
+  const campaign = useRef(new DemoCampaign())
+  const world = useRef(createWorld(campaign.current))
   const resetExpedition = useResetRecoilState(expeditionState)
 
   useEffect(() => {
     resetExpedition()
 
-    const world = new World()
-    world.start()
-    setWorld(world)
+    const currentWorld = world.current
+    currentWorld.start()
 
     return () => {
-      world.stop()
+      currentWorld.stop()
     }
   }, [resetExpedition])
 
@@ -42,9 +44,11 @@ export const GameRoot = ({ navigateTo, screen }: GameProps) => {
     }
   }
 
-  return world === undefined ? null : (
-    <GameContext.Provider value={world}>
-      {getActiveScreen()}
-    </GameContext.Provider>
+  return (
+    <CampaignContext.Provider value={campaign.current}>
+      <GameContext.Provider value={world.current}>
+        {getActiveScreen()}
+      </GameContext.Provider>
+    </CampaignContext.Provider>
   )
 }

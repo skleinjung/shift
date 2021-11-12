@@ -1,6 +1,6 @@
 import { World } from 'engine/world'
 import { useContext, useEffect } from 'react'
-import { GameContext } from 'ui/game-context'
+import { GameContext } from 'ui/context-game'
 
 import { useRerenderTrigger } from './use-rerender-trigger'
 

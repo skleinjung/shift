@@ -1,8 +1,7 @@
 import { Objective } from 'engine/objective'
 import { find, head, map } from 'lodash/fp'
 import { useCallback, useState } from 'react'
-import { useRecoilValue } from 'recoil'
-import { expeditionState } from 'ui/state/expedition'
+import { useCampaign } from 'ui/hooks/use-campaign'
 
 import { ListItem, ListPanel, ListPanelProps } from './list-panel'
 
@@ -15,8 +14,8 @@ export const ObjectivePanel = ({
   showDescriptions = true,
   ...listPanelProps
 }: ObjectivePanelProps) => {
-  const expedition = useRecoilValue(expeditionState)
-  const objectives = expedition.objectives
+  const campaign = useCampaign()
+  const objectives = campaign.objectives
 
   const [considered, setConsidered] = useState<undefined | Objective>(head(objectives))
 
