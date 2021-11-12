@@ -130,13 +130,13 @@ export const ListPanel = ({
   }
 
   const getListItems = () => (
-    <ul className="list-panel">
+    <ul className="list-panel-body">
       {mapS(items, createRow)}
     </ul>
   )
 
   const getEmptyContent = () => empty && (
-    <div className="list-panel-empty">
+    <div className="list-panel-body list-panel-empty">
       {empty}
     </div>
   )

@@ -32,7 +32,7 @@ export const LogPanel = ({ rows = 8, world, ...rest }: LogPanelOptions) => {
 
   return (
     <Panel {...rest}
-      className="log-panel"
+      classes="log-panel"
       rows={rows}
     >
       {map((line) => <div key={index++}>{line}</div>, reverse(lines))}

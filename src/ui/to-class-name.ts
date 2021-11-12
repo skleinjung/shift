@@ -1,7 +1,7 @@
 import { castArray, join } from 'lodash/fp'
 
 export type WithExtraClasses = {
-  /** additional CSS classes to apply to the 'ul' content element */
+  /** additional CSS classes to apply */
   classes?: string | string[]
 }
 

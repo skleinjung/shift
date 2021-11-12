@@ -24,6 +24,7 @@ import { LogPanel } from './log-panel'
 import { MapPanel } from './map-panel'
 import { Modal } from './modal'
 import { NarrationPanel } from './narration-panel'
+import { ObjectivePanel } from './objective-panel'
 import { Panel } from './panel'
 import { PlayerStatusPanel } from './player-status-panel'
 import { ScreenMenu } from './screen-menu'
@@ -44,6 +45,7 @@ enum ModalMode {
   Dialog,
   InteractWithItem,
   Inventory,
+  Objectives,
   Pause,
 }
 
@@ -194,6 +196,7 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
   useGlobalKeyHandler({
     Escape: handleEscape,
     [keyMap.OpenInventory]: toggleModal(ModalMode.Inventory),
+    [keyMap.OpenObjectives]: toggleModal(ModalMode.Objectives),
     Tab: () => setActivePanel((current) => (current + 1) % SelectablePanels.__LENGTH),
   })
 
@@ -234,9 +237,17 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
             active={true}
             allowSelection={true}
             columns={SidebarColumns}
-            onClick={handleActivatePanel(SelectablePanels.Information)}
             onInventoryAction={handleInventoryAction}
             showSlot={true}
+          />
+        )
+
+      case ModalMode.Objectives:
+        return (
+          <ObjectivePanel
+            active={true}
+            allowSelection={true}
+            classes="modal-panel-objectives"
           />
         )
 
@@ -282,6 +293,15 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
       <div className="sidebar">
         <PlayerStatusPanel
           containerClass="expedition-panel"
+        />
+
+        <ObjectivePanel
+          active={false}
+          allowSelection={false}
+          columns={SidebarColumns}
+          containerClass="expedition-panel"
+          rows={7}
+          showDescriptions={false}
         />
 
         <InventoryPanel

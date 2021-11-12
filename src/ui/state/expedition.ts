@@ -4,8 +4,14 @@ export interface Objective {
   /** explanatory text or summary of the objective */
   description: string
 
+  /** total progress required to consider this objective complete */
+  goal: number
+
   /** human-readable title of the objective */
   name: string
+
+  /** current progress towards this objective (kill count, # of items, etc.) */
+  progress: number
 }
 
 export interface Expedition {

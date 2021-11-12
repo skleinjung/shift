@@ -4,7 +4,7 @@ import { NarrationUnit } from 'engine/events'
 import { useCallback, useEffect, useState } from 'react'
 import { useKeyHandler } from 'ui/hooks/use-key-handler'
 import { getKeyMap } from 'ui/key-map'
-import { toClassName, WithExtraClasses } from 'ui/to-class-name'
+import { WithExtraClasses } from 'ui/to-class-name'
 
 import { Panel, PanelProps } from './panel'
 
@@ -65,7 +65,7 @@ export const NarrationPanel = ({
   return contentIndex >= content.length ? null : (
     <Panel
       {...panelProps}
-      className={toClassName(classes, 'narration-panel')}
+      classes={[...classes, 'narration-panel']}
       onKeyDown={handleKeyDown}
       title={content[contentIndex].speaker}
     >
