@@ -2,11 +2,26 @@ import { Attack, AttackResult } from './combat'
 import { Creature } from './creature'
 import { Entity } from './types'
 
+/** A single piece of content that should be displayed during a narration 'cutscene'.1 */
+export interface NarrationUnit {
+  /** the source (i.e. speaker, etc.) of the narration or dialog */
+  speaker: string
+
+  /** the actual message (description, dialog, etc.) */
+  message: string
+}
+
 export interface WorldEvents {
   /**
    * Emitted whenever a log message with meaningful content for the player has been generated.
    **/
   message: (message: string) => void
+
+  /**
+   * Emitted when a narration cutscene is triggered. Can be observed in order to display the
+   * narration to the user.
+   */
+  narration: (content: NarrationUnit[]) => void
 
   /**
    * Emitted after the state is updated.

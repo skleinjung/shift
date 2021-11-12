@@ -25,6 +25,15 @@
   align-self: stretch;
 }
 
+.panel-title {
+  background-color: #111;
+  font-size: 1em;
+  margin: 0 0 6px 0;
+  padding: 2px;
+  text-align: center;
+  text-transform: uppercase;
+}
+
 .content {
   display: flex;
   flex: 1;

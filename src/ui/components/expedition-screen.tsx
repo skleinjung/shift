@@ -1,11 +1,14 @@
+import './expedition-screen.css'
+
 import { AttackAction } from 'engine/actions/attack'
 import { InteractWithItemAction } from 'engine/actions/interact-with-item'
 import { MoveByAction } from 'engine/actions/move-by'
 import { UseInventoryItemAction } from 'engine/actions/use-inventory-item'
+import { NarrationUnit } from 'engine/events'
 import { Item } from 'engine/item'
 import { ItemInventoryAction } from 'engine/item-inventory-action'
 import { Action } from 'engine/types'
-import { toLower } from 'lodash/fp'
+import { forEach, toLower } from 'lodash/fp'
 import { useCallback, useEffect, useState } from 'react'
 import { useResetRecoilState, useSetRecoilState } from 'recoil'
 import { useGlobalKeyHandler } from 'ui/hooks/use-global-key-handler'
@@ -20,11 +23,10 @@ import { ItemInteractionPanel } from './item-interaction-panel'
 import { LogPanel } from './log-panel'
 import { MapPanel } from './map-panel'
 import { Modal } from './modal'
+import { NarrationPanel } from './narration-panel'
 import { Panel } from './panel'
 import { PlayerStatusPanel } from './player-status-panel'
 import { ScreenMenu } from './screen-menu'
-
-import './expedition-screen.css'
 
 const SidebarColumns = 35
 
@@ -39,9 +41,15 @@ enum SelectablePanels {
 /** Type of modal to display. Modals are used when a user initiates an action that requires multiple inputs. */
 enum ModalMode {
   None = 0,
-  Pause,
+  Dialog,
   InteractWithItem,
-  Inventory
+  Inventory,
+  Pause,
+}
+
+interface ModalState {
+  mode: ModalMode
+  argument?: any
 }
 
 export interface ExpeditionScreenProps {
@@ -53,8 +61,7 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
   const world = useWorld()
 
   const [ready, setReady] = useState(false)
-  const [modalMode, setModalMode] = useState<ModalMode>(ModalMode.None)
-  const [modelArgument, setModalArgument] = useState<string | undefined>()
+  const [modal, setModal] = useState<ModalState>({ mode: ModalMode.None })
   const [activePanel, setActivePanel] = useState<SelectablePanels>(SelectablePanels.Map)
 
   const resetExpedition = useResetRecoilState(expeditionState)
@@ -65,7 +72,7 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
   const [, setViewportSize] = useState({ width: 0, height: 0 })
   const [viewportCenter, setViewportCenter] = useState({ x: 0, y: 0 })
 
-  const paused = modalMode !== ModalMode.None
+  const paused = modal.mode !== ModalMode.None
 
   const playerX = world.player.x
   const playerY = world.player.y
@@ -75,22 +82,38 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
     setReady(true)
   }, [resetExpedition])
 
+  // listen for narration events, so we can display them
+  useEffect(() => {
+    const handler = (content: NarrationUnit[]) => {
+      forEach((unit) => {
+        world.logMessage(`${unit.speaker}: ${unit.message}`)
+      }, content)
+      setModal({ mode: ModalMode.Dialog, argument: content })
+    }
+
+    world.on('narration', handler)
+    return () => {
+      world.off('narration', handler)
+    }
+  }, [world])
+
   const handleActivatePanel = useCallback((panel: SelectablePanels) => () => {
     setActivePanel(panel)
   }, [])
 
+  const closeModal = useCallback(() => {
+    setModal({ mode: ModalMode.None })
+    setActivePanel(SelectablePanels.Map)
+  }, [])
+
   const handleEscape = useCallback(() => {
-    if (modalMode !== ModalMode.None) {
-      // close any open modals
-      setModalMode(ModalMode.None)
-      setModalArgument(undefined)
-      setActivePanel(SelectablePanels.Map)
+    if (modal.mode !== ModalMode.None) {
+      closeModal()
     } else {
       // pause, with the default pause modal visible
-      setModalMode(ModalMode.Pause)
-      setModalArgument(undefined)
+      setModal({ mode: ModalMode.Pause })
     }
-  }, [modalMode])
+  }, [closeModal, modal.mode])
 
   const updateViewport = useCallback((
     viewportSize: { width: number; height: number },
@@ -180,16 +203,14 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
       interactWithItem(candidateItems[0], interactionName)
     } else {
       // multiple items, use a modal to pick one
-      setModalMode(ModalMode.InteractWithItem)
-      setModalArgument(interactionName)
+      setModal({ mode: ModalMode.InteractWithItem, argument: interactionName })
     }
   }, [interactWithItem, world])
 
   const handleNoMoreItemInteractions = useCallback((interaction: string) => {
     world.logMessage(`There are no more items to ${toLower(interaction)} here.`)
-    setModalMode(ModalMode.None)
-    setModalArgument(undefined)
-  }, [world])
+    closeModal()
+  }, [closeModal, world])
 
   const handleInventoryAction = useCallback((item: Item, action: ItemInventoryAction) => {
     executeTurn(new UseInventoryItemAction(
@@ -212,22 +233,22 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
   const handlePauseMenuSelection = useCallback((item: string) => {
     switch (item) {
       case 'Resume':
-        setModalMode(ModalMode.None)
+        closeModal()
         break
 
       case 'Quit Expedition':
         navigateTo('title')
         break
     }
-  }, [navigateTo])
+  }, [closeModal, navigateTo])
 
-  const toggleModal = useCallback((modal: ModalMode) => () => {
-    if (modalMode === modal) {
-      setModalMode(ModalMode.None)
+  const toggleModal = useCallback((mode: ModalMode) => () => {
+    if (modal.mode === mode) {
+      closeModal()
     } else {
-      setModalMode(modal)
+      setModal({ mode })
     }
-  }, [modalMode])
+  }, [closeModal, modal.mode])
 
   useGlobalKeyHandler({
     Escape: handleEscape,
@@ -242,13 +263,16 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
   }, [isComplete, navigateTo])
 
   const getModalContent = () => {
-    switch (modalMode) {
-      case ModalMode.Pause:
+    switch (modal.mode) {
+      case ModalMode.Dialog:
         return (
-          <ScreenMenu
-            classes="pause-menu"
-            items={['Resume', 'Quit Expedition']}
-            onSelectionConfirmed={handlePauseMenuSelection}
+          <NarrationPanel
+            active={true}
+            classes="fade-in"
+            content={modal.argument ?? []}
+            onComplete={() => {
+              closeModal()
+            }}
           />
         )
 
@@ -257,7 +281,7 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
           <ItemInteractionPanel
             active={true}
             columns={SidebarColumns}
-            interaction={modelArgument ?? 'Get'}
+            interaction={modal.argument ?? 'Get'}
             onNoValidInteractions={handleNoMoreItemInteractions}
             onInteraction={interactWithItem}
           />
@@ -272,6 +296,15 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
             onClick={handleActivatePanel(SelectablePanels.Information)}
             onInventoryAction={handleInventoryAction}
             showSlot={true}
+          />
+        )
+
+      case ModalMode.Pause:
+        return (
+          <ScreenMenu
+            classes="pause-menu"
+            items={['Resume', 'Quit Expedition']}
+            onSelectionConfirmed={handlePauseMenuSelection}
           />
         )
     }

@@ -51,12 +51,11 @@ export const ItemInteractionPanel = ({
     <ContainerContentsPanel {...rest}
       allowSelection={true}
       container={map.getCell(player.x, player.y)}
+      empty={<p>There no more items to {toLower(interaction)} here.</p>}
       itemFilter={itemFilter}
       onEmpty={handleEmpty}
       onItemSelected={handleItemSelect}
       title={title ?? `${interaction} which item?`}
-    >
-      <p>There no more items to {toLower(interaction)} here.</p>
-    </ContainerContentsPanel>
+    />
   )
 }

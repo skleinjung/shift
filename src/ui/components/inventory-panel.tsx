@@ -75,13 +75,12 @@ export const InventoryPanel = ({
     <ListPanel {...rest}
       active={active}
       allowSelection={true}
+      footer={selectedItem?.description &&
+        <p className="inventory-panel-item-description">{selectedItem.description}</p>
+      }
       items={[...map(get('name'), selectedItem.inventoryActions), 'Back']}
       onItemSelected={handleItemAction}
       title={selectedItem.name}
-    >
-      {selectedItem?.description &&
-        <p className="inventory-panel-item-description">{selectedItem.description}</p>
-      }
-    </ListPanel>
+    />
   )
 }

@@ -5,21 +5,17 @@
   padding: 0;
 }
 
-/* child content displayed before the list */
-.list-panel-summary {
+/* content displayed when a list is empty */
+.list-panel-empty {
+  padding: 4px 0 0 0;
+}
+
+/* styled content displayed in the footer (selected item description, etc.) */
+.list-panel-footer {
   border-top: solid 1px #550;
   color: #abd;
   margin: 12px 0 0 0;
   padding: 4px 0 0 0;
-}
-
-.list-panel-title {
-  background-color: #111;
-  font-size: 1em;
-  margin: 0 0 6px 0;
-  padding: 2px;
-  text-align: center;
-  text-transform: uppercase;
 }
 
 .list-panel-row {
