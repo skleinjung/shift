@@ -33,7 +33,9 @@ export class ObjectiveTracker {
   private _onCreatureDeath (creature: Creature) {
     forEach((objective) => {
       if (objective.type === 'kill' && objective.targetType === creature.type.id) {
-        objective.advance()
+        if (!objective.complete) {
+          objective.advance()
+        }
       }
     }, this._objectives)
   }

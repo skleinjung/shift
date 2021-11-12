@@ -1,4 +1,4 @@
-import { CreatureTypes } from './creature-db'
+import { Objectives } from './data/objective-db'
 import { Objective } from './objective'
 
 /**
@@ -22,22 +22,7 @@ export class DemoCampaign extends Campaign {
   constructor () {
     super()
 
-    this.addObjective(new Objective({
-      description: 'The lizards filling these caverns, while mostly harmless, are interfering with Wizardo\'s ' +
-      'experiments. You are to kill "the whole bloody lot of them".',
-      goal: 10,
-      name: 'A Problem of Scale',
-      targetType: CreatureTypes.kobold.id,
-      type: 'kill',
-    }))
-
-    this.addObjective(new Objective({
-      description: 'After dispatching the lizard threat, Wizardo wants you to ' +
-      'find a specific blue stone somewhere nearby.',
-      goal: 1,
-      name: 'Strange Blue Rock',
-      targetType: CreatureTypes.kobold.id,
-      type: 'kill',
-    }))
+    this.addObjective(new Objective(Objectives.problem_of_scale))
+    this.addObjective(new Objective(Objectives.strange_blue_rock))
   }
 }

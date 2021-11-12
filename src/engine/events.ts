@@ -56,6 +56,9 @@ export interface CreatureEvents {
 }
 
 export interface ObjectiveEvents {
+  /** Emitted when the objective is completed. */
+  complete: (objective: Objective) => void
+
   /** Emitted whenever progress is made towards an objective. */
   progress: (newValue: number, objective: Objective) => void
 }

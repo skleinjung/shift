@@ -5,12 +5,15 @@ import { ObjectiveEvents } from './events'
 
 export type ObjectiveType = 'kill'
 
-export interface ObjectiveData {
+export type ObjectiveData = Readonly<{
   /** explanatory text or summary of the objective */
   description: string
 
   /** total progress required to consider this objective complete */
   goal: number
+
+  /** unique identifier for this objective */
+  id: string
 
   /** human-readable title of the objective */
   name: string
@@ -20,9 +23,11 @@ export interface ObjectiveData {
 
   /** type of objective (kill, collect, etc.) */
   type: ObjectiveType
-}
+}>
 
 export class Objective extends TypedEventEmitter<ObjectiveEvents> implements ObjectiveData {
+  /** unique identifier for this objective */
+  public readonly id: string
   public readonly description: string
   public readonly goal: number
   public readonly name: string
@@ -34,6 +39,7 @@ export class Objective extends TypedEventEmitter<ObjectiveEvents> implements Obj
   constructor (objective: ObjectiveData) {
     super()
 
+    this.id = objective.id
     this.description = objective.description
     this.goal = objective.goal
     this.name = objective.name
@@ -42,12 +48,24 @@ export class Objective extends TypedEventEmitter<ObjectiveEvents> implements Obj
     this.type = objective.type
   }
 
-  /** advances the objective by one */
+  /** advances the objective by one, and emits appropriate events for progress and completion */
   public advance () {
-    this._progress++
-    this.emit('progress', this._progress, this)
+    if (!this.complete) {
+      this._progress++
+      this.emit('progress', this._progress, this)
+    }
+
+    if (this.complete) {
+      this.emit('complete', this)
+    }
   }
 
+  /** returns true if this objective has been completed */
+  public get complete (): boolean {
+    return this._progress >= this.goal
+  }
+
+  /** the current progress towards the objective's goal */
   public get progress () {
     return this._progress
   }
