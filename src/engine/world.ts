@@ -116,6 +116,21 @@ export class World extends TypedEventEmitter<WorldEvents> {
         this.logMessage(`You see ${itemNames[0]} and ${itemNames[1]} here.`)
       } else if (itemNames.length === 1) {
         this.logMessage(`You see a ${itemNames[0]} here.`)
+
+        this.emit('narration', [
+          {
+            speaker: 'A voice',
+            message: 'Ah, treasure.',
+          },
+          {
+            speaker: 'A voice',
+            message: 'Go ahead. Take it.',
+          },
+          {
+            speaker: 'A voice',
+            message: "Those beasts don't need it.",
+          },
+        ])
       }
     })
   }
