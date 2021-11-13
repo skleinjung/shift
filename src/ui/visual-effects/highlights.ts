@@ -93,16 +93,18 @@ export class FlashHighlight extends AbstractHighlight {
 export const missed = () => new FlashHighlight(
   {
     background: 0xffffff,
+    color: 0x333333,
     symbol: ' ',
   },
-  200,
   100,
-  100
+  100,
+  0
 )
 
 export const damaged = () => new FlashHighlight(
   {
     background: 0xff0000,
+    symbol: ' ',
   },
   300,
   50,
