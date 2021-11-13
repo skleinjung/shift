@@ -39,6 +39,11 @@ export class ExpeditionMap {
     return this._getCell(x, y) ?? DefaultCell
   }
 
+  /** Returns true if the (sparse) map has a cell at the given coordinates already. */
+  public hasCell (x: number, y: number): boolean {
+    return this._getCell(x, y) !== undefined
+  }
+
   /**
    * Determines if a creature can enter the cell with the specified coordinates. Will return true in
    * this case, or false if they cannot (i.e., the terrain is not traversable, the cell is occupied, etc.)
