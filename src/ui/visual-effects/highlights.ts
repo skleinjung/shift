@@ -55,58 +55,62 @@ export class NewSymbolHighlight extends AbstractHighlight {
 }
 
 export class FlashHighlight extends AbstractHighlight {
-  private _defaultIntervalInMs: number
+  private _symbol2IntervalInMs: number
 
-  /** whether we are showing the 'override' or 'default' symbol */
-  private _inOverride = true
+  /** whether we are showing the '_symbol1' or '_symbol2' symbol */
+  private _showSymbol1 = true
 
   /** the number of frames we have been in this state */
   private _since = 0
 
   constructor (
-    private _override: Partial<MapSymbol>,
     _durationInMs: number,
-    private _overrideIntervalInMs: number,
-    defaultIntervalInMs?: number
+    private _symbol1: Partial<MapSymbol>,
+    private _symbol1IntervalInMs: number,
+    private _symbol2?: Partial<MapSymbol>,
+    symbol2IntervalInMs?: number
   ) {
     super(_durationInMs)
 
-    this._defaultIntervalInMs = defaultIntervalInMs ?? this._overrideIntervalInMs
+    this._symbol2IntervalInMs = symbol2IntervalInMs ?? this._symbol1IntervalInMs
   }
 
   protected getOverride (elapsed: number) {
     this._since = this._since + elapsed
 
-    const maxTime = this._inOverride
-      ? this._overrideIntervalInMs
-      : this._defaultIntervalInMs
+    const maxTime = this._showSymbol1
+      ? this._symbol1IntervalInMs
+      : this._symbol2IntervalInMs
 
     if (this._since > maxTime) {
       this._since -= maxTime
-      this._inOverride = !this._inOverride
+      this._showSymbol1 = !this._showSymbol1
     }
 
-    return this._inOverride ? this._override : {}
+    return this._showSymbol1 ? this._symbol1 : (this._symbol2 ?? {})
   }
 }
 
 export const missed = () => new FlashHighlight(
+  100,
   {
     background: 0xffffff,
     color: 0x333333,
-    symbol: ' ',
   },
   100,
-  100,
+  {},
   0
 )
 
-export const damaged = () => new FlashHighlight(
-  {
-    background: 0xff0000,
-    symbol: ' ',
-  },
+export const damaged = (symbol: string) => new FlashHighlight(
   300,
+  {
+    color: 0xff0000,
+    symbol,
+  },
   50,
+  {
+    symbol,
+  },
   100
 )
