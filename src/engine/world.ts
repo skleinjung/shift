@@ -22,8 +22,11 @@ export class World extends TypedEventEmitter<WorldEvents> implements Updateable 
   public readonly dungeon: Dungeon
   public readonly map = new ExpeditionMap()
 
-  // if true, we do not process updates
+  // if true, we do not process updates (the user has requested we wait)
   public paused = false
+
+  // another entity has asked us to wait until the specified timestamp (to run animations, for example)
+  private _deferUntil: number | undefined
 
   // all the world's creatures
   private _creatures: Creature[] = []
@@ -92,6 +95,14 @@ export class World extends TypedEventEmitter<WorldEvents> implements Updateable 
     return this._player
   }
 
+  /** Do not process updates until at least the specified in in ms has passed. */
+  public defer (timeInMs: number) {
+    const requestedTimestamp = Date.now() + timeInMs
+    if (this._deferUntil === undefined || requestedTimestamp > this._deferUntil) {
+      this._deferUntil = requestedTimestamp
+    }
+  }
+
   public update () {
     if (this.paused) {
       return
@@ -102,6 +113,17 @@ export class World extends TypedEventEmitter<WorldEvents> implements Updateable 
     let exit = true
 
     do {
+      // check if we are waiting for visual effects
+      if (this._deferUntil !== undefined && Date.now() < this._deferUntil) {
+        if (!stillWaiting) {
+          this.emit('update')
+        }
+
+        return
+      } else {
+        this._deferUntil = undefined
+      }
+
       exit = !this._turnStep()
 
       if (!exit) {
