@@ -65,6 +65,10 @@ export class World extends TypedEventEmitter<WorldEvents> implements Updateable 
     this.emit('message', message)
   }
 
+  public get creatures (): readonly Creature[] {
+    return this._creatures
+  }
+
   /**
    * Gets the creature with a specified ID. If there is no creature with that ID, will return undefined.
    */

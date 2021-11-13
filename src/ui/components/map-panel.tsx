@@ -1,6 +1,5 @@
 import { ShaderSystem } from '@pixi/core'
 import { install } from '@pixi/unsafe-eval'
-import { toSymbol } from 'engine/map/map-symbolizer'
 import { isArray, noop } from 'lodash/fp'
 import * as PIXI from 'pixi.js'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
@@ -8,6 +7,7 @@ import { useWorld } from 'ui/hooks/use-world'
 
 import { FontNames } from '../fonts'
 
+import { MapSceneGraph } from './map-scene-graph'
 import { Panel, PanelProps } from './panel'
 
 // Apply the patch to PIXI
@@ -16,11 +16,6 @@ install({ ShaderSystem })
 const CellFontSize = 28
 const CellHeight = 28
 const CellWidth = 28
-
-interface RenderCell {
-  background: PIXI.Graphics
-  symbol: PIXI.BitmapText
-}
 
 interface ViewportSize {
   /** width of the viewport, in grid cells */
@@ -36,41 +31,6 @@ export interface MapPanelProps extends Omit<PanelProps, 'columns' | 'rows'> {
 
   /** callback notified whenever the size of the viewport changes, with new dimensions in map cell coordinates */
   onViewportSizeChanged?: (width: number, height: number) => void
-}
-
-/**
- * Ensure that there are enough render cells created for a viewport with the given dimensions (in map coordinates,
- * not pixels). If the current cells array is smaller than the requested dimensions, new cells will be created and
- * added to the PIXI app as needed.
- *
- * TODO: remove cells that are no longer needed if the dimensions shrink
- */
-const initializeRenderCells = (app: PIXI.Application, cells: RenderCell[][], gridWidth: number, gridHeight: number) => {
-  const rectangle = new PIXI.Graphics()
-  rectangle.beginFill(0xffffff)
-  rectangle.drawRect(0, 0, CellWidth, CellHeight)
-
-  for (let y = 0; y < gridHeight; y++) {
-    if (cells[y] === undefined) {
-      cells[y] = []
-    }
-
-    for (let x = cells[y].length; x < gridWidth; x++) {
-      const background = new PIXI.Graphics(rectangle.geometry)
-      background.position.set(x * CellWidth, y * CellHeight)
-      app.stage.addChild(background)
-
-      const symbol = new PIXI.BitmapText(' ', { fontName: FontNames.Map })
-      symbol.anchor.set(0.5)
-      symbol.position.set(x * CellWidth + (CellWidth / 2), y * CellHeight + (CellHeight / 2) - 2)
-      app.stage.addChild(symbol)
-
-      cells[y][x] = {
-        background,
-        symbol,
-      }
-    }
-  }
 }
 
 const calculateViewportCenter = (
@@ -117,8 +77,7 @@ export const MapPanel = ({
   ...panelProps
 }: MapPanelProps) => {
   const world = useWorld()
-  const timeSinceScrollRef = useRef<number>(0)
-  const mapCellsRef = useRef<RenderCell[][]>([])
+  const sceneGraphRef = useRef<MapSceneGraph | undefined>()
 
   const resizeObserverRef = useRef<ResizeObserver | null>()
   const [viewportSize, setViewportSize] = useState<ViewportSize | undefined>()
@@ -155,31 +114,20 @@ export const MapPanel = ({
   // create PIXI objects for new cells if the viewport has expanded
   useEffect(() => {
     if (appRef.current !== null && viewportSize !== undefined) {
-      const cells = mapCellsRef.current
-      initializeRenderCells(appRef.current, cells, viewportSize.width, viewportSize.height)
       onViewportSizeChanged(viewportSize.width, viewportSize.height)
     }
   }, [onViewportSizeChanged, viewportSize])
 
   // update cell contents on every render
   useEffect(() => {
-    if (appRef.current !== null && viewportSize !== undefined) {
-      const cells = mapCellsRef.current
-
-      if (cells[0] !== undefined) {
-        for (let y = 0; y < cells.length; y++) {
-          for (let x = 0; x < cells[y].length; x++) {
-            const mapX = x + offsetXRef.current
-            const mapY = y + offsetYRef.current
-
-            const mapSymbol = toSymbol(world.map.getCell(mapX, mapY))
-            cells[y][x].background.tint = mapSymbol.background ?? 0
-            cells[y][x].symbol.text = mapSymbol.symbol
-            cells[y][x].symbol.tint = mapSymbol.color
-          }
-        }
-      }
-      timeSinceScrollRef.current -= (1000 / 100)
+    if (sceneGraphRef.current && viewportSize !== undefined) {
+      sceneGraphRef.current.update(
+        world,
+        offsetXRef.current,
+        offsetYRef.current,
+        viewportSize.width,
+        viewportSize.height
+      )
     }
   })
 
@@ -206,6 +154,7 @@ export const MapPanel = ({
       }
     )
 
+    sceneGraphRef.current = new MapSceneGraph(app, CellWidth, CellHeight)
     appRef.current = app
   }, [])
 
