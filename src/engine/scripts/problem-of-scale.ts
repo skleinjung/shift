@@ -4,16 +4,16 @@ export const ProblemOfScale: Script = {
   onObjectiveProgress: (progress, objective, context) => {
     if (objective.id === 'problem_of_scale') {
       if (progress === 1) {
-        context.showSpeech([
-          {
-            message: 'Yes, yes. Just like that.',
-            speaker: 'Wizardo',
-          },
-          {
-            message: 'Well? What are you waiting for? Kill the rest!',
-            speaker: 'Wizardo',
-          },
-        ])
+        // context.showSpeech([
+        //   {
+        //     message: 'Yes, yes. Just like that.',
+        //     speaker: 'Wizardo',
+        //   },
+        //   {
+        //     message: 'Well? What are you waiting for? Kill the rest!',
+        //     speaker: 'Wizardo',
+        //   },
+        // ])
       } else if (objective.complete) {
         context.showSpeech([
           {

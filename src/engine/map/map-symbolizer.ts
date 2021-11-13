@@ -1,3 +1,7 @@
+import { Creature } from 'engine/creature'
+import { Item } from 'engine/item'
+import { TerrainType } from 'engine/terrain-db'
+
 import { MapCell } from './map'
 import { MapSymbol } from './map-symbol'
 import { CreatureSymbols, ItemSymbols, TerrainSymbols } from './map-symbol-set'
@@ -15,6 +19,37 @@ export const withDefaultBackground = (cell: MapCell, entitySymbol: MapSymbol) =>
     ...entitySymbol,
     background: TerrainSymbols[cell.terrain.id]?.background ?? TerrainSymbols.default.background,
   }
+}
+
+export const getCreatureSymbol = (creature: Creature): MapSymbol => {
+  const creatureSymbol = CreatureSymbols[creature.type.id]
+  if (creatureSymbol === undefined) {
+    return CreatureSymbols.default
+  }
+
+  return creatureSymbol
+}
+
+export const getItemSymbol = (items: readonly Item[]): MapSymbol => {
+  if (items.length > 1) {
+    return ItemSymbols.multiple
+  } else if (items.length > 0) {
+    return ItemSymbols.default
+  }
+
+  return {
+    color: 0x0,
+    symbol: ' ',
+  }
+}
+
+export const getTerrainSymbol = (terrain: TerrainType): MapSymbol => {
+  const terrainSymbol = TerrainSymbols[terrain.id]
+  if (terrainSymbol !== undefined) {
+    return terrainSymbol
+  }
+
+  return TerrainSymbols.default
 }
 
 /** Gets the symbol for any entity in the map cell, or undefined if none. */
