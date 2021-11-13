@@ -148,7 +148,7 @@ export class MapSceneGraph {
 
     const map = world.map
 
-    for (let cellY = xOffset; cellY < yOffset + viewHeight; cellY++) {
+    for (let cellY = yOffset; cellY < yOffset + viewHeight; cellY++) {
       for (let cellX = xOffset; cellX < xOffset + viewWidth; cellX++) {
         if (this._mapCellTiles[cellY] === undefined) {
           this._mapCellTiles[cellY] = []
