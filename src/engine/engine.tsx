@@ -35,7 +35,13 @@ export interface ScriptContext {
  * handlers that are called by the engine whenever the relevant event occurs.
  */
 export interface Script {
-  onObjectiveProgress: (progress: number, objective: Objective, context: ScriptContext) => void
+  /** called when the script is first loaded into a new world */
+  initialize?: (context: ScriptContext) => void
+
+  onObjectiveProgress?: (progress: number, objective: Objective, context: ScriptContext) => void
+
+  /** called for each game update performed by the main loop */
+  onUpdate?: (context: ScriptContext) => void
 }
 
 /** The engine is responsible for triggering speech, scripted events, updating quests, etc. */
@@ -61,12 +67,16 @@ export class Engine extends TypedEventEmitter<EngineEvents> implements ScriptCon
 
     this._objectiveTracker.on('objectiveProgress', (progress, objective) => {
       forEach((script) => {
-        script.onObjectiveProgress(progress, objective, this)
+        script.onObjectiveProgress?.(progress, objective, this)
       }, this._campaign.scripts)
     })
 
     this._world = this._campaign.createNextWorld()
     this.attach(this._world)
+
+    forEach((script) => {
+      script.initialize?.(this)
+    }, this._campaign.scripts)
   }
 
   public get world () {
@@ -96,7 +106,9 @@ export class Engine extends TypedEventEmitter<EngineEvents> implements ScriptCon
   }
 
   public update () {
-    // no nothing currently
+    forEach((script) => {
+      script.onUpdate?.(this)
+    }, this._campaign.scripts)
   }
 
   public showSpeech (speech: Speech[]) {
