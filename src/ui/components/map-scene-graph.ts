@@ -3,15 +3,19 @@ import { MapCell } from 'engine/map/map'
 import { MapSymbol } from 'engine/map/map-symbol'
 import { getCreatureSymbol, getItemSymbol, getTerrainSymbol, withDefaultBackground } from 'engine/map/map-symbolizer'
 import { World } from 'engine/world'
+import { compact } from 'lodash/fp'
 import * as PIXI from 'pixi.js'
 import { FontNames } from 'ui/fonts'
+import { damaged, HighlightEffect, missed } from 'ui/visual-effects/highlights'
 
 abstract class AbstractTile {
-  protected container: PIXI.Container
   protected background: PIXI.Graphics
+  protected container: PIXI.Container
+  protected highlightEffect: HighlightEffect | undefined
   protected symbol: PIXI.BitmapText
 
   constructor (
+    protected world: World,
     protected cellWidth: number,
     protected cellHeight: number
   ) {
@@ -34,6 +38,11 @@ abstract class AbstractTile {
     this.background.tint = symbol.background ?? 0x0
   }
 
+  public highlight (effect: HighlightEffect) {
+    this.world.defer(effect.duration)
+    this.highlightEffect = effect
+  }
+
   public addTo (container: PIXI.Container) {
     if (this.container.parent) {
       this.container.parent.removeChild(this.container)
@@ -45,39 +54,57 @@ abstract class AbstractTile {
   public setVisible (visible: boolean) {
     this.container.visible = visible
   }
+
+  protected applyHighlight (defaultSymbol: MapSymbol) {
+    if (this.highlightEffect?.complete) {
+      this.highlightEffect = undefined
+    }
+
+    if (this.highlightEffect !== undefined) {
+      const override = this.highlightEffect.getSymbol(defaultSymbol)
+      this.setMapSymbol(override)
+    }
+  }
 }
 
 class CreatureTile extends AbstractTile {
   constructor (
+    world: World,
     private _creature: Creature,
     cellWidth: number,
     cellHeight: number
   ) {
-    super(cellWidth, cellHeight)
+    super(world, cellWidth, cellHeight)
     this.update()
+
+    this._creature.on('defend', () => {
+      this.highlight(missed())
+    })
+    this._creature.on('damaged', () => {
+      this.highlight(damaged())
+    })
   }
 
   public update () {
-    this.setMapSymbol(getCreatureSymbol(this._creature))
+    const symbol = getCreatureSymbol(this._creature)
+    this.setMapSymbol(symbol)
+    this.applyHighlight(symbol)
+
     this.container.position.set(this._creature.x * this.cellWidth, this._creature.y * this.cellHeight)
-
-    this.setVisible(!this._creature.dead)
-
-    if (this._creature.dead) {
-      this.symbol.text = '!'
-    }
+    this.setVisible(!this._creature.dead || this.highlightEffect !== undefined)
   }
 }
 
 class MapCellTile extends AbstractTile {
   constructor (
+    world: World,
     private _x: number,
     private _y: number,
     private _cell: MapCell,
     cellWidth: number,
     cellHeight: number
   ) {
-    super(cellWidth, cellHeight)
+    super(world, cellWidth, cellHeight)
     this.update()
   }
 
@@ -116,7 +143,7 @@ export class MapSceneGraph {
   /**
    * Update all creature tiles, and map cell tiles inside the specified rectangle
    */
-  public update (world: World, xOffset: number, yOffset: number, viewWidth: number, viewHeight: number) {
+  public onWorldUpdate (world: World, xOffset: number, yOffset: number, viewWidth: number, viewHeight: number) {
     this.setOffset(xOffset, yOffset)
 
     const map = world.map
@@ -129,7 +156,14 @@ export class MapSceneGraph {
 
         if (this._mapCellTiles[cellY][cellX] === undefined) {
           const cell = map.getCell(cellX, cellY)
-          this._mapCellTiles[cellY][cellX] = new MapCellTile(cellX, cellY, cell, this._cellWidth, this._cellHeight)
+          this._mapCellTiles[cellY][cellX] = new MapCellTile(
+            world,
+            cellX,
+            cellY,
+            cell,
+            this._cellWidth,
+            this._cellHeight
+          )
           this._mapCellTiles[cellY][cellX].addTo(this._root)
         } else {
           this._mapCellTiles[cellY][cellX].update()
@@ -140,16 +174,23 @@ export class MapSceneGraph {
     // create any missing tiles
     for (const creature of world.creatures) {
       if (this._creatureTiles[creature.id] === undefined) {
-        this._creatureTiles[creature.id] = new CreatureTile(creature, this._cellWidth, this._cellHeight)
+        this._creatureTiles[creature.id] = new CreatureTile(world, creature, this._cellWidth, this._cellHeight)
         this._creatureTiles[creature.id].addTo(this._root)
       }
     }
 
     // update the creature tiles
-    for (const tile of this._creatureTiles) {
-      if (tile) {
-        tile.update()
-      }
+    for (const tile of compact(this._creatureTiles)) {
+      tile.update()
+    }
+  }
+
+  /**
+   * Perform strictly visual-only effect updates for creatures, during a PIXI ticker callback.
+   */
+  public update (_elapsedFrames: number) {
+    for (const tile of compact(this._creatureTiles)) {
+      tile.update()
     }
   }
 }

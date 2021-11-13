@@ -118,10 +118,10 @@ export const MapPanel = ({
     }
   }, [onViewportSizeChanged, viewportSize])
 
-  // update cell contents on every render
+  // update cell contents on every render (when the world changes)
   useEffect(() => {
     if (sceneGraphRef.current && viewportSize !== undefined) {
-      sceneGraphRef.current.update(
+      sceneGraphRef.current.onWorldUpdate(
         world,
         offsetXRef.current,
         offsetYRef.current,
@@ -155,6 +155,12 @@ export const MapPanel = ({
     )
 
     sceneGraphRef.current = new MapSceneGraph(app, CellWidth, CellHeight)
+    app.ticker.add((delta) => {
+      if (sceneGraphRef.current) {
+        sceneGraphRef.current.update(delta)
+      }
+    })
+
     appRef.current = app
   }, [])
 
