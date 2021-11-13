@@ -65,7 +65,7 @@ export class Engine extends TypedEventEmitter<EngineEvents> implements ScriptCon
       }, this._campaign.scripts)
     })
 
-    this._world = new World()
+    this._world = this._campaign.createNextWorld()
     this.attach(this._world)
   }
 

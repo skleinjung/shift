@@ -5,7 +5,6 @@ import { TypedEventEmitter } from 'typed-event-emitter'
 import { getResultMessage } from './actions/result-handler'
 import { AttackResult } from './combat'
 import { Creature } from './creature'
-import { createDungeon } from './dungeon/create-dungeon-v1'
 import { Dungeon } from './dungeon/dungeon'
 import { WorldEvents } from './events'
 import { ExpeditionMap } from './map/map'
@@ -19,8 +18,7 @@ import { Updateable } from './types'
  * will be checked periodically, and once they provide an action the loop will resume.
  */
 export class World extends TypedEventEmitter<WorldEvents> implements Updateable {
-  public readonly dungeon: Dungeon
-  public readonly map = new ExpeditionMap()
+  public readonly map: ExpeditionMap
 
   // if true, we do not process updates (the user has requested we wait)
   public paused = false
@@ -39,23 +37,19 @@ export class World extends TypedEventEmitter<WorldEvents> implements Updateable 
 
   private _player: Player
 
-  constructor () {
+  constructor (
+    public readonly dungeon: Dungeon
+  ) {
     super()
+
+    this.map = dungeon.createMap()
 
     this._player = new Player()
     this._initializePlayer()
 
-    const dungeon = createDungeon()
-    dungeon.createTerrain(this.map)
     forEach((creature) => {
       this._registerCreature(creature)
     }, dungeon.creatures)
-
-    forEach((treasure) => {
-      this.map.getCell(treasure.x, treasure.y).addItem(treasure.item)
-    }, dungeon.treasure)
-
-    this.dungeon = dungeon
 
     this.logMessage('Expedition started.')
   }
@@ -140,6 +134,7 @@ export class World extends TypedEventEmitter<WorldEvents> implements Updateable 
 
   private _initializePlayer () {
     this._registerCreature(this._player)
+    this.map.setCreature(this._player.x, this._player.y, this._player)
 
     this._player.on('move', (x, y) => {
       const itemNames = map(get('name'), this.map.getItems(x, y))
@@ -175,18 +170,10 @@ export class World extends TypedEventEmitter<WorldEvents> implements Updateable 
 
   /**
    * Registers a newly created creature with the world. This includes adding it to the creature list,
-   * adding to the map, and registering any event listeners.
+   * and registering any event listeners.
    */
   private _registerCreature (creature: Creature) {
-    if (creature.type.id !== 'player' && this.map.getCreature(creature.x, creature.y) !== undefined) {
-      // if the cell is occupied, skip placing the creature unless it is the player
-      // this represents an error in the dungeon generator...
-      return
-    }
-
-    this.map.setCreature(creature.x, creature.y, creature)
     this._creatures.push(creature)
-
     creature.on('attack', this._logAttack.bind(this))
   }
 

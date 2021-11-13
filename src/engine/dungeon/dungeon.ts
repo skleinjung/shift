@@ -44,12 +44,6 @@ export class Dungeon implements DungeonGeography {
     return this.getRegions('tunnel')
   }
 
-  public createTerrain (map: ExpeditionMap) {
-    forEach((region) => {
-      region.createTerrain(map)
-    }, this.regions)
-  }
-
   /**
    * Returns true if the specified room would fit in this dungeon without overlapping any
    * other rooms. Overlapping a tunnel is allowed.
@@ -61,5 +55,27 @@ export class Dungeon implements DungeonGeography {
       (other) => region.overlaps(other, minDistance),
       this.regions
     )
+  }
+
+  public createMap (): ExpeditionMap {
+    const map = new ExpeditionMap()
+
+    this._createTerrain(map)
+
+    forEach((treasure) => {
+      map.getCell(treasure.x, treasure.y).addItem(treasure.item)
+    }, this.treasure)
+
+    forEach((creature) => {
+      map.setCreature(creature.x, creature.y, creature)
+    }, this.creatures)
+
+    return map
+  }
+
+  private _createTerrain (map: ExpeditionMap) {
+    forEach((region) => {
+      region.createTerrain(map)
+    }, this.regions)
   }
 }
