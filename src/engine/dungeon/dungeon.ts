@@ -10,23 +10,23 @@ export interface DungeonGeography {
   getRegions: (type: RegionTypeName) => Region[]
 
   /** Helper accessor to get all 'room' regions. */
-  rooms: Region[]
+  rooms: readonly Region[]
 
   /** Helper accessor to get all 'tunnel' regions. */
-  tunnels: Region[]
+  tunnels: readonly Region[]
 }
 
 export class Dungeon implements DungeonGeography {
   /**
    * set of creatures in this dungeon
    */
-  public readonly creatures: Creature[] = []
+  public creatures: Creature[] = []
 
-  public readonly treasure: { item: Item; x: number; y: number }[] = []
+  public treasure: { item: Item; x: number; y: number }[] = []
 
   constructor (
     /** set of regions in this dungeon */
-    public readonly regions: Region[]
+    public regions: Region[]
   ) { }
 
   /** Gets all regions of a specifie type */
@@ -35,12 +35,12 @@ export class Dungeon implements DungeonGeography {
   }
 
   /** Helper accessor to get all 'room' regions. */
-  public get rooms () {
+  public get rooms (): readonly Region[] {
     return this.getRegions('room')
   }
 
   /** Helper accessor to get all 'tunnel' regions. */
-  public get tunnels () {
+  public get tunnels (): readonly Region[] {
     return this.getRegions('tunnel')
   }
 
@@ -60,7 +60,7 @@ export class Dungeon implements DungeonGeography {
   public createMap (): ExpeditionMap {
     const map = new ExpeditionMap()
 
-    this._createTerrain(map)
+    this.createTerrain(map)
 
     forEach((treasure) => {
       map.getCell(treasure.x, treasure.y).addItem(treasure.item)
@@ -73,7 +73,7 @@ export class Dungeon implements DungeonGeography {
     return map
   }
 
-  private _createTerrain (map: ExpeditionMap) {
+  public createTerrain (map: ExpeditionMap) {
     forEach((region) => {
       region.createTerrain(map)
     }, this.regions)
