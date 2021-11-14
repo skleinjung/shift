@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import { CreatureTypeId } from '../creature-db'
 import { TerrainTypeId } from '../terrain-db'
 
@@ -62,6 +63,11 @@ export const TerrainSymbols: { [k in TerrainTypeId]: MapSymbol } = {
     color: 0,
     symbol: ' ',
   },
+  brambles: {
+    background: 0x559900,
+    color: 0x553300,
+    symbol: '+',
+  },
   door: {
     background: 0x111111,
     color: 0x555555,
@@ -72,7 +78,37 @@ export const TerrainSymbols: { [k in TerrainTypeId]: MapSymbol } = {
     color: 0x222222,
     symbol: '.',
   },
+  heavy_brush: {
+    background: 0x002200,
+    color: 0x113300,
+    symbol: '#',
+  },
+  light_brush_1: {
+    background: 0x006600,
+    color: 0x339900,
+    symbol: '.',
+  },
+  light_brush_2: {
+    background: 0x006600,
+    color: 0x002200,
+    symbol: '\'',
+  },
+  light_brush_3: {
+    background: 0x115500,
+    color: 0x339900,
+    symbol: '`',
+  },
+  path: {
+    background: 0x555500,
+    color: 0x333300,
+    symbol: ':',
+  },
   water: {
+    background: 0x0000cc,
+    color: 0x0096ff,
+    symbol: '`',
+  },
+  water_shallow: {
     background: 0x0000cc,
     color: 0x0096ff,
     symbol: '`',

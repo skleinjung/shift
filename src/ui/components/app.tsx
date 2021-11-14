@@ -1,6 +1,7 @@
 import './app.css'
 
-import { useCallback, useState } from 'react'
+import { loadAll } from 'engine/assets'
+import { useCallback, useEffect, useState } from 'react'
 import { RecoilRoot } from 'recoil'
 
 import { loadFonts } from '../fonts'
@@ -13,8 +14,9 @@ export type ScreenName = 'dungeon' | 'expedition-ended' | 'title'
 function App () {
   const [ready, setReady] = useState(false)
   const [activeScreen, setActiveScreen] = useState<ScreenName>('title')
-
-  loadFonts().then(() => setReady(true))
+  useEffect(() => {
+    Promise.all([loadFonts(), loadAll()]).then(() => setReady(true))
+  }, [])
 
   const handleExit = useCallback(() => {
     (window as any).ipcRenderer.send('exit')

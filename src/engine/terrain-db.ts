@@ -14,6 +14,10 @@ const terrainTypeArray = [
     traversable: false,
   },
   {
+    id: 'brambles',
+    traversable: true,
+  },
+  {
     id: 'door',
     traversable: true,
   },
@@ -22,8 +26,32 @@ const terrainTypeArray = [
     traversable: true,
   },
   {
+    id: 'heavy_brush',
+    traversable: false,
+  },
+  {
+    id: 'light_brush_1',
+    traversable: true,
+  },
+  {
+    id: 'light_brush_2',
+    traversable: true,
+  },
+  {
+    id: 'light_brush_3',
+    traversable: true,
+  },
+  {
+    id: 'path',
+    traversable: true,
+  },
+  {
     id: 'water',
     traversable: false,
+  },
+  {
+    id: 'water_shallow',
+    traversable: true,
   },
   {
     id: 'wall',

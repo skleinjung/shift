@@ -1,7 +1,9 @@
 import { Objectives } from './data/objective-db'
+import { createForest } from './dungeon/create-forest'
 import { Script } from './engine'
 import { Objective } from './objective'
 import { ProblemOfScale } from './scripts/problem-of-scale'
+import { World } from './world'
 
 /**
  * The Campaign represents all game and player state that persists beyond a single expedition.
@@ -28,6 +30,11 @@ export class Campaign {
 
   public addScript (script: Script) {
     this._scripts.push(script)
+  }
+
+  public createNextWorld (): World {
+    const dungeon = createForest()
+    return new World(dungeon)
   }
 }
 

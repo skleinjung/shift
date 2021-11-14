@@ -2,7 +2,7 @@ import { random } from 'engine/random'
 import { tail } from 'lodash/fp'
 
 import { Dungeon } from './dungeon'
-import { Region } from './region'
+import { ForestClearing, ForestPath, Region } from './region'
 import { RoomSpawnTable } from './spawn-tables'
 import { generateRoomDimensions } from './utils'
 
@@ -92,7 +92,7 @@ const createRoom = (doorwayX: number, doorwayY: number, origin: Region, options:
     }
   }
 
-  return new Region({
+  return new ForestClearing({
     width,
     height,
     left: getLeft(),
@@ -167,12 +167,11 @@ const createDungeonRecursive = (
 
   const newRoom = createRoom(doorwayX, doorwayY, originRoom, options)
 
-  const newTunnel: Region = new Region({
+  const newTunnel: Region = new ForestPath({
     left: tunnelX1,
     top: tunnelY1,
     width: Math.abs(tunnelX2 - tunnelX1) + 1,
     height: Math.abs(tunnelY2 - tunnelY1) + 1,
-    type: 'tunnel',
   })
 
   return !dungeon.wouldFit(newRoom, options.minimumHallwayLength + 1)
@@ -182,7 +181,6 @@ const createDungeonRecursive = (
     ))
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const populate = (dungeon: Dungeon, _: CreateDungeonOptions) => {
   // populate every room except starting room
   for (const room of tail(dungeon.rooms)) {
@@ -194,69 +192,19 @@ const populate = (dungeon: Dungeon, _: CreateDungeonOptions) => {
   }
 }
 
-// const addMonsters = (dungeon: Dungeon, { monsterCountMaximum, monsterCountMinimum }: CreateDungeonOptions) => {
-//   const monsterCount = random(monsterCountMinimum, monsterCountMaximum)
-//   times(() => {
-//     const type = sample(MonsterTypeIds) ?? 'kobold'
-//     const rooms = dungeon.rooms
-//     const room = rooms[random(0, rooms.length - 1)]
-
-//     let loopCount = 0
-//     let x = 0
-//     let y = 0
-
-//     const spaceOccupied = (x: number, y: number) => {
-//       return find((monster) => monster.x === x && monster.y === y, dungeon.creatures) !== undefined
-//     }
-
-//     do {
-//       x = random(room.left, room.right)
-//       y = random(room.top, room.bottom)
-//     } while (spaceOccupied(x, y) && loopCount++ < 50)
-
-//     if (!spaceOccupied(x, y)) {
-//       dungeon.creatures.push({ type, x, y })
-//     }
-//   }, monsterCount)
-// }
-
-// const addTreasure = (
-//   dungeon: Dungeon,
-//   { treasureCountMaximum, treasureCountMinimum }: CreateDungeonOptions
-// ) => {
-//   const treasureCount = random(treasureCountMinimum, treasureCountMaximum)
-//   times(() => {
-//     const rooms = dungeon.rooms
-//     const room = rooms[random(0, rooms.length - 1)]
-
-//     const templates = TreasureTable.collect()
-//     const items = map((template) => template.create(), templates)
-
-//     const x = random(room.left, room.right)
-//     const y = random(room.top, room.bottom)
-
-//     forEach((item) => {
-//       dungeon.treasure.push({ item, x, y })
-//     }, items)
-//   }, treasureCount)
-// }
-
 export const createDungeon = (options: Partial<CreateDungeonOptions> = {}) => {
   const optionsWithDefaults = withDefaults(options)
 
   const { width, height } = generateRoomDimensions(optionsWithDefaults)
 
   const dungeon = createDungeonRecursive(0, optionsWithDefaults, new Dungeon(
-    [new Region({
+    [new ForestClearing({
       left: Math.floor(-(width - 1) / 2),
       top: Math.floor(-(height - 1) / 2),
       width,
       height,
     })]
   ))
-
-  // addMonsters(dungeon, optionsWithDefaults)
-  // addTreasure(dungeon, optionsWithDefaults)
 
   populate(dungeon, optionsWithDefaults)
 
