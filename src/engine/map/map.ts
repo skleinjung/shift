@@ -30,13 +30,23 @@ export class MapCell extends BasicContainer {
   }
 }
 
-const DefaultCell: MapCell = new MapCell(TerrainTypes.default)
-
 export class ExpeditionMap {
+  private _defaultTerrain = TerrainTypes.default
+  private _defaultCell: MapCell = new MapCell(TerrainTypes.default)
+
   private _cells: MapCell[][] = []
 
+  public get DefaultTerrain () {
+    return this._defaultTerrain
+  }
+
+  public set DefaultTerrain (terrain: TerrainType) {
+    this._defaultTerrain = terrain
+    this._defaultCell = new MapCell(this._defaultTerrain)
+  }
+
   public getCell (x: number, y: number): MapCell {
-    return this._getCell(x, y) ?? DefaultCell
+    return this._getCell(x, y) ?? this._defaultCell
   }
 
   /** Returns true if the (sparse) map has a cell at the given coordinates already. */
@@ -124,7 +134,7 @@ export class ExpeditionMap {
    * Gets the terrain type for the specified cell.
    */
   public getTerrain (x: number, y: number) {
-    return this._getCell(x, y)?.terrain ?? TerrainTypes.default
+    return this._getCell(x, y)?.terrain ?? this._defaultTerrain
   }
 
   /**
@@ -160,7 +170,7 @@ export class ExpeditionMap {
     }
 
     if (createIfMissing && this._cells[y][x] === undefined) {
-      this._cells[y][x] = new MapCell(TerrainTypes.default)
+      this._cells[y][x] = new MapCell(this._defaultTerrain)
     }
 
     return this._cells[y]?.[x]
