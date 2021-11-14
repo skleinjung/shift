@@ -1,4 +1,4 @@
-import { Campaign, DemoCampaign } from 'engine/campaign'
+import { Campaign } from 'engine/campaign'
 import { createContext } from 'react'
 
-export const CampaignContext = createContext<Campaign>(new DemoCampaign())
+export const CampaignContext = createContext<Campaign | undefined>(undefined)

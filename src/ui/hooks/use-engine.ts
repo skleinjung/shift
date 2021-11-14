@@ -7,5 +7,8 @@ export type WorldSelector<T extends any = any> = (world: World) => T
 /** Returns the current game engine state. */
 export const useEngine = () => {
   const engine = useContext(EngineContext)
+  if (engine === undefined) {
+    throw new Error('useCampaign called outside of an <EngineContext.Provider ...>')
+  }
   return engine
 }
