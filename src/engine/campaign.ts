@@ -1,5 +1,5 @@
 import { Objectives } from './data/objective-db'
-import { createForest } from './dungeon/create-forest'
+import { createDungeon } from './dungeon/create-dungeon-v1'
 import { Script } from './engine'
 import { Objective } from './objective'
 import { ProblemOfScale } from './scripts/problem-of-scale'
@@ -33,7 +33,7 @@ export class Campaign {
   }
 
   public createNextWorld (): World {
-    const dungeon = createForest()
+    const dungeon = createDungeon()
     return new World(dungeon)
   }
 }
