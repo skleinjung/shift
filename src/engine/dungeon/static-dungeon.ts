@@ -1,21 +1,25 @@
-import { getAsset } from 'engine/assets'
+import { getAsset, MapAsset } from 'engine/assets'
 import { ExpeditionMap } from 'engine/map/map'
 
 import { Dungeon } from './dungeon'
 
 export class StaticDungeon extends Dungeon {
+  private _map: MapAsset
+
   constructor (
-    private _mapAssetName: string,
-    private _xOffset = -50,
-    private _yOffset = -50
+    private _mapAssetName: string
   ) {
     super([])
+    this._map = getAsset(this._mapAssetName)
+  }
+
+  public getDefaultTerrain () {
+    return this._map.defaultTerrain
   }
 
   public createTerrain (map: ExpeditionMap) {
-    const mapData = getAsset(this._mapAssetName)
-    mapData.scan((x, y, terrain) => {
-      map.setTerrain(this._xOffset + x, this._yOffset + y, terrain)
+    this._map.scan((x, y, terrain) => {
+      map.setTerrain(this._map.offsetX + x, this._map.offsetY + y, terrain)
     })
   }
 }

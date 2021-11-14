@@ -1,6 +1,7 @@
 import { Creature } from 'engine/creature'
 import { Item } from 'engine/item'
 import { ExpeditionMap } from 'engine/map/map'
+import { TerrainTypes } from 'engine/terrain-db'
 import { filter, forEach, some } from 'lodash/fp'
 
 import { Region, RegionTypeName } from './region'
@@ -28,6 +29,10 @@ export class Dungeon implements DungeonGeography {
     /** set of regions in this dungeon */
     public regions: Region[]
   ) { }
+
+  public getDefaultTerrain () {
+    return TerrainTypes.default
+  }
 
   /** Gets all regions of a specifie type */
   public getRegions (type: RegionTypeName) {
@@ -59,6 +64,7 @@ export class Dungeon implements DungeonGeography {
 
   public createMap (): ExpeditionMap {
     const map = new ExpeditionMap()
+    map.DefaultTerrain = this.getDefaultTerrain()
 
     this.createTerrain(map)
 
