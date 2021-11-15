@@ -18,45 +18,45 @@ export interface ScriptApi {
    * Adds a creature to the game world at the specified coordinates. The ID of the newly added
    * creature is returned. Will fail if the space is occupied.
    */
-  addCreature: (type: CreatureTypeId, x: number, y: number) => number
+  addCreature (type: CreatureTypeId, x: number, y: number): number
 
   /**
    * Moves the specified creature to the new (x, y) location. Will fail if the new space is occupied
    * or the creature does not exist.
    */
-  moveCreature: (id: number, x: number, y: number) => void
+  moveCreature (id: number, x: number, y: number): void
 
   /**
    * Immediately removes the creature with the specified ID from the world. Will fail silently if there
    * is no creature with that ID.
    */
-  removeCreature: (id: number) => void
+  removeCreature (id: number): void
 
   /**
    * Puts an item in the map cell at the specified coordinates. The ID of the newly added
    * item is returned.
    */
-  addMapItem: (item: Item, x: number, y: number) => number
+  addMapItem (item: Item, x: number, y: number): number
 
   /**
    * Moves the specified item from the map cell currently containing it, to the new location. Will
    * fail if the item does not exist, or is in a container that is NOT a map cell. (i.e. this cannot
    * cause creatures to drop items.)
    */
-  moveMapItem: (id: number, x: number, y: number) => void
+  moveMapItem (id: number, x: number, y: number): void
 
   /**
    * Immediately removes the item with the specified ID from the map. Will fail silently if there
    * is no item with that ID. If the item exists, but is *not* on the ground in a map cell, this call
    * will generate a script error.
    */
-  removeMapItem: (id: number) => void
+  removeMapItem (id: number): void
 
   /**
    * Show the supplied speech content to the user.
    * TODO: determine when it's done, so scripts can do more...
    */
-  showSpeech: (speech: Speech[]) => void
+  showSpeech (speech: Speech[]): void
 }
 
 /**
@@ -64,7 +64,7 @@ export interface ScriptApi {
  * dialog, pan the map to interesting areas, etc. The script interface exposes a number of event
  * handlers that are called by the engine whenever the relevant event occurs.
  */
-export interface Script {
+export interface WorldScript {
   /** called when the script is first loaded into a new world */
   initialize?: (context: ScriptApi) => void
 
@@ -77,10 +77,8 @@ export interface Script {
 /** interface defining the functions that can be implemented by a creature-specific script */
 export interface CreatureScript {
   /** called when a creature is first created and associated with the script */
-  onCreate?: (context: ScriptApi) => void
+  onCreate?: (context: ScriptApi, creature: Creature) => void
 
   /** called when the creature moves */
-  onMove?: (context: ScriptApi, event: { x: number; y: number; oldX: number; oldY: number }) => void
+  onMove?: (context: ScriptApi, creature: Creature, event: { x: number; y: number; oldX: number; oldY: number }) => void
 }
-
-export type CreatureScriptFactory = (creature: Creature) => CreatureScript

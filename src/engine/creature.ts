@@ -74,6 +74,7 @@ export class Creature extends TypedEventEmitter<CreatureEvents> implements
   /** inventory of items held by this creature */
   public readonly inventory: Inventory
 
+  /** custom script for this creature */
   public readonly script: CreatureScript | undefined
 
   /** sensors that can be used by behaviors */
@@ -86,6 +87,9 @@ export class Creature extends TypedEventEmitter<CreatureEvents> implements
   // eslint-disable-next-line @typescript-eslint/naming-convention
   protected _behavior: Behavior
 
+  /** addiitonal properties that are read/written by scripts */
+  private _scriptData: Record<string, any> = {}
+
   constructor (
     private _type: CreatureType,
     private _x: number,
@@ -97,7 +101,7 @@ export class Creature extends TypedEventEmitter<CreatureEvents> implements
     this.inventory = new Inventory()
     this.speed = this._type.speed
     this._behavior = this._type.createBehavior()
-    this.script = this._type.script?.(this)
+    this.script = this._type.script
 
     const loot = this._type.lootTable?.collect() ?? []
     forEach((itemTemplate) => {
@@ -111,6 +115,30 @@ export class Creature extends TypedEventEmitter<CreatureEvents> implements
 
   public get behavior (): Behavior {
     return this._behavior
+  }
+
+  /// ////////////////////////////////////////////
+  // Scriptable data
+
+  /**
+   * Gets the script property with the given key from the creature. If the optional property is
+   * false, an error will be thrown if it does not exist.
+   */
+  public getScriptData <T = unknown>(key: string): T;
+  public getScriptData <T = unknown>(key: string, optional?: false): T;
+  public getScriptData <T = unknown>(key: string, optional: true): T | undefined
+  public getScriptData <T = unknown> (key: string, optional = false): T | undefined {
+    const data = this._scriptData[key]
+    if (!optional && data === undefined) {
+      throw new Error(`Required script data with key '${key} not found on creature ${this.id} (name=${this.name})`)
+    }
+
+    return data
+  }
+
+  /** Sets the script property with the specified key to the data value on the creature. */
+  public setScriptData <T = any> (key: string, data: T): void {
+    this._scriptData[key] = data
   }
 
   /// ////////////////////////////////////////////

@@ -1,6 +1,6 @@
-import { Script } from 'engine/script-api'
+import { WorldScript } from 'engine/script-api'
 
-export const ProblemOfScale: Script = {
+export const ProblemOfScale: WorldScript = {
   onObjectiveProgress: (progress, objective, context) => {
     if (objective.id === 'problem_of_scale') {
       if (progress === 1) {

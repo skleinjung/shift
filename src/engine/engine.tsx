@@ -192,6 +192,11 @@ export class Engine extends TypedEventEmitter<EngineEvents> implements Updateabl
   }
 
   private _handleCreatureSpawn (creature: Creature) {
-    creature.script?.onCreate?.(this._scriptApi)
+    creature.script?.onCreate?.(this._scriptApi, creature)
+
+    // manually forwarding all events will get cumbersome, consider automating
+    creature.on('move', (creature, x, y, oldX, oldY) => {
+      creature.script?.onMove?.(this._scriptApi, creature, { x, y, oldX, oldY })
+    })
   }
 }

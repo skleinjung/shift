@@ -2,7 +2,7 @@ import { Objectives } from './data/objective-db'
 import { createForest } from './dungeon/create-forest'
 import { Dungeon } from './dungeon/dungeon'
 import { Objective } from './objective'
-import { Script } from './script-api'
+import { WorldScript } from './script-api'
 import { ProblemOfScale } from './scripts/problem-of-scale'
 
 /**
@@ -13,7 +13,7 @@ export class Campaign {
   private _objectives: Objective[] = []
 
   /** script's active in this campaign */
-  private _scripts: Script[] = []
+  private _scripts: WorldScript[] = []
 
   /** Retrieves the player's active objectives */
   public get objectives (): readonly Objective[] {
@@ -24,11 +24,11 @@ export class Campaign {
     this._objectives.push(objective)
   }
 
-  public get scripts (): readonly Script[] {
+  public get scripts (): readonly WorldScript[] {
     return this._scripts
   }
 
-  public addScript (script: Script) {
+  public addScript (script: WorldScript) {
     this._scripts.push(script)
   }
 
