@@ -4,6 +4,7 @@ import { GameTimer } from 'engine/game-timer'
 import { ObjectiveTracker } from 'engine/objective-tracker'
 import { Updateable } from 'engine/types'
 import { World } from 'engine/world'
+import { stubTrue } from 'lodash'
 import { forEach } from 'lodash/fp'
 import { TypedEventEmitter } from 'typed-event-emitter'
 
@@ -11,7 +12,8 @@ import { Creature } from './creature'
 import { CreatureTypeId, CreatureTypes } from './creature-db'
 import { Item } from './item'
 import { MapCell } from './map/map'
-import { ScriptApi, Speech } from './script-api'
+import { random } from './random'
+import { MapTile, ScriptApi, Speech } from './script-api'
 
 class GameController implements ScriptApi {
   constructor (
@@ -24,8 +26,16 @@ class GameController implements ScriptApi {
     return this._world
   }
 
-  public addCreature (type: CreatureTypeId, x: number, y: number): number {
-    const creature = new Creature(CreatureTypes[type], x, y)
+  public get creatures (): readonly Creature[] {
+    return this._world.creatures
+  }
+
+  /** Adds a new creature to the world. It will emit any 'on-spawn' type of events. */
+  public addCreature (creatureOrType: Creature | CreatureTypeId, x = 0, y = 0): number {
+    const creature = creatureOrType instanceof Creature
+      ? creatureOrType
+      : new Creature(CreatureTypes[creatureOrType], x, y)
+
     this._world.addCreature(creature)
     return creature.id
   }
