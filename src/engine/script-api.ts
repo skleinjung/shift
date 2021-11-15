@@ -92,8 +92,11 @@ export interface WorldScript {
 
   onObjectiveProgress?: (progress: number, objective: Objective, context: ScriptApi) => void
 
-  /** called for each game update performed by the main loop */
-  onUpdate?: (api: ScriptApi) => void
+  /**
+   * Called once for each game turn -- that is, after each actor currently active in the game
+   * has had a chance to act.
+   **/
+  onTurn?: (api: ScriptApi) => void
 }
 
 /** interface defining the functions that can be implemented by a creature-specific script */

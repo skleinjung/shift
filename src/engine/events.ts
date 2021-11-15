@@ -17,6 +17,11 @@ export interface WorldEvents {
   message: (message: string) => void
 
   /**
+   * Emitted after all creatures have acted in a turn.
+   */
+  turn: () => void
+
+  /**
    * Emitted after the state is updated.
    */
   update: () => void

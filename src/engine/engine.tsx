@@ -134,6 +134,7 @@ export class Engine extends TypedEventEmitter<EngineEvents> implements Updateabl
 
   // world event handlers
   private _handleCreatureSpawnBinding = this._handleCreatureSpawn.bind(this)
+  private _handleTurnBinding = this._handleTurn.bind(this)
 
   constructor (
     private _campaign: Campaign
@@ -184,6 +185,7 @@ export class Engine extends TypedEventEmitter<EngineEvents> implements Updateabl
 
     // attach our listeners
     this._world.on('creatureSpawn', this._handleCreatureSpawnBinding)
+    this._world.on('turn', this._handleTurnBinding)
   }
 
   /** the engine never sleeps */
@@ -192,9 +194,7 @@ export class Engine extends TypedEventEmitter<EngineEvents> implements Updateabl
   }
 
   public update () {
-    forEach((script) => {
-      script.onUpdate?.(this._scriptApi)
-    }, this._campaign.scripts)
+    // noop
   }
 
   /** detaches the current world in preparation for a new one */
@@ -206,6 +206,12 @@ export class Engine extends TypedEventEmitter<EngineEvents> implements Updateabl
       // detach our listeners
       this._world.off('creatureSpawn', this._handleCreatureSpawnBinding)
     }
+  }
+
+  private _handleTurn () {
+    forEach((script) => {
+      script.onTurn?.(this._scriptApi)
+    }, this._campaign.scripts)
   }
 
   private _handleCreatureSpawn (creature: Creature) {

@@ -155,11 +155,7 @@ export class World extends TypedEventEmitter<WorldEvents> implements Updateable 
     do {
       // check if we are waiting for visual effects
       if (this._deferUntil !== undefined && Date.now() < this._deferUntil) {
-        if (!stillWaiting) {
-          this.emit('update')
-        }
-
-        return
+        break
       } else {
         this._deferUntil = undefined
       }
@@ -172,8 +168,13 @@ export class World extends TypedEventEmitter<WorldEvents> implements Updateable 
       }
     } while (!exit && this._nextActor !== 0)
 
-    // emit a final update at the end of the turn if we aren't waiting
     if (!stillWaiting) {
+      // if the next actor's index is zero, we looped through all creatures -- emit a turn event
+      if (this._nextActor === 0) {
+        this.emit('turn')
+      }
+
+      // emit a final update at the end of the loop if we aren't waiting
       this.emit('update')
     }
   }
