@@ -7,58 +7,124 @@ import { World } from 'engine/world'
 import { forEach } from 'lodash/fp'
 import { TypedEventEmitter } from 'typed-event-emitter'
 
-import { Objective } from './objective'
+import { Creature } from './creature'
+import { CreatureTypeId, CreatureTypes } from './creature-db'
+import { Item } from './item'
+import { MapCell } from './map/map'
+import { ScriptApi, Speech } from './script-api'
 
-/** A single piece of content that should be displayed during a dialog 'cutscene'. */
-export interface Speech {
-  /** the source (i.e. speaker, etc.) of the narration or dialog */
-  speaker: string
+class GameController implements ScriptApi {
+  constructor (
+    private _engine: Engine,
+    private _world: World
+  ) { }
 
-  /** the actual message (description, dialog, etc.) */
-  message: string
-}
+  /** @deprecated access to the world is being dropped soon */
+  public get world () {
+    return this._world
+  }
 
-export interface ScriptContext {
-  /** gets the world associated with the current expedition */
-  world: World
+  public addCreature (type: CreatureTypeId, x: number, y: number): number {
+    const creature = new Creature(CreatureTypes[type], x, y)
+    this._world.addCreature(creature)
+    return creature.id
+  }
 
-  /**
-   * Show the supplied speech content to the user.
-   * TODO: determine when it's done, so scripts can do more...
-   */
-  showSpeech: (speech: Speech[]) => void
-}
+  /** todo: lots of duplication with MoveToAction */
+  public moveCreature (id: number, x: number, y: number): void {
+    const creature = this._world.getCreature(id)
+    if (creature === undefined) {
+      throw new Error(`Cannot move creature with id "${id}: the creature was not found`)
+    }
 
-/**
- * A script is a piece of automation that can be inserted into the normal game flow, to display
- * dialog, pan the map to interesting areas, etc. The script interface exposes a number of event
- * handlers that are called by the engine whenever the relevant event occurs.
- */
-export interface Script {
-  /** called when the script is first loaded into a new world */
-  initialize?: (context: ScriptContext) => void
+    if (this._world.map.getCreature(x, y) !== undefined) {
+      throw new Error(`Cannot move creature to (${x}, ${y}): the cell is occupied`)
+    }
 
-  onObjectiveProgress?: (progress: number, objective: Objective, context: ScriptContext) => void
+    const oldX = creature.x
+    const oldY = creature.y
 
-  /** called for each game update performed by the main loop */
-  onUpdate?: (context: ScriptContext) => void
+    // check if we can move there
+    if (!this._world.map.isTraversable(x, y)) {
+      throw new Error(`Cannot move creature to (${x}, ${y}): the cell is not traversable`)
+    }
+
+    // remove entity from old cell
+    if (this._world.map.getCreature(oldX, oldY) === creature) {
+      this._world.map.setCreature(oldX, oldY, undefined)
+    }
+
+    // place creature in new cell
+    this._world.map.setCreature(x, y, creature)
+
+    creature.moveTo(x, y)
+  }
+
+  public removeCreature (id: number): void {
+    const creature = this._world.getCreature(id)
+    if (creature !== undefined) {
+      this._world.removeCreature(creature)
+    }
+  }
+
+  public addMapItem (item: Item, x: number, y: number): number {
+    this._world.addItemToMap(item, x, y)
+    return item.id
+  }
+
+  public moveMapItem (id: number, x: number, y: number): void {
+    const item = this._world.getItem(id)
+    if (item === undefined) {
+      throw new Error(`Cannot move item with id "${id}: the item was not found`)
+    }
+
+    if (item?.container !== undefined && !(item.container instanceof MapCell)) {
+      throw new Error(`Cannot move map item with id ${id}: it is in a container, and not in a map cell`)
+    }
+
+    this._world.map.addItem(x, y, item)
+  }
+
+  public removeMapItem (id: number): void {
+    const item = this._world.getItem(id)
+    if (item !== undefined) {
+      if (item?.container !== undefined && !(item.container instanceof MapCell)) {
+        throw new Error(`Cannot remove map item with id ${id}: it is in a container, and not in a map cell`)
+      }
+
+      this._world.removeItem(item)
+    }
+  }
+
+  public showSpeech (speech: Speech[]): void {
+    this._engine.emit('speech', speech)
+  }
 }
 
 /** The engine is responsible for triggering speech, scripted events, updating quests, etc. */
-export class Engine extends TypedEventEmitter<EngineEvents> implements ScriptContext, Updateable {
+export class Engine extends TypedEventEmitter<EngineEvents> implements Updateable {
   // game timer
   private _timer = new GameTimer()
 
   // the currently attached world
   private _world: World
 
+  // script controller, that facilitates communicate between scripts, the UI, and the world
+  private _scriptApi: ScriptApi
+
   /** objective tracker listens to world events, and updates campaign objectives */
   private _objectiveTracker = new ObjectiveTracker()
+
+  // world event handlers
+  private _handleCreatureSpawnBinding = this._handleCreatureSpawn.bind(this)
 
   constructor (
     private _campaign: Campaign
   ) {
     super()
+
+    this._world = new World()
+    this._scriptApi = new GameController(this, this._world)
 
     this._timer.addUpdateable(this)
     forEach((objective) => {
@@ -67,15 +133,15 @@ export class Engine extends TypedEventEmitter<EngineEvents> implements ScriptCon
 
     this._objectiveTracker.on('objectiveProgress', (progress, objective) => {
       forEach((script) => {
-        script.onObjectiveProgress?.(progress, objective, this)
+        script.onObjectiveProgress?.(progress, objective, this._scriptApi)
       }, this._campaign.scripts)
     })
 
-    this._world = this._campaign.createNextWorld()
     this.attach(this._world)
+    this._world.initializeFromDungeon(this._campaign.createNextDungeon())
 
     forEach((script) => {
-      script.initialize?.(this)
+      script.initialize?.(this._scriptApi)
     }, this._campaign.scripts)
   }
 
@@ -98,6 +164,9 @@ export class Engine extends TypedEventEmitter<EngineEvents> implements ScriptCon
 
     this._objectiveTracker.attach(world)
     this._timer.addUpdateable(world)
+
+    // attach our listeners
+    this._world.on('creatureSpawn', this._handleCreatureSpawnBinding)
   }
 
   /** the engine never sleeps */
@@ -107,12 +176,8 @@ export class Engine extends TypedEventEmitter<EngineEvents> implements ScriptCon
 
   public update () {
     forEach((script) => {
-      script.onUpdate?.(this)
+      script.onUpdate?.(this._scriptApi)
     }, this._campaign.scripts)
-  }
-
-  public showSpeech (speech: Speech[]) {
-    this.emit('speech', speech)
   }
 
   /** detaches the current world in preparation for a new one */
@@ -120,6 +185,13 @@ export class Engine extends TypedEventEmitter<EngineEvents> implements ScriptCon
     if (this._world !== undefined) {
       this._timer.removeUpdateable(this._world)
       this._objectiveTracker.detach()
+
+      // detach our listeners
+      this._world.off('creatureSpawn', this._handleCreatureSpawnBinding)
     }
+  }
+
+  private _handleCreatureSpawn (creature: Creature) {
+    creature.script?.onCreate?.(this._scriptApi)
   }
 }

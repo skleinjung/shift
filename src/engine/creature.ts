@@ -15,6 +15,7 @@ import { CreatureType } from './creature-db'
 import { CreatureEvents } from './events'
 import { EquipmentSet, EquipmentSlot, EquipmentSlots, Item } from './item'
 import { newId } from './new-id'
+import { CreatureScript } from './script-api'
 import { createSensors } from './sensors/create-sensors'
 import { Actor, Behavior, Combatant, Damageable, EventSource, Moveable } from './types'
 import { World } from './world'
@@ -73,6 +74,8 @@ export class Creature extends TypedEventEmitter<CreatureEvents> implements
   /** inventory of items held by this creature */
   public readonly inventory: Inventory
 
+  public readonly script: CreatureScript | undefined
+
   /** sensors that can be used by behaviors */
   public readonly sensors = createSensors(this)
 
@@ -94,6 +97,7 @@ export class Creature extends TypedEventEmitter<CreatureEvents> implements
     this.inventory = new Inventory()
     this.speed = this._type.speed
     this._behavior = this._type.createBehavior()
+    this.script = this._type.script?.(this)
 
     const loot = this._type.lootTable?.collect() ?? []
     forEach((itemTemplate) => {
@@ -310,9 +314,12 @@ export class Creature extends TypedEventEmitter<CreatureEvents> implements
    * Move the creature to the specified location.
    */
   public moveTo (x: number, y: number) {
+    const oldX = this._x
+    const oldY = this._y
+
     this._x = x
     this._y = y
-    this.emit('move', x, y, this)
+    this.emit('move', this, x, y, oldX, oldY)
   }
 
   private _getModifiedAttribute (baseValue: number, modifierName: CreatureAttributeModifierMethodName) {

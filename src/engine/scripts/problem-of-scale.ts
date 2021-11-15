@@ -1,4 +1,4 @@
-import { Script } from 'engine/engine'
+import { Script } from 'engine/script-api'
 
 export const ProblemOfScale: Script = {
   onObjectiveProgress: (progress, objective, context) => {

@@ -1,12 +1,15 @@
 import { Attack, AttackResult } from './combat'
 import { Creature } from './creature'
-import { Speech } from './engine'
 import { Objective } from './objective'
+import { Speech } from './script-api'
 import { Entity } from './types'
 
 export interface WorldEvents {
   /** Emitted when any creature is killed */
   creatureDeath: (creature: Creature) => void
+
+  /** emitted when any creature is created */
+  creatureSpawn: (creature: Creature) => void
 
   /**
    * Emitted whenever a log message with meaningful content for the player has been generated.
@@ -38,7 +41,7 @@ export interface CreatureEvents {
   defend: (result: Attack, creature: Creature) => void
 
   /** Emitted when a positionable's map location changes. */
-  move: (x: number, y: number, creature: Creature) => void
+  move: (creature: Creature, x: number, y: number, oldX: number, oldY: number) => void
 }
 
 export interface ObjectiveEvents {

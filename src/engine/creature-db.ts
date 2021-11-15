@@ -9,6 +9,7 @@ import { retaliate } from './behaviors/retaliate'
 import { wanderBetweenRooms } from './behaviors/wander-between-rooms'
 import { MonsterLootTables } from './data/loot-tables'
 import { ItemTemplate } from './item-db'
+import { CreatureScriptFactory } from './script-api'
 import { Generator } from './spawnable'
 
 export type CreatureType = Readonly<{
@@ -32,6 +33,9 @@ export type CreatureType = Readonly<{
 
   /** name of this creature type */
   name: string
+
+  /** the script for this creature type, if any */
+  script?: CreatureScriptFactory
 
   /** rate at which a creature acts; 100 == one move or standard attack per turn */
   speed: number
