@@ -10,6 +10,7 @@ import { wanderBetweenRooms } from './behaviors/wander-between-rooms'
 import { MonsterLootTables } from './data/loot-tables'
 import { ItemTemplate } from './item-db'
 import { CreatureScriptFactory } from './script-api'
+import { dartLizard } from './scripts/dart-lizard'
 import { Generator } from './spawnable'
 
 export type CreatureType = Readonly<{
@@ -46,6 +47,17 @@ const moveRandom20Percent = maybeIdle(MoveRandomlyBehavior(), 80)
 const wander100Percent = maybeIdle(wanderBetweenRooms(), 0)
 
 const creatureTypeArray = [
+  {
+    createBehavior: () => MoveRandomlyBehavior(),
+    defense: 0,
+    healthMax: 2,
+    id: 'dart_lizard',
+    lootTable: MonsterLootTables[1],
+    melee: 1,
+    name: 'Dart Lizard',
+    script: dartLizard,
+    speed: 100,
+  },
   {
     createBehavior: () => BehaviorChain(retaliate, attackPlayer, moveRandom100Percent),
     defense: 1,

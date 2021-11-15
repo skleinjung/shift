@@ -15,7 +15,7 @@ const getDestination = (): DestinationFunction => {
   let destinationCell: CellCoordinate | undefined
 
   return (creature: Creature, world: World, unreachable: boolean) => {
-    const rooms = world.dungeon.rooms
+    const rooms = world.dungeon?.rooms ?? []
     if (rooms.length < 1) {
       return undefined
     }
@@ -28,7 +28,7 @@ const getDestination = (): DestinationFunction => {
     }
 
     if (destinationRoom === undefined) {
-      destinationRoom = sample(world.dungeon.rooms)
+      destinationRoom = sample(rooms)
     }
     assert(destinationRoom !== undefined)
 
