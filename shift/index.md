@@ -25,6 +25,12 @@ Shift features retro ASCII graphics and procedurally generated content. It aband
 
 ## Development Log
 
+### Feature Recap: Items and Loot
+
+Today kicks off a series of updates on new features I've been adding. It starts with a [post showcasing the introduction of items and loot](./devlog/features-items-and-loot) to the game, including a change to the original design of how inventory management would work. [*11/13/2021*]
+
+[> Read More...](./devlog/features-items-and-loot)
+
 ### Introduction
 
 Our [development log's introductory post](./devlog/introduction) explores the project's motivation, planned gameplay elements for the December release, and the technologies that are being used.
