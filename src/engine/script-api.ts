@@ -22,7 +22,7 @@ export type MapTile = Readonly<Pick<MapCell,
 'y'
 >>
 
-export interface CreatureApi {
+export type CreatureApi = Readonly<{
   /**
    * Adds a creature to the game world at the specified coordinates. The ID of the newly added
    * creature is returned. Will fail if the space is occupied.
@@ -32,6 +32,9 @@ export interface CreatureApi {
 
   /** Read-only set of all creatures */
   creatures: readonly Creature[]
+
+  /** Retrieves the Creature corresponding to the player. */
+  player: Creature
 
   /**
    * Gets a random tile from the map. If tileFilter is provided, the returned tile will be one for which
@@ -50,10 +53,15 @@ export interface CreatureApi {
   * is no creature with that ID.
   */
   removeCreature (id: number): void
-}
+}>
 
 /** API exposed to scripts attached to creatures, items, etc. */
 export interface ScriptApi extends CreatureApi {
+  /**
+   * Retrieves the map tile at the given coordinates, or undefined if it is outside the existing map.
+   */
+  getMapTile (x: number, y: number): MapTile | undefined
+
   /**
    * Puts an item in the map cell at the specified coordinates. The ID of the newly added
    * item is returned.
@@ -73,6 +81,11 @@ export interface ScriptApi extends CreatureApi {
    * will generate a script error.
    */
   removeMapItem (id: number): void
+
+  /**
+   * Shows the specified message to the user, in the expedition log panel
+   */
+  showMessage (message: string): void
 
   /**
    * Show the supplied speech content to the user.

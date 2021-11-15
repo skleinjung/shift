@@ -30,6 +30,10 @@ class GameController implements ScriptApi {
     return this._world.creatures
   }
 
+  public get player (): Creature {
+    return this._world.player
+  }
+
   /** Adds a new creature to the world. It will emit any 'on-spawn' type of events. */
   public addCreature (creatureOrType: Creature | CreatureTypeId, x = 0, y = 0): number {
     const creature = creatureOrType instanceof Creature
@@ -84,6 +88,12 @@ class GameController implements ScriptApi {
     }
   }
 
+  public getMapTile (x: number, y: number): MapTile | undefined {
+    return this._world.map.hasCell(x, y)
+      ? this._world.map.getCell(x, y)
+      : undefined
+  }
+
   public addMapItem (item: Item, x: number, y: number): number {
     this._world.addItemToMap(item, x, y)
     return item.id
@@ -111,6 +121,10 @@ class GameController implements ScriptApi {
 
       this._world.removeItem(item)
     }
+  }
+
+  public showMessage (message: string): void {
+    this._engine.world.logMessage(message)
   }
 
   public showSpeech (speech: Speech[]): void {

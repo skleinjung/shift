@@ -3,7 +3,7 @@ import { createForest } from './dungeon/create-forest'
 import { Dungeon } from './dungeon/dungeon'
 import { Objective } from './objective'
 import { WorldScript } from './script-api'
-import { ProblemOfScale } from './scripts/problem-of-scale'
+import { dartLizard } from './scripts/dart-lizard'
 
 /**
  * The Campaign represents all game and player state that persists beyond a single expedition.
@@ -44,6 +44,6 @@ export class DemoCampaign extends Campaign {
     this.addObjective(new Objective(Objectives.problem_of_scale))
     this.addObjective(new Objective(Objectives.strange_blue_rock))
 
-    this.addScript(ProblemOfScale)
+    this.addScript(dartLizard)
   }
 }
