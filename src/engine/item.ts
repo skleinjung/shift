@@ -1,5 +1,6 @@
 import { find, findIndex } from 'lodash/fp'
 
+import { Container } from './container'
 import { CreatureAttributeModifiers } from './creature'
 import { get } from './item-interaction'
 import { drop, equip, unequip } from './item-inventory-action'
@@ -50,14 +51,17 @@ export interface ItemOptions {
 export class Item implements Entity {
   public readonly id = newId()
 
+  /** the container that holds this item, if any */
+  public container: Container | undefined
+
+  /** detailed description */
+  public readonly description: string | undefined
+
   /** the slots in which this item can be equipped, which may be an empty list */
   public readonly equipmentSlots: EquipmentSlot[]
 
   /** the effects of wearing this equipment, which may be undefined */
   public readonly equipmentEffects: EquipmentEffects | undefined
-
-  /** detailed description */
-  public readonly description: string | undefined
 
   /** name of this item */
   public readonly name: string
