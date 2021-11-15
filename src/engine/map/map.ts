@@ -2,6 +2,7 @@ import { BasicContainer } from 'engine/container'
 import { Creature } from 'engine/creature'
 import { Item } from 'engine/item'
 import { TerrainType, TerrainTypes } from 'engine/terrain-db'
+import { keys, stubTrue } from 'lodash'
 import { filter, findIndex } from 'lodash/fp'
 import { manhattanDistance } from 'math'
 
@@ -21,6 +22,10 @@ export interface PathFindingOptions {
 
 export class MapCell extends BasicContainer {
   constructor (
+    /** x coordinate of the cell */
+    public x: number,
+    /** y coordinate of the cell */
+    public y: number,
     /** type of terrain in this cell */
     public terrain: TerrainType,
     /** ID of the creature occupying this cell, if any */
@@ -32,7 +37,6 @@ export class MapCell extends BasicContainer {
 
 export class ExpeditionMap {
   private _defaultTerrain = TerrainTypes.default
-  private _defaultCell: MapCell = new MapCell(TerrainTypes.default)
 
   private _cells: MapCell[][] = []
 
@@ -42,16 +46,46 @@ export class ExpeditionMap {
 
   public set DefaultTerrain (terrain: TerrainType) {
     this._defaultTerrain = terrain
-    this._defaultCell = new MapCell(this._defaultTerrain)
   }
 
   public getCell (x: number, y: number): MapCell {
-    return this._getCell(x, y) ?? this._defaultCell
+    return this._getCell(x, y, true)
   }
 
   /** Returns true if the (sparse) map has a cell at the given coordinates already. */
   public hasCell (x: number, y: number): boolean {
     return this._getCell(x, y) !== undefined
+  }
+
+  /**
+   * Returns an array containing all of the map cells that have been populated (i.e., excluding the virtual
+   * "default" cells.) If the optional predicate is supplied, the list will be filtered to include only
+   * cells for which the predicate returns true.
+   */
+  public getCells (predicate: (cell: MapCell) => boolean = stubTrue): MapCell[] {
+    const results = []
+    for (const row of keys(this._cells)) {
+      const x = parseInt(row)
+
+      if (this._cells[x] === undefined) {
+        continue
+      }
+
+      for (const column of keys(this._cells[x])) {
+        const y = parseInt(column)
+
+        const cell = this._cells[x][y]
+        if (cell === undefined) {
+          continue
+        }
+
+        if (predicate(cell)) {
+          results.push(cell)
+        }
+      }
+    }
+
+    return results
   }
 
   /**
@@ -170,7 +204,7 @@ export class ExpeditionMap {
     }
 
     if (createIfMissing && this._cells[y][x] === undefined) {
-      this._cells[y][x] = new MapCell(this._defaultTerrain)
+      this._cells[y][x] = new MapCell(x, y, this._defaultTerrain)
     }
 
     return this._cells[y]?.[x]

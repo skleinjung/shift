@@ -30,6 +30,13 @@ class GameController implements ScriptApi {
     return creature.id
   }
 
+  public getRandomLocation (filter: (tile: MapTile) => boolean = stubTrue): MapTile | undefined {
+    const matchingCells = this._world.map.getCells(filter)
+    return matchingCells.length === 0
+      ? undefined
+      : matchingCells[random(0, matchingCells.length - 1)]
+  }
+
   /** todo: lots of duplication with MoveToAction */
   public moveCreature (id: number, x: number, y: number): void {
     const creature = this._world.getCreature(id)

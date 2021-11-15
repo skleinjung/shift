@@ -1,6 +1,7 @@
 import { Creature } from './creature'
 import { CreatureTypeId } from './creature-db'
 import { Item } from './item'
+import { MapCell } from './map/map'
 import { Objective } from './objective'
 
 /** A single piece of content that should be displayed during a dialog 'cutscene'. */
@@ -12,26 +13,47 @@ export interface Speech {
   message: string
 }
 
-/** API exposed to scripts attached to creatures, items, etc. */
-export interface ScriptApi {
+export type MapTile = Readonly<Pick<MapCell,
+'creature' |
+'containsItem' |
+'items' |
+'terrain'|
+'x' |
+'y'
+>>
+
+export interface CreatureApi {
   /**
    * Adds a creature to the game world at the specified coordinates. The ID of the newly added
    * creature is returned. Will fail if the space is occupied.
    */
   addCreature (type: CreatureTypeId, x: number, y: number): number
+  addCreature (creature: Creature): number
+
+  /** Read-only set of all creatures */
+  creatures: readonly Creature[]
 
   /**
-   * Moves the specified creature to the new (x, y) location. Will fail if the new space is occupied
-   * or the creature does not exist.
+   * Gets a random tile from the map. If tileFilter is provided, the returned tile will be one for which
+   * the filter function returns true. Returns the map tile for the location that was found.
    */
+  getRandomLocation (tileFilter?: (tile: MapTile) => boolean): MapTile | undefined
+
+  /**
+  * Moves the specified creature to the new (x, y) location. Will fail if the new space is occupied
+  * or the creature does not exist.
+  */
   moveCreature (id: number, x: number, y: number): void
 
   /**
-   * Immediately removes the creature with the specified ID from the world. Will fail silently if there
-   * is no creature with that ID.
-   */
+  * Immediately removes the creature with the specified ID from the world. Will fail silently if there
+  * is no creature with that ID.
+  */
   removeCreature (id: number): void
+}
 
+/** API exposed to scripts attached to creatures, items, etc. */
+export interface ScriptApi extends CreatureApi {
   /**
    * Puts an item in the map cell at the specified coordinates. The ID of the newly added
    * item is returned.
