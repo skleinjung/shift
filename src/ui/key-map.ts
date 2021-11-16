@@ -7,6 +7,7 @@ export interface KeyMap {
   MoveRight: string
   OpenInventory: string
   OpenObjectives: string
+  Wait: string
 }
 
 const KeyMaps = {
@@ -19,6 +20,7 @@ const KeyMaps = {
     MoveRight: 'f',
     OpenInventory: 'b',
     OpenObjectives: 'j',
+    Wait: ' ',
   },
   EveryoneElse: {
     Confirm: 'Enter',
@@ -29,6 +31,7 @@ const KeyMaps = {
     MoveRight: 'd',
     OpenInventory: 'i',
     OpenObjectives: 'j',
+    Wait: ' ',
   },
 }
 
