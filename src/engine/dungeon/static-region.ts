@@ -1,10 +1,10 @@
 import { MapAsset } from 'engine/assets'
 import { ExpeditionMap } from 'engine/map/map'
 
-import { Region } from './region'
+import { BasicRegion } from './region'
 
 /** Region of a dungeon that is loaded from a static map asset. */
-export class StaticRegion extends Region {
+export class StaticRegion extends BasicRegion {
   constructor (
     private _map: MapAsset
   ) {

@@ -4,7 +4,7 @@ import { ExpeditionMap } from 'engine/map/map'
 import { TerrainTypes } from 'engine/terrain-db'
 import { filter, forEach, some } from 'lodash/fp'
 
-import { Region, RegionTypeName } from './region'
+import { BasicRegion, Region, RegionTypeName } from './region'
 
 export interface DungeonGeography {
   /** Gets all regions of a specifie type */
@@ -52,7 +52,7 @@ export class Dungeon implements DungeonGeography {
    *
    * @param minDistance see Room#overlaps
    */
-  public wouldFit (region: Region, minDistance = 0): boolean {
+  public wouldFit (region: BasicRegion, minDistance = 0): boolean {
     return !some(
       (other) => region.overlaps(other, minDistance),
       this.regions

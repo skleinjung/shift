@@ -7,7 +7,8 @@ import { TerrainTypes } from 'engine/terrain-db'
 import { forEach, noop, times } from 'lodash/fp'
 
 import { Dungeon } from './dungeon'
-import { Region, TerrainTypeProvider } from './region'
+import { OrganicRegion } from './organic-region'
+import { BasicRegion, Region, TerrainTypeProvider } from './region'
 import { StaticRegion } from './static-region'
 import { generateRoomDimensions } from './utils'
 
@@ -39,7 +40,7 @@ export const randomCosts = ({
   }
 }
 
-class ForestPathRegion extends Region {
+class ForestPathRegion extends BasicRegion {
   constructor (
     private _region1: Region,
     private _region2: Region
@@ -90,9 +91,7 @@ class ForestPathRegion extends Region {
 
       const extendOne = (x: number, y: number) => {
         const extension = random(0, 99)
-        if (extension < 5) {
-          createPath(x, y)
-        } else if (extension < 75) {
+        if (extension < 75) {
           createClearedArea(x, y)
         }
       }
@@ -123,34 +122,24 @@ export const createForest = () => {
   const baseMap = new StaticRegion(getAsset('forest_base'))
 
   const clearings = times(() => {
-    const { width, height } = generateRoomDimensions({
-      maximumRoomArea: 456,
-      minimumRoomArea: 100,
-      roomIrregularity: 0.8,
-    })
+    const size = random(25, 125)
 
     // + 1 here, and -2 below, are so our walls don't go outside the intended bounds
-    const left = baseMap.left + random(0, baseMap.width - width) + 1
-    const top = baseMap.top + random(0, baseMap.height - height) + 1
+    const x = baseMap.left + random(0, baseMap.width) + 1
+    const y = baseMap.top + random(0, baseMap.height) + 1
 
-    return new Region({
-      left,
-      top,
-      width: width - 2,
-      height: height - 2,
-      type: 'room',
-      terrainTypes: ForestTerrainTypes,
-    })
-  }, 3)
+    return new OrganicRegion(x, y, size)
+  }, 20)
 
   const paths = times(() => {
     return new ForestPathRegion(
       clearings[random(0, clearings.length - 1)],
       clearings[random(0, clearings.length - 1)]
     )
-  }, 5)
+  }, 4)
+
   paths.push(new ForestPathRegion(
-    new Region({
+    new BasicRegion({
       left: 0,
       top: 0,
       width: 1,

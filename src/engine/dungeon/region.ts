@@ -27,6 +27,20 @@ const defaultTerrainTypes: TerrainTypeProvider = {
   wall: () => TerrainTypes.wall,
 }
 
+export interface Region {
+  left: number
+  top: number
+  right: number
+  bottom: number
+  width: number
+  height: number
+
+  /** the type of region */
+  type: RegionTypeName
+
+  createTerrain: (map: ExpeditionMap) => void
+}
+
 /**
  * A contiguous area of a dungeon with similar characteristics, such as a room or tunnel.
  *
@@ -36,7 +50,7 @@ const defaultTerrainTypes: TerrainTypeProvider = {
  * TODO: support regions without walls
  * TODO: add metadata, such as description/etc.
  */
-export class Region {
+export class BasicRegion implements Region {
   /** left extent of the region */
   public readonly left: number
   /** top extent of the region */
@@ -163,7 +177,7 @@ const ForestPathTerrainTypes: TerrainTypeProvider = {
   wall: () => TerrainTypes.heavy_brush,
 }
 
-export class ForestClearing extends Region {
+export class ForestClearing extends BasicRegion {
   constructor ({ left, top, width, height }: {
     left: number
     top: number
@@ -174,7 +188,7 @@ export class ForestClearing extends Region {
   }
 }
 
-export class ForestPath extends Region {
+export class ForestPath extends BasicRegion {
   constructor ({ left, top, width, height }: {
     left: number
     top: number
