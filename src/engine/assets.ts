@@ -66,7 +66,7 @@ const loadMap = async (config: MapImageConfig): Promise<MapAsset> => {
     const b = image.bitmap.data[index + 2]
     const color = (r << 16) | (g << 8) | b
 
-    return config.colorMap[color] ?? TerrainTypes.default
+    return config.colorMap[color]
   }
 
   const getTerrain = (x: number, y: number) => {

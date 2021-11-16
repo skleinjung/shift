@@ -15,7 +15,7 @@ export const ForestMapBase: MapImageConfig = {
   },
   defaultTerrain: TerrainTypes.heavy_brush,
   id: 'forest_base',
-  offsetX: -69,
+  offsetX: -70,
   offsetY: -99,
   source: forest,
 }

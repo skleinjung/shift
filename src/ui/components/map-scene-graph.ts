@@ -154,10 +154,6 @@ export class MapSceneGraph {
 
     for (let cellY = yOffset; cellY < yOffset + viewHeight; cellY++) {
       for (let cellX = xOffset; cellX < xOffset + viewWidth; cellX++) {
-        if (!map.hasCell(cellX, cellY)) {
-          continue
-        }
-
         if (this._mapCellTiles[cellY] === undefined) {
           this._mapCellTiles[cellY] = []
         }

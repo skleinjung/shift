@@ -108,13 +108,13 @@ export const TerrainSymbols: { [k in TerrainTypeId]: MapSymbol } = {
     symbol: ':',
   },
   water: {
-    background: 0x1434a4,
-    color: 0x0047AB,
-    symbol: '#',
+    background: 0x172c99,
+    color: 0x002244,
+    symbol: '~',
   },
   water_shallow: {
-    background: 0x40B5AD,
-    color: 0x9FE2BF,
+    background: 0x042fda,
+    color: 0x18a4a1,
     symbol: '~',
   },
   wall: {

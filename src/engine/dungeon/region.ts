@@ -120,22 +120,22 @@ export class Region {
 
     // create vertical walls
     for (let y = this.top - 1; y <= this.bottom + 1; y++) {
-      if (map.getTerrain(this.left - 1, y) === TerrainTypes.default) {
+      if (!map.hasCell(this.left - 1, y)) {
         map.setTerrain(this.left - 1, y, this.terrainTypes.wall())
       }
 
-      if (map.getTerrain(this.right + 1, y) === TerrainTypes.default) {
+      if (!map.hasCell(this.right + 1, y)) {
         map.setTerrain(this.right + 1, y, this.terrainTypes.wall())
       }
     }
 
     // create horizontal walls
     for (let x = this.left - 1; x <= this.right + 1; x++) {
-      if (map.getTerrain(x, this.top - 1) === TerrainTypes.default) {
+      if (!map.hasCell(x, this.top - 1)) {
         map.setTerrain(x, this.top - 1, this.terrainTypes.wall())
       }
 
-      if (map.getTerrain(x, this.bottom + 1) === TerrainTypes.default) {
+      if (!map.hasCell(x, this.bottom + 1)) {
         map.setTerrain(x, this.bottom + 1, this.terrainTypes.wall())
       }
     }

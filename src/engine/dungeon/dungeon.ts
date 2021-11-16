@@ -27,12 +27,9 @@ export class Dungeon implements DungeonGeography {
 
   constructor (
     /** set of regions in this dungeon */
-    public regions: Region[]
+    public regions: Region[],
+    public defaultTerrain = TerrainTypes.default
   ) { }
-
-  public getDefaultTerrain () {
-    return TerrainTypes.default
-  }
 
   /** Gets all regions of a specifie type */
   public getRegions (type: RegionTypeName) {
@@ -64,7 +61,7 @@ export class Dungeon implements DungeonGeography {
 
   public createMap (): ExpeditionMap {
     const map = new ExpeditionMap()
-    map.DefaultTerrain = this.getDefaultTerrain()
+    map.DefaultTerrain = this.defaultTerrain
 
     this.createTerrain(map)
 
