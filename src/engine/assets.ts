@@ -1,6 +1,6 @@
 import Jimp from 'jimp'
 
-import { ForestMap } from './data/forest-map'
+import { ForestMapBase } from './data/forest-map-base'
 import { TerrainType, TerrainTypes } from './terrain-db'
 
 // TODO: allow specifying 'region' boundaries
@@ -58,7 +58,7 @@ const loadMap = async (config: MapImageConfig): Promise<MapAsset> => {
   const offsetX = config.offsetX ?? 0
   const offsetY = config.offsetY ?? 0
 
-  const getTerrain = (x: number, y: number) => {
+  const getTerrainWithoutDefault = (x: number, y: number) => {
     const index = image.getPixelIndex(x - offsetX, y - offsetY)
 
     const r = image.bitmap.data[index]
@@ -67,6 +67,10 @@ const loadMap = async (config: MapImageConfig): Promise<MapAsset> => {
     const color = (r << 16) | (g << 8) | b
 
     return config.colorMap[color] ?? TerrainTypes.default
+  }
+
+  const getTerrain = (x: number, y: number) => {
+    return getTerrainWithoutDefault(x, y) ?? TerrainTypes.default
   }
 
   return {
@@ -79,14 +83,18 @@ const loadMap = async (config: MapImageConfig): Promise<MapAsset> => {
     width: image.bitmap.width,
     scan: (scanFunction: ScanFunction) => {
       image.scan(0, 0, image.bitmap.width, image.bitmap.height, (x, y) => {
-        scanFunction(x + offsetX, y + offsetY, getTerrain(x + offsetX, y + offsetY))
+        const terrain = getTerrainWithoutDefault(x + offsetX, y + offsetY)
+        if (terrain !== undefined) {
+          // only include defined cells, so the map is sparsely populated
+          scanFunction(x + offsetX, y + offsetY, terrain)
+        }
       })
     },
   }
 }
 
 export const loadAll = async () => {
-  assets.forest = await loadMap(ForestMap)
+  assets.forest_base = await loadMap(ForestMapBase)
 }
 
 export const getAsset = (name: string): MapAsset => assets[name]
