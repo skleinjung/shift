@@ -2,7 +2,7 @@ import { forEach, without } from 'lodash/fp'
 
 import { Updateable } from './types'
 
-const UPDATES_PER_SECOND = 15
+const UPDATES_PER_SECOND = 30
 
 export class GameTimer {
   // data used to control the timer loop
