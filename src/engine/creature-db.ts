@@ -53,7 +53,7 @@ const wander100Percent = maybeIdle(wanderBetweenRooms(), 0)
 
 const creatureTypeArray = [
   {
-    createBehavior: () => BehaviorChain(startle(), maybeIdle(MoveRandomlyBehavior(), 70)),
+    createBehavior: () => BehaviorChain(startle(), maybeIdle(MoveRandomlyBehavior(), 50)),
     defense: 0,
     healthMax: 2,
     id: 'dart_lizard',

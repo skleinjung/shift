@@ -22,6 +22,12 @@ export interface AStarOptions extends PathfindingInput {
 
   /** A* heuristic function, estimates the cost to reach goal from a given node */
   heuristic: (position: XY, goal: XY) => number
+
+  /**
+   * Number of nodes to search before giving up and determining the path cannot be reached. Might fail
+   * searches for really long paths, but avoids freezing or extreme delays if the destination is unreachable.
+   */
+  failAfter?: number
 }
 
 export type PathfindingResult = XY[]
@@ -60,7 +66,10 @@ export const aStar = ({
   goal,
   heuristic,
   start,
+  failAfter = Number.MAX_SAFE_INTEGER,
 }: AStarOptions): PathfindingResult => {
+  let attemptsRemaining = failAfter
+
   const startNode = new PathNode(start.x, start.y)
   const openSet: PathNode[] = [startNode]
 
@@ -78,7 +87,7 @@ export const aStar = ({
     }
   }
 
-  while (openSet.length > 0) {
+  while (openSet.length > 0 && attemptsRemaining-- > 0) {
     const current = minBy((node) => {
       return fScores[node.key] ?? Number.MAX_SAFE_INTEGER
     }, openSet) ?? openSet[openSet.length - 1]

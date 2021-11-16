@@ -13,9 +13,9 @@ import { Panel, PanelProps } from './panel'
 // Apply the patch to PIXI
 install({ ShaderSystem })
 
-const CellFontSize = 28
-const CellHeight = 28
-const CellWidth = 28
+const CellFontSize = 21
+const CellHeight = 21
+const CellWidth = 21
 
 interface ViewportSize {
   /** width of the viewport, in grid cells */

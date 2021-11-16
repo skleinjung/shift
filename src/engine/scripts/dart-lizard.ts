@@ -104,7 +104,7 @@ export const dartLizard: CreatureScript & WorldScript = {
   },
   onTurn: (api) => {
     const countsByTypeId = countBy(get(['type', 'id']), api.creatures)
-    if ((countsByTypeId.dart_lizard ?? 0) < 5) {
+    if ((countsByTypeId.dart_lizard ?? 0) < 1) {
       if (random(0, 99) < SpawnChance) {
         const spawnLocation = api.getRandomLocation((tile) => {
           return tile.terrain.traversable &&

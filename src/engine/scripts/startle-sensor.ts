@@ -69,7 +69,7 @@ export const startleSensor = ({
     creature.setScriptData(KEY, {
       startledBy: attack.attacker,
       turnsRemaining: turnsToFlee,
-      turns: 1,
+      turns: 0, // this will get incremented to '1' when our turn comes up
     })
   },
   onTurnStart: ({ creature }) => {

@@ -4,7 +4,7 @@ import { ExpeditionMap } from 'engine/map/map'
 import { TerrainTypes } from 'engine/terrain-db'
 import { filter, forEach, some } from 'lodash/fp'
 
-import { Region, RegionTypeName } from './region'
+import { BasicRegion, Region, RegionTypeName } from './region'
 
 export interface DungeonGeography {
   /** Gets all regions of a specifie type */
@@ -27,12 +27,9 @@ export class Dungeon implements DungeonGeography {
 
   constructor (
     /** set of regions in this dungeon */
-    public regions: Region[]
+    public regions: Region[],
+    public defaultTerrain = TerrainTypes.default
   ) { }
-
-  public getDefaultTerrain () {
-    return TerrainTypes.default
-  }
 
   /** Gets all regions of a specifie type */
   public getRegions (type: RegionTypeName) {
@@ -55,7 +52,7 @@ export class Dungeon implements DungeonGeography {
    *
    * @param minDistance see Room#overlaps
    */
-  public wouldFit (region: Region, minDistance = 0): boolean {
+  public wouldFit (region: BasicRegion, minDistance = 0): boolean {
     return !some(
       (other) => region.overlaps(other, minDistance),
       this.regions
@@ -64,7 +61,7 @@ export class Dungeon implements DungeonGeography {
 
   public createMap (): ExpeditionMap {
     const map = new ExpeditionMap()
-    map.DefaultTerrain = this.getDefaultTerrain()
+    map.DefaultTerrain = this.defaultTerrain
 
     this.createTerrain(map)
 

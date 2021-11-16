@@ -27,6 +27,20 @@ const defaultTerrainTypes: TerrainTypeProvider = {
   wall: () => TerrainTypes.wall,
 }
 
+export interface Region {
+  left: number
+  top: number
+  right: number
+  bottom: number
+  width: number
+  height: number
+
+  /** the type of region */
+  type: RegionTypeName
+
+  createTerrain: (map: ExpeditionMap) => void
+}
+
 /**
  * A contiguous area of a dungeon with similar characteristics, such as a room or tunnel.
  *
@@ -36,7 +50,7 @@ const defaultTerrainTypes: TerrainTypeProvider = {
  * TODO: support regions without walls
  * TODO: add metadata, such as description/etc.
  */
-export class Region {
+export class BasicRegion implements Region {
   /** left extent of the region */
   public readonly left: number
   /** top extent of the region */
@@ -120,22 +134,22 @@ export class Region {
 
     // create vertical walls
     for (let y = this.top - 1; y <= this.bottom + 1; y++) {
-      if (map.getTerrain(this.left - 1, y) === TerrainTypes.default) {
+      if (!map.hasCell(this.left - 1, y)) {
         map.setTerrain(this.left - 1, y, this.terrainTypes.wall())
       }
 
-      if (map.getTerrain(this.right + 1, y) === TerrainTypes.default) {
+      if (!map.hasCell(this.right + 1, y)) {
         map.setTerrain(this.right + 1, y, this.terrainTypes.wall())
       }
     }
 
     // create horizontal walls
     for (let x = this.left - 1; x <= this.right + 1; x++) {
-      if (map.getTerrain(x, this.top - 1) === TerrainTypes.default) {
+      if (!map.hasCell(x, this.top - 1)) {
         map.setTerrain(x, this.top - 1, this.terrainTypes.wall())
       }
 
-      if (map.getTerrain(x, this.bottom + 1) === TerrainTypes.default) {
+      if (!map.hasCell(x, this.bottom + 1)) {
         map.setTerrain(x, this.bottom + 1, this.terrainTypes.wall())
       }
     }
@@ -163,7 +177,7 @@ const ForestPathTerrainTypes: TerrainTypeProvider = {
   wall: () => TerrainTypes.heavy_brush,
 }
 
-export class ForestClearing extends Region {
+export class ForestClearing extends BasicRegion {
   constructor ({ left, top, width, height }: {
     left: number
     top: number
@@ -174,7 +188,7 @@ export class ForestClearing extends Region {
   }
 }
 
-export class ForestPath extends Region {
+export class ForestPath extends BasicRegion {
   constructor ({ left, top, width, height }: {
     left: number
     top: number

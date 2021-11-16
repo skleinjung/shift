@@ -9,19 +9,21 @@ import { FontNames } from 'ui/fonts'
 import { damaged, HighlightEffect, missed } from 'ui/visual-effects/highlights'
 
 abstract class AbstractTile {
-  protected background: PIXI.Graphics
+  protected background: PIXI.Sprite
   protected container: PIXI.Container
   protected highlightEffect: HighlightEffect | undefined
   protected symbol: PIXI.BitmapText
 
+  /** boolean indicating if this tile is viewable in the viewport */
+  private _inFrame = true
+
   constructor (
     protected world: World,
     protected cellWidth: number,
-    protected cellHeight: number
+    protected cellHeight: number,
+    backgroundTexture: PIXI.Texture
   ) {
-    this.background = new PIXI.Graphics()
-    this.background.beginFill(0xffffff)
-    this.background.drawRect(0, 0, cellWidth, cellHeight)
+    this.background = new PIXI.Sprite(backgroundTexture)
 
     this.symbol = new PIXI.BitmapText(' ', { fontName: FontNames.Map })
     this.symbol.anchor.set(0.5)
@@ -30,6 +32,17 @@ abstract class AbstractTile {
     this.container = new PIXI.Container()
     this.container.addChild(this.background)
     this.container.addChild(this.symbol)
+  }
+
+  /** boolean indicating if this tile is viewable in the viewport */
+  public get inFrame (): boolean {
+    return this._inFrame
+  }
+
+  /** boolean indicating if this tile is viewable in the viewport */
+  public set inFrame (inFrame: boolean) {
+    this.container.visible = inFrame
+    this._inFrame = inFrame
   }
 
   protected setMapSymbol (symbol: MapSymbol) {
@@ -76,9 +89,10 @@ class CreatureTile extends AbstractTile {
     world: World,
     private _creature: Creature,
     cellWidth: number,
-    cellHeight: number
+    cellHeight: number,
+    backgroundTexture: PIXI.Texture
   ) {
-    super(world, cellWidth, cellHeight)
+    super(world, cellWidth, cellHeight, backgroundTexture)
     this.update()
 
     this._creature.on('defend', () => {
@@ -102,18 +116,18 @@ class CreatureTile extends AbstractTile {
 class MapCellTile extends AbstractTile {
   constructor (
     world: World,
-    private _x: number,
-    private _y: number,
+    public readonly x: number,
+    public readonly y: number,
     private _cell: MapCell,
     cellWidth: number,
-    cellHeight: number
+    cellHeight: number,
+    backgroundTexture: PIXI.Texture
   ) {
-    super(world, cellWidth, cellHeight)
-    this.update()
+    super(world, cellWidth, cellHeight, backgroundTexture)
   }
 
   public update () {
-    this.container.position.set(this._x * this.cellWidth, this._y * this.cellHeight)
+    this.container.position.set(this.x * this.cellWidth, this.y * this.cellHeight)
 
     // hide ourselves if a creature is here, it's rendering takes precendence
     this.setVisible(this._cell.creature === undefined)
@@ -128,8 +142,14 @@ class MapCellTile extends AbstractTile {
 
 export class MapSceneGraph {
   private _root: PIXI.Container
+  private _mapCellsContainer: PIXI.Container
+  private _creaturesContainer: PIXI.Container
+
   private _creatureTiles: { [k in string]: CreatureTile } = {}
   private _mapCellTiles: MapCellTile[][] = []
+  private _allTiles: MapCellTile[] = []
+
+  private _backgroundTexture
 
   constructor (
     app: PIXI.Application,
@@ -137,7 +157,18 @@ export class MapSceneGraph {
     private _cellHeight: number
   ) {
     this._root = new PIXI.Container()
+    this._mapCellsContainer = new PIXI.Container()
+    this._creaturesContainer = new PIXI.Container()
+
+    this._root.addChild(this._mapCellsContainer)
+    this._root.addChild(this._creaturesContainer)
     app.stage.addChild(this._root)
+
+    const background = new PIXI.Graphics()
+    background.beginFill(0xffffff)
+    background.drawRect(0, 0, _cellWidth, _cellHeight)
+
+    this._backgroundTexture = app.renderer.generateTexture(background)
   }
 
   public setOffset (cellX: number, cellY: number) {
@@ -152,12 +183,9 @@ export class MapSceneGraph {
 
     const map = world.map
 
+    // create any missing cells for newly visible tiles
     for (let cellY = yOffset; cellY < yOffset + viewHeight; cellY++) {
       for (let cellX = xOffset; cellX < xOffset + viewWidth; cellX++) {
-        if (!map.hasCell(cellX, cellY)) {
-          continue
-        }
-
         if (this._mapCellTiles[cellY] === undefined) {
           this._mapCellTiles[cellY] = []
         }
@@ -170,28 +198,48 @@ export class MapSceneGraph {
             cellY,
             cell,
             this._cellWidth,
-            this._cellHeight
+            this._cellHeight,
+            this._backgroundTexture
           )
-          this._mapCellTiles[cellY][cellX].addTo(this._root)
-        } else {
-          this._mapCellTiles[cellY][cellX].update()
+          this._mapCellTiles[cellY][cellX].addTo(this._mapCellsContainer)
+          this._allTiles.push(this._mapCellTiles[cellY][cellX])
         }
       }
     }
+
+    // update visibility and status of map tiles
+    forEach((tile) => {
+      if (tile.x < xOffset ||
+        tile.x > (xOffset + viewWidth + 1) ||
+        tile.y < yOffset ||
+        tile.y > (yOffset + viewHeight + 1)
+      ) {
+        tile.inFrame = false
+      } else {
+        tile.update()
+        tile.inFrame = true
+      }
+    }, this._allTiles)
 
     // TODO: use appropriate events from creatures instead of looping through this...
     const validKeys = lodashMap((id) => `${id}`, compact(lodashMap(get('id'), world.creatures)))
     const removedCreatureIds = without(validKeys, keys(this._creatureTiles))
     forEach((id) => {
-      this._creatureTiles[id].removeFrom(this._root)
+      this._creatureTiles[id].removeFrom(this._creaturesContainer)
       delete this._creatureTiles[id]
     }, removedCreatureIds)
 
-    // create any missing tiles
+    // create any missing creature tiles
     for (const creature of world.creatures) {
       if (this._creatureTiles[creature.id] === undefined) {
-        this._creatureTiles[creature.id] = new CreatureTile(world, creature, this._cellWidth, this._cellHeight)
-        this._creatureTiles[creature.id].addTo(this._root)
+        this._creatureTiles[creature.id] = new CreatureTile(
+          world,
+          creature,
+          this._cellWidth,
+          this._cellHeight,
+          this._backgroundTexture
+        )
+        this._creatureTiles[creature.id].addTo(this._creaturesContainer)
       }
     }
 
