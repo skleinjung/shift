@@ -122,10 +122,10 @@ export class Creature extends CreatureEventEmitter implements
    * Gets the script property with the given key from the creature. If the optional property is
    * false, an error will be thrown if it does not exist.
    */
-  public getScriptData <T = unknown>(key: string): T;
-  public getScriptData <T = unknown>(key: string, optional?: false): T;
-  public getScriptData <T = unknown>(key: string, optional: true): T | undefined
-  public getScriptData <T = unknown> (key: string, optional = false): T | undefined {
+  public getScriptData <T = unknown>(key: string): Readonly<T>;
+  public getScriptData <T = unknown>(key: string, optional?: false): Readonly<T>;
+  public getScriptData <T = unknown>(key: string, optional: true): Readonly<T> | undefined
+  public getScriptData <T = unknown> (key: string, optional = false): Readonly<T> | undefined {
     const data = this._scriptData[key]
     if (!optional && data === undefined) {
       throw new Error(`Required script data with key '${key}' not found on creature ${this.id} (name=${this.name})`)

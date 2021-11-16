@@ -27,7 +27,7 @@ const terrainTypeArray = [
   },
   {
     id: 'heavy_brush',
-    traversable: false,
+    traversable: true,
   },
   {
     id: 'light_brush_1',

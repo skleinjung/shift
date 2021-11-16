@@ -2,17 +2,19 @@ import { Item } from 'engine/item'
 import { getAdjacentCoordinates } from 'engine/map/map-utils'
 import { random } from 'engine/random'
 import { CreatureScript, ScriptApi, WorldScript } from 'engine/script-api'
-import { countBy, get, join, map, some } from 'lodash/fp'
+import { countBy, get, some } from 'lodash/fp'
 import { distance } from 'math'
 
 import { getAge } from './age-sensor'
-import { getDetectedCreatures } from './creature-sensors'
 import { getFacing } from './facing-sensor'
+import { getStartledTurns, isStartled } from './startle-sensor'
+
+export const DefaultDartLizardSpeed = 100
 
 const DisappearChance = 10
 const SpawnChance = 3
 // minimum number of turns a lizard must stay on the map before darting away
-const MinimumAgeBeforeDisappearing = 7
+const MinimumAgeBeforeDisappearing = 75
 
 const DefaultMinPromiximityToPlayer = 5
 const DefaultMaxPromiximityToPlayer = 13
@@ -120,9 +122,15 @@ export const dartLizard: CreatureScript & WorldScript = {
     }
   },
   onTurnStart: ({ creature }, api) => {
-    const creatures = getDetectedCreatures(creature)
-    if (creatures.length > 0) {
-      api.showMessage(`Lizard will run because of: ${join(', ', map(get('name'), creatures))}`)
+    if (isStartled(creature)) {
+      if (getStartledTurns(creature) === 1) {
+        // the first turn of a startle, show a message
+        api.showMessage('Dart Lizard was startled!')
+      }
+
+      creature.speed = DefaultDartLizardSpeed * 1.5
+    } else {
+      creature.speed = DefaultDartLizardSpeed
     }
   },
   onTurnEnd: ({ creature }, api) => {

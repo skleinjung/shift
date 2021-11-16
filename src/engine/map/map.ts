@@ -6,8 +6,8 @@ import { keys, stubTrue } from 'lodash'
 import { filter, findIndex } from 'lodash/fp'
 import { manhattanDistance } from 'math'
 
-import { aStar } from './a-star'
-import { getAdjacentCoordinates } from './map-utils'
+import { aStar, AStarOptions } from './a-star'
+import { getTraversableNeighbors } from './map-utils'
 import { PathCostFunction, uniformCost } from './path-cost-functions'
 
 export type CellCoordinate = {
@@ -18,6 +18,9 @@ export type CellCoordinate = {
 export interface PathFindingOptions {
   /** function used to calculate the relative costs of moving between two cells. (default = all cells cost '1') */
   costFunction?: PathCostFunction
+
+  /** Lookup neighbors of a node to consider for pathfinding. By default, all traversable nodes are allowed. */
+  getNeighbors?: AStarOptions['getNeighbors']
 }
 
 export class MapCell extends BasicContainer {
@@ -61,20 +64,31 @@ export class ExpeditionMap {
    * Returns an array containing all of the map cells that have been populated (i.e., excluding the virtual
    * "default" cells.) If the optional predicate is supplied, the list will be filtered to include only
    * cells for which the predicate returns true.
+   *
+   * If the optional extends are supplied, only cells in that region will be considered.
    */
-  public getCells (predicate: (cell: MapCell) => boolean = stubTrue): MapCell[] {
+  public getCells (
+    predicate: (cell: MapCell) => boolean = stubTrue,
+    extents?: {left: number; right: number; top: number; bottom: number}
+  ): MapCell[] {
     const results = []
     for (const row of keys(this._cells)) {
-      const x = parseInt(row)
-
-      if (this._cells[x] === undefined) {
+      const y = parseInt(row)
+      if (extents !== undefined && (extents.top > y || extents.bottom < y)) {
         continue
       }
 
-      for (const column of keys(this._cells[x])) {
-        const y = parseInt(column)
+      if (this._cells[y] === undefined) {
+        continue
+      }
 
-        const cell = this._cells[x][y]
+      for (const column of keys(this._cells[y])) {
+        const x = parseInt(column)
+        if (extents !== undefined && (extents.left > x || extents.right < x)) {
+          continue
+        }
+
+        const cell = this._cells[y][x]
         if (cell === undefined) {
           continue
         }
@@ -180,11 +194,14 @@ export class ExpeditionMap {
   public getPath (
     start: CellCoordinate,
     goal: CellCoordinate,
-    { costFunction = uniformCost }: PathFindingOptions = {}
+    {
+      costFunction = uniformCost,
+      getNeighbors = getTraversableNeighbors(this),
+    }: PathFindingOptions = {}
   ): CellCoordinate[] {
     return aStar({
       distance: costFunction,
-      getNeighbors: this._getTraversableNeighbors.bind(this),
+      getNeighbors,
       goal,
       heuristic: manhattanDistance,
       start,
@@ -208,10 +225,5 @@ export class ExpeditionMap {
     }
 
     return this._cells[y]?.[x]
-  }
-
-  private _getTraversableNeighbors (cell: CellCoordinate) {
-    const possibilities = getAdjacentCoordinates(cell)
-    return filter(({ x, y }) => this.getTerrain(x, y).traversable, possibilities)
   }
 }

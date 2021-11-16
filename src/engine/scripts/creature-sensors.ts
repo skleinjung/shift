@@ -31,7 +31,6 @@ export const allCreaturesSensor: CreatureScript = {
 export const creaturesInFrontSensor = (distance: number): CreatureScript => ({
   ...initialize,
   onTurnStart: ({ creature }, api) => {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const facing = getFacing(creature)
 
     const getTilesFromHorizontalEdge = (distance: number, xDirection: -1 | 0 | 1): MapTile[] => {
