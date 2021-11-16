@@ -1,6 +1,7 @@
 import './expedition-screen.css'
 
 import { AttackAction } from 'engine/actions/attack'
+import { DoNothing } from 'engine/actions/do-nothing'
 import { MoveByAction } from 'engine/actions/move-by'
 import { Action } from 'engine/types'
 import { useCallback, useEffect, useState } from 'react'
@@ -86,6 +87,7 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
     [keyMap.MoveLeft]: executePlayerMove(-1, 0),
     [keyMap.MoveRight]: executePlayerMove(1, 0),
     [keyMap.MoveUp]: executePlayerMove(0, -1),
+    [keyMap.Wait]: () => executeTurn(DoNothing),
   })
 
   useEffect(() => {

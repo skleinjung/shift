@@ -1,5 +1,7 @@
 import { StaticDungeon } from './static-dungeon'
 
 export const createForest = () => {
-  return new StaticDungeon('forest')
+  const dungeon = new StaticDungeon('forest')
+
+  return dungeon
 }

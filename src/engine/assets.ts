@@ -31,6 +31,9 @@ export interface MapAsset extends MapImageConfig {
   /** default terrain type to render for cells outside the map (default: default) */
   defaultTerrain: TerrainType
 
+  /** gets the terrain at (x, y) of the map */
+  getTerrain: (x: number, y: number) => TerrainType
+
   /** height of the map */
   height: number
 
@@ -52,21 +55,31 @@ const assets = {} as { [k: string]: MapAsset }
 const loadMap = async (config: MapImageConfig): Promise<MapAsset> => {
   const image = await Jimp.read(config.source)
 
+  const offsetX = config.offsetX ?? 0
+  const offsetY = config.offsetY ?? 0
+
+  const getTerrain = (x: number, y: number) => {
+    const index = image.getPixelIndex(x - offsetX, y - offsetY)
+
+    const r = image.bitmap.data[index]
+    const g = image.bitmap.data[index + 1]
+    const b = image.bitmap.data[index + 2]
+    const color = (r << 16) | (g << 8) | b
+
+    return config.colorMap[color] ?? TerrainTypes.default
+  }
+
   return {
     defaultTerrain: TerrainTypes.default,
-    offsetX: 0,
-    offsetY: 0,
     ...config,
+    getTerrain,
     height: image.bitmap.height,
+    offsetX,
+    offsetY,
     width: image.bitmap.width,
     scan: (scanFunction: ScanFunction) => {
-      image.scan(0, 0, image.bitmap.width, image.bitmap.height, (x, y, index) => {
-        const r = image.bitmap.data[index]
-        const g = image.bitmap.data[index + 1]
-        const b = image.bitmap.data[index + 2]
-        const color = (r << 16) | (g << 8) | b
-
-        scanFunction(x, y, config.colorMap[color] ?? TerrainTypes.default)
+      image.scan(0, 0, image.bitmap.width, image.bitmap.height, (x, y) => {
+        scanFunction(x + offsetX, y + offsetY, getTerrain(x + offsetX, y + offsetY))
       })
     },
   }

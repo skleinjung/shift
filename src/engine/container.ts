@@ -33,9 +33,18 @@ export class BasicContainer implements Container {
    * Store an item in this container. Returns true if the item was stored successfully,
    * or false if it could not be stored. (Too large, container is full, container is incapable
    * of holding that item, etc.)
+   *
+   * If the item was already in another container, it will be removed from that container as part
+   * of this call.
    **/
   public addItem (item: Item): boolean {
+    if (item.container !== undefined) {
+      item.container.removeItem(item)
+    }
+
     this._contents.push(item)
+    item.container = this
+
     return true
   }
 

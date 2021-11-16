@@ -68,15 +68,22 @@ export class Dungeon implements DungeonGeography {
 
     this.createTerrain(map)
 
-    forEach((treasure) => {
-      map.getCell(treasure.x, treasure.y).addItem(treasure.item)
-    }, this.treasure)
-
-    forEach((creature) => {
-      map.setCreature(creature.x, creature.y, creature)
-    }, this.creatures)
-
     return map
+  }
+
+  /** Invokes a callback for every creature in this dungeon. */
+  public forEachCreature (callback: (creature: Creature) => void) {
+    forEach(callback, this.creatures)
+  }
+
+  /**
+   * Invokes a callback for every treasure (item) in this dungeon. The callback is invoked with the
+   * item, and the (x, y) coordinates of where it should be placed.
+   */
+  public forEachItem (callback: (item: Item, x: number, y: number) => void) {
+    forEach(({ item, x, y }) => {
+      callback(item, x, y)
+    }, this.treasure)
   }
 
   public createTerrain (map: ExpeditionMap) {

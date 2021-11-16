@@ -3,10 +3,11 @@ import { filter, find, findIndex, forEach, get, initial, join, last, map, omit, 
 import { TypedEventEmitter } from 'typed-event-emitter'
 
 import { getResultMessage } from './actions/result-handler'
-import { AttackResult } from './combat'
 import { Creature } from './creature'
 import { Dungeon } from './dungeon/dungeon'
 import { WorldEvents } from './events'
+import { CreatureEvents } from './events/creature-events'
+import { Item } from './item'
 import { ExpeditionMap } from './map/map'
 import { Player } from './player'
 import { random } from './random'
@@ -18,7 +19,8 @@ import { Updateable } from './types'
  * will be checked periodically, and once they provide an action the loop will resume.
  */
 export class World extends TypedEventEmitter<WorldEvents> implements Updateable {
-  public readonly map: ExpeditionMap
+  private _dungeon: Dungeon | undefined
+  private _map = new ExpeditionMap()
 
   // if true, we do not process updates (the user has requested we wait)
   public paused = false
@@ -29,6 +31,9 @@ export class World extends TypedEventEmitter<WorldEvents> implements Updateable 
   // all the world's creatures
   private _creatures: Creature[] = []
 
+  // all the world's items
+  private _items: { [k in Item['id']]?: Item } = {}
+
   // all player-readable log messages from this game
   private _messages: string[] = []
 
@@ -37,21 +42,22 @@ export class World extends TypedEventEmitter<WorldEvents> implements Updateable 
 
   private _player: Player
 
-  constructor (
-    public readonly dungeon: Dungeon
-  ) {
+  constructor () {
     super()
 
-    this.map = dungeon.createMap()
-
     this._player = new Player()
-    this._initializePlayer()
-
-    forEach((creature) => {
-      this._registerCreature(creature)
-    }, dungeon.creatures)
 
     this.logMessage('Expedition started.')
+  }
+
+  public initializeFromDungeon (dungeon: Dungeon) {
+    this._dungeon = dungeon
+    this._map = dungeon.createMap()
+
+    this._initializePlayer()
+
+    this._dungeon.forEachCreature(this._registerCreature.bind(this))
+    this._dungeon.forEachItem(this.addItemToMap.bind(this))
   }
 
   /**
@@ -62,8 +68,26 @@ export class World extends TypedEventEmitter<WorldEvents> implements Updateable 
     this.emit('message', message)
   }
 
+  public get dungeon () {
+    return this._dungeon
+  }
+
+  public get map () {
+    return this._map
+  }
+
   public get creatures (): readonly Creature[] {
     return this._creatures
+  }
+
+  /** Adds a new creature to the world. It will emit any 'on-spawn' type of events. */
+  public addCreature (creature: Creature) {
+    this._registerCreature(creature)
+  }
+
+  /** Removes a creature from the map and world world. It will not emit a 'death' event. */
+  public removeCreature (creature: Creature) {
+    this._removeCreature(creature)
   }
 
   /**
@@ -71,6 +95,28 @@ export class World extends TypedEventEmitter<WorldEvents> implements Updateable 
    */
   public getCreature (id: number) {
     return find((creature) => creature.id === id, this._creatures)
+  }
+
+  /** Adds a new item to the world, placing it in the specified map cell. */
+  public addItemToMap (item: Item, x: number, y: number) {
+    this._registerItem(item)
+    this._map.addItem(x, y, item)
+  }
+
+  /** Removes an item from the world, including any container or map cell holding it */
+  public removeItem ({ id }: Item) {
+    const item = this._items[id]
+    if (item !== undefined) {
+      item.container?.removeItem(item)
+      delete this._items[item.id]
+    }
+  }
+
+  /**
+   * Gets the item with a specified ID. If there is no item with that ID, will return undefined.
+   */
+  public getItem (id: number) {
+    return this._items[id]
   }
 
   /** Returns flag indicating if the current expedition reached an end condition. */
@@ -109,11 +155,7 @@ export class World extends TypedEventEmitter<WorldEvents> implements Updateable 
     do {
       // check if we are waiting for visual effects
       if (this._deferUntil !== undefined && Date.now() < this._deferUntil) {
-        if (!stillWaiting) {
-          this.emit('update')
-        }
-
-        return
+        break
       } else {
         this._deferUntil = undefined
       }
@@ -126,8 +168,13 @@ export class World extends TypedEventEmitter<WorldEvents> implements Updateable 
       }
     } while (!exit && this._nextActor !== 0)
 
-    // emit a final update at the end of the turn if we aren't waiting
     if (!stillWaiting) {
+      // if the next actor's index is zero, we looped through all creatures -- emit a turn event
+      if (this._nextActor === 0) {
+        this.emit('turn')
+      }
+
+      // emit a final update at the end of the loop if we aren't waiting
       this.emit('update')
     }
   }
@@ -136,7 +183,7 @@ export class World extends TypedEventEmitter<WorldEvents> implements Updateable 
     this._registerCreature(this._player)
     this.map.setCreature(this._player.x, this._player.y, this._player)
 
-    this._player.on('move', (x, y) => {
+    this._player.on('move', ({ x, y }) => {
       const itemNames = map(get('name'), this.map.getItems(x, y))
       if (itemNames.length > 2) {
         // list of three or more, so use commas with 'and'
@@ -152,19 +199,20 @@ export class World extends TypedEventEmitter<WorldEvents> implements Updateable 
   }
 
   /** Adds the results of an attack to the message log. */
-  private _logAttack (attack: AttackResult) {
-    if (attack.success) {
+  private _logAttack ({ attackResult }: CreatureEvents['attack']) {
+    if (attackResult.success) {
       // we don't display 'overkill' or 'taken' damage broken out for the user
-      const damages = mapI(omit(['overkill', 'taken'], attack.damage), (value, type) => `${value} ${type}`)
+      const damages = mapI(omit(['overkill', 'taken'], attackResult.damage), (value, type) => `${value} ${type}`)
       const damagesString = damages.length === 0
         ? ''
         : ` (${join(', ', damages)})`
 
       this.logMessage(
-        `${attack.attacker.name} hits ${attack.target.name} for ${attack.damageRolled} damage.${damagesString}`
+        // eslint-disable-next-line max-len
+        `${attackResult.attacker.name} hits ${attackResult.target.name} for ${attackResult.damageRolled} damage.${damagesString}`
       )
     } else {
-      this.logMessage(`${attack.attacker.name} misses ${attack.target.name}.`)
+      this.logMessage(`${attackResult.attacker.name} misses ${attackResult.target.name}.`)
     }
   }
 
@@ -175,6 +223,16 @@ export class World extends TypedEventEmitter<WorldEvents> implements Updateable 
   private _registerCreature (creature: Creature) {
     this._creatures.push(creature)
     creature.on('attack', this._logAttack.bind(this))
+    this.map.setCreature(creature.x, creature.y, creature)
+    this.emit('creatureSpawn', creature)
+  }
+
+  /**
+   * Registers a newly created item with the world. This includes adding it to the item list,
+   * and registering any event listeners.
+   */
+  private _registerItem (item: Item) {
+    this._items[item.id] = item
   }
 
   private _removeDeadCreatures () {
@@ -186,9 +244,10 @@ export class World extends TypedEventEmitter<WorldEvents> implements Updateable 
         this.logMessage(`${creature.type.name} is dead!`)
 
         // drop the creatures inventory
+        // we clone the inventory item array, since moving items out of it will mess up iteration
         forEach((item) => {
           this.map.getCell(creature.x, creature.y).addItem(item)
-        }, creature.inventory.items)
+        }, [...creature.inventory.items])
 
         this.emit('creatureDeath', creature)
       }, deadCreatures)
@@ -247,7 +306,9 @@ export class World extends TypedEventEmitter<WorldEvents> implements Updateable 
       creature.initiative -= 100
     }
 
+    creature.onTurnEnd()
     this._nextActor = (this._nextActor + 1) % this._creatures.length
+    this._creatures[this._nextActor].onTurnStart()
 
     // update initaitive for this turn (we add it _after_ decrementing to
     // more easily handle the 'waiting for input' case)

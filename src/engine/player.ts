@@ -3,7 +3,6 @@ import { Creature } from './creature'
 import { CreatureTypes } from './creature-db'
 import { CellCoordinate } from './map/map'
 import { Action } from './types'
-import { World } from './world'
 
 export const InitialLinkValue = 5000
 
@@ -29,8 +28,8 @@ export class Player extends Creature {
   }
 
   /** Each turn, decrease the link strength */
-  public turnEnded (world: World): void {
-    super.turnEnded(world)
+  public onTurnEnd (): void {
+    super.onTurnEnd()
     this._link--
   }
 }

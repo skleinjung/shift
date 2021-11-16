@@ -1,9 +1,9 @@
 import { Objectives } from './data/objective-db'
-import { createDungeon } from './dungeon/create-dungeon-v1'
-import { Script } from './engine'
+import { createForest } from './dungeon/create-forest'
+import { Dungeon } from './dungeon/dungeon'
 import { Objective } from './objective'
-import { ProblemOfScale } from './scripts/problem-of-scale'
-import { World } from './world'
+import { WorldScript } from './script-api'
+import { dartLizard } from './scripts/dart-lizard'
 
 /**
  * The Campaign represents all game and player state that persists beyond a single expedition.
@@ -13,7 +13,7 @@ export class Campaign {
   private _objectives: Objective[] = []
 
   /** script's active in this campaign */
-  private _scripts: Script[] = []
+  private _scripts: WorldScript[] = []
 
   /** Retrieves the player's active objectives */
   public get objectives (): readonly Objective[] {
@@ -24,17 +24,16 @@ export class Campaign {
     this._objectives.push(objective)
   }
 
-  public get scripts (): readonly Script[] {
+  public get scripts (): readonly WorldScript[] {
     return this._scripts
   }
 
-  public addScript (script: Script) {
+  public addScript (script: WorldScript) {
     this._scripts.push(script)
   }
 
-  public createNextWorld (): World {
-    const dungeon = createDungeon()
-    return new World(dungeon)
+  public createNextDungeon (): Dungeon {
+    return createForest()
   }
 }
 
@@ -45,6 +44,6 @@ export class DemoCampaign extends Campaign {
     this.addObjective(new Objective(Objectives.problem_of_scale))
     this.addObjective(new Objective(Objectives.strange_blue_rock))
 
-    this.addScript(ProblemOfScale)
+    this.addScript(dartLizard)
   }
 }

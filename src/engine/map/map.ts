@@ -2,11 +2,12 @@ import { BasicContainer } from 'engine/container'
 import { Creature } from 'engine/creature'
 import { Item } from 'engine/item'
 import { TerrainType, TerrainTypes } from 'engine/terrain-db'
+import { keys, stubTrue } from 'lodash'
 import { filter, findIndex } from 'lodash/fp'
 import { manhattanDistance } from 'math'
 
-import { aStar } from './a-star'
-import { getAdjacentCoordinates } from './map-utils'
+import { aStar, AStarOptions } from './a-star'
+import { getTraversableNeighbors } from './map-utils'
 import { PathCostFunction, uniformCost } from './path-cost-functions'
 
 export type CellCoordinate = {
@@ -17,10 +18,17 @@ export type CellCoordinate = {
 export interface PathFindingOptions {
   /** function used to calculate the relative costs of moving between two cells. (default = all cells cost '1') */
   costFunction?: PathCostFunction
+
+  /** Lookup neighbors of a node to consider for pathfinding. By default, all traversable nodes are allowed. */
+  getNeighbors?: AStarOptions['getNeighbors']
 }
 
 export class MapCell extends BasicContainer {
   constructor (
+    /** x coordinate of the cell */
+    public x: number,
+    /** y coordinate of the cell */
+    public y: number,
     /** type of terrain in this cell */
     public terrain: TerrainType,
     /** ID of the creature occupying this cell, if any */
@@ -32,7 +40,6 @@ export class MapCell extends BasicContainer {
 
 export class ExpeditionMap {
   private _defaultTerrain = TerrainTypes.default
-  private _defaultCell: MapCell = new MapCell(TerrainTypes.default)
 
   private _cells: MapCell[][] = []
 
@@ -42,16 +49,57 @@ export class ExpeditionMap {
 
   public set DefaultTerrain (terrain: TerrainType) {
     this._defaultTerrain = terrain
-    this._defaultCell = new MapCell(this._defaultTerrain)
   }
 
   public getCell (x: number, y: number): MapCell {
-    return this._getCell(x, y) ?? this._defaultCell
+    return this._getCell(x, y, true)
   }
 
   /** Returns true if the (sparse) map has a cell at the given coordinates already. */
   public hasCell (x: number, y: number): boolean {
     return this._getCell(x, y) !== undefined
+  }
+
+  /**
+   * Returns an array containing all of the map cells that have been populated (i.e., excluding the virtual
+   * "default" cells.) If the optional predicate is supplied, the list will be filtered to include only
+   * cells for which the predicate returns true.
+   *
+   * If the optional extends are supplied, only cells in that region will be considered.
+   */
+  public getCells (
+    predicate: (cell: MapCell) => boolean = stubTrue,
+    extents?: {left: number; right: number; top: number; bottom: number}
+  ): MapCell[] {
+    const results = []
+    for (const row of keys(this._cells)) {
+      const y = parseInt(row)
+      if (extents !== undefined && (extents.top > y || extents.bottom < y)) {
+        continue
+      }
+
+      if (this._cells[y] === undefined) {
+        continue
+      }
+
+      for (const column of keys(this._cells[y])) {
+        const x = parseInt(column)
+        if (extents !== undefined && (extents.left > x || extents.right < x)) {
+          continue
+        }
+
+        const cell = this._cells[y][x]
+        if (cell === undefined) {
+          continue
+        }
+
+        if (predicate(cell)) {
+          results.push(cell)
+        }
+      }
+    }
+
+    return results
   }
 
   /**
@@ -146,11 +194,14 @@ export class ExpeditionMap {
   public getPath (
     start: CellCoordinate,
     goal: CellCoordinate,
-    { costFunction = uniformCost }: PathFindingOptions = {}
+    {
+      costFunction = uniformCost,
+      getNeighbors = getTraversableNeighbors(this),
+    }: PathFindingOptions = {}
   ): CellCoordinate[] {
     return aStar({
       distance: costFunction,
-      getNeighbors: this._getTraversableNeighbors.bind(this),
+      getNeighbors,
       goal,
       heuristic: manhattanDistance,
       start,
@@ -170,14 +221,9 @@ export class ExpeditionMap {
     }
 
     if (createIfMissing && this._cells[y][x] === undefined) {
-      this._cells[y][x] = new MapCell(this._defaultTerrain)
+      this._cells[y][x] = new MapCell(x, y, this._defaultTerrain)
     }
 
     return this._cells[y]?.[x]
-  }
-
-  private _getTraversableNeighbors (cell: CellCoordinate) {
-    const possibilities = getAdjacentCoordinates(cell)
-    return filter(({ x, y }) => this.getTerrain(x, y).traversable, possibilities)
   }
 }

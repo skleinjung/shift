@@ -11,19 +11,23 @@ const ColorValues = {
     color: 0x990000,
   },
   PassiveCreature: {
-    background: 0x222200,
-    color: 0x999900,
+    color: 0x222200,
+    background: 0x999900,
   },
   White: 0xffffff,
 } as const
 
 /** Map symbols for all creature types. */
 
-export const CreatureSymbols: { [k in CreatureTypeId | 'default']: MapSymbol } = {
+export const CreatureSymbols: { default: MapSymbol } & { [k in CreatureTypeId]?: MapSymbol } = {
   default: {
     background: 0x002200,
     color: 0xffffff,
     symbol: 'z',
+  },
+  dart_lizard: {
+    ...ColorValues.PassiveCreature,
+    symbol: 'L',
   },
   goblin: {
     ...ColorValues.AggressiveCreature,

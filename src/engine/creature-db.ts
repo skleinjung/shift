@@ -6,9 +6,16 @@ import { BehaviorChain } from './behaviors/behavior-chain'
 import { maybeIdle } from './behaviors/idle'
 import { MoveRandomlyBehavior } from './behaviors/move-randomly'
 import { retaliate } from './behaviors/retaliate'
+import { startle } from './behaviors/startle'
 import { wanderBetweenRooms } from './behaviors/wander-between-rooms'
 import { MonsterLootTables } from './data/loot-tables'
 import { ItemTemplate } from './item-db'
+import { CreatureScript } from './script-api'
+import { ageSensor } from './scripts/age-sensor'
+import { creaturesInFrontSensor } from './scripts/creature-sensors'
+import { dartLizard, DefaultDartLizardSpeed } from './scripts/dart-lizard'
+import { facingSensor } from './scripts/facing-sensor'
+import { startleSensor } from './scripts/startle-sensor'
 import { Generator } from './spawnable'
 
 export type CreatureType = Readonly<{
@@ -33,6 +40,9 @@ export type CreatureType = Readonly<{
   /** name of this creature type */
   name: string
 
+  /** custom scripts for this creature type, if any */
+  scripts?: CreatureScript[]
+
   /** rate at which a creature acts; 100 == one move or standard attack per turn */
   speed: number
 }>
@@ -42,6 +52,23 @@ const moveRandom20Percent = maybeIdle(MoveRandomlyBehavior(), 80)
 const wander100Percent = maybeIdle(wanderBetweenRooms(), 0)
 
 const creatureTypeArray = [
+  {
+    createBehavior: () => BehaviorChain(startle(), maybeIdle(MoveRandomlyBehavior(), 70)),
+    defense: 0,
+    healthMax: 2,
+    id: 'dart_lizard',
+    lootTable: MonsterLootTables[1],
+    melee: 1,
+    name: 'Dart Lizard',
+    scripts: [
+      ageSensor,
+      facingSensor,
+      creaturesInFrontSensor(6),
+      startleSensor({ turnsToFlee: 10 }),
+      dartLizard,
+    ],
+    speed: DefaultDartLizardSpeed,
+  },
   {
     createBehavior: () => BehaviorChain(retaliate, attackPlayer, moveRandom100Percent),
     defense: 1,

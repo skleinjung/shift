@@ -155,9 +155,9 @@ export const MapPanel = ({
     )
 
     sceneGraphRef.current = new MapSceneGraph(app, CellWidth, CellHeight)
-    app.ticker.add((delta) => {
+    app.ticker.add((_delta) => {
       if (sceneGraphRef.current) {
-        sceneGraphRef.current.update(delta)
+        sceneGraphRef.current.update()
       }
     })
 
