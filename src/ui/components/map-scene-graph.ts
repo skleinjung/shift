@@ -41,7 +41,7 @@ abstract class AbstractTile {
 
   /** boolean indicating if this tile is viewable in the viewport */
   public set inFrame (inFrame: boolean) {
-    this.container.renderable = inFrame
+    this.container.visible = inFrame
     this._inFrame = inFrame
   }
 
@@ -142,6 +142,9 @@ class MapCellTile extends AbstractTile {
 
 export class MapSceneGraph {
   private _root: PIXI.Container
+  private _mapCellsContainer: PIXI.Container
+  private _creaturesContainer: PIXI.Container
+
   private _creatureTiles: { [k in string]: CreatureTile } = {}
   private _mapCellTiles: MapCellTile[][] = []
   private _allTiles: MapCellTile[] = []
@@ -154,6 +157,11 @@ export class MapSceneGraph {
     private _cellHeight: number
   ) {
     this._root = new PIXI.Container()
+    this._mapCellsContainer = new PIXI.Container()
+    this._creaturesContainer = new PIXI.Container()
+
+    this._root.addChild(this._mapCellsContainer)
+    this._root.addChild(this._creaturesContainer)
     app.stage.addChild(this._root)
 
     const background = new PIXI.Graphics()
@@ -193,7 +201,7 @@ export class MapSceneGraph {
             this._cellHeight,
             this._backgroundTexture
           )
-          this._mapCellTiles[cellY][cellX].addTo(this._root)
+          this._mapCellTiles[cellY][cellX].addTo(this._mapCellsContainer)
           this._allTiles.push(this._mapCellTiles[cellY][cellX])
         }
       }
@@ -201,7 +209,11 @@ export class MapSceneGraph {
 
     // update visibility and status of map tiles
     forEach((tile) => {
-      if (tile.x < xOffset || tile.x > (xOffset + viewWidth) || tile.y < yOffset || tile.y > (yOffset + viewHeight)) {
+      if (tile.x < xOffset ||
+        tile.x > (xOffset + viewWidth + 1) ||
+        tile.y < yOffset ||
+        tile.y > (yOffset + viewHeight + 1)
+      ) {
         tile.inFrame = false
       } else {
         tile.update()
@@ -213,11 +225,11 @@ export class MapSceneGraph {
     const validKeys = lodashMap((id) => `${id}`, compact(lodashMap(get('id'), world.creatures)))
     const removedCreatureIds = without(validKeys, keys(this._creatureTiles))
     forEach((id) => {
-      this._creatureTiles[id].removeFrom(this._root)
+      this._creatureTiles[id].removeFrom(this._creaturesContainer)
       delete this._creatureTiles[id]
     }, removedCreatureIds)
 
-    // create any missing tiles
+    // create any missing creature tiles
     for (const creature of world.creatures) {
       if (this._creatureTiles[creature.id] === undefined) {
         this._creatureTiles[creature.id] = new CreatureTile(
@@ -227,7 +239,7 @@ export class MapSceneGraph {
           this._cellHeight,
           this._backgroundTexture
         )
-        this._creatureTiles[creature.id].addTo(this._root)
+        this._creatureTiles[creature.id].addTo(this._creaturesContainer)
       }
     }
 
