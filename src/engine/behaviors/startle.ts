@@ -4,6 +4,7 @@ import { random } from 'engine/random'
 import { getStartledBy } from 'engine/scripts/startle-sensor'
 import { Behavior } from 'engine/types'
 import { sortBy, takeRight } from 'lodash/fp'
+import { distance } from 'math'
 
 /**
  * The 'startle' behavior causes a creature to run if it is startled.
@@ -31,7 +32,7 @@ export const startle = (): Behavior => {
       // pick one of the farther cells at random, and build a path towards it
       // but ensure the path does not bring us closer to the startling creatyre
       if (candidateCells.length > 0) {
-        const sortedByDistance = sortBy((cell) => world.map.getPath(startledBy, cell).length, candidateCells)
+        const sortedByDistance = sortBy((cell) => distance(cell, startledBy), candidateCells)
 
         // randomly pick a destination from the best 1/3 of options
         const bestThird = takeRight(sortedByDistance.length / 3, sortedByDistance)

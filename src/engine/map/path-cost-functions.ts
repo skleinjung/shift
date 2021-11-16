@@ -1,4 +1,5 @@
 import { Creature } from 'engine/creature'
+import { random } from 'engine/random'
 import { find, findIndex } from 'lodash/fp'
 
 import { CellCoordinate, ExpeditionMap } from './map'
@@ -52,4 +53,19 @@ export const creatureAdjustedCost = ({
   }
 
   return base
+}
+
+export const randomCosts = ({
+  maximumCost = 10,
+}: { maximumCost?: number } = {}): PathCostFunction => {
+  const costs: Record<string, number> = {}
+
+  return (_, to) => {
+    const cellKey = `${to.x},${to.y}`
+    if (costs[cellKey] === undefined) {
+      costs[cellKey] = random(1, maximumCost)
+    }
+
+    return costs[cellKey]
+  }
 }
