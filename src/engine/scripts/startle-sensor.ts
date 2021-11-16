@@ -53,8 +53,8 @@ export interface StartleSensorOptions {
 }
 
 /**
- * Sensor script that detects a 'startle' condition triggered by the presence of other creatures,
- * and returns how long the creature is startled for. This relies on another sensor to detect
+ * Sensor script that detects a 'startle' condition. A creature is startled if it is attacked,
+ * or senses the presence of other creatures. This relies on another sensor to detect
  * the creatures, and set them as script data (type: Creature[]) with a key specified when
  * building this sensor (default: sensor.creatures).
  */
@@ -64,6 +64,13 @@ export const startleSensor = ({
 }: StartleSensorOptions): CreatureScript => ({
   onCreate: ({ creature }) => {
     creature.setScriptData(KEY, 0)
+  },
+  onDefend: ({ attack, creature }) => {
+    creature.setScriptData(KEY, {
+      startledBy: attack.attacker,
+      turnsRemaining: turnsToFlee,
+      turns: 1,
+    })
   },
   onTurnStart: ({ creature }) => {
     const startle = creature.getScriptData<StartleDetails>(KEY, true)
