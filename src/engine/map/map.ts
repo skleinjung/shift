@@ -199,8 +199,14 @@ export class ExpeditionMap {
       getNeighbors = getTraversableNeighbors(this),
     }: PathFindingOptions = {}
   ): CellCoordinate[] {
+    // don't even try to navigate to a non-traversable tile
+    if (!this.getTerrain(goal.x, goal.y).traversable) {
+      return []
+    }
+
     return aStar({
       distance: costFunction,
+      failAfter: 50000,
       getNeighbors,
       goal,
       heuristic: manhattanDistance,
