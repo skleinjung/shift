@@ -68,6 +68,11 @@ export type CreatureEvents = {
     /** emitted by a creature after each of its turns completes */
     creature: Creature
   }
+
+  turnStart: {
+    /** emitted by a creature after each of its turns begins */
+    creature: Creature
+  }
 }
 
 /**
@@ -81,7 +86,8 @@ export const CreatureEventNames = enumerate<keyof CreatureEvents>()(
   'death',
   'defend',
   'move',
-  'turnEnd'
+  'turnEnd',
+  'turnStart'
 )
 
 /** event emitter type for creatures */

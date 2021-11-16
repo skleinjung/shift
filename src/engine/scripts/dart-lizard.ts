@@ -5,10 +5,14 @@ import { CreatureScript, ScriptApi, WorldScript } from 'engine/script-api'
 import { countBy, get, some } from 'lodash/fp'
 import { distance } from 'math'
 
+import { getAge } from './age-sensor'
+
 type Direction = 'up-left' | 'up' | 'up-right' | 'left' | 'right' | 'down-left' | 'down' | 'down-right' | 'none'
 
 const DisappearChance = 10
 const SpawnChance = 3
+// minimum number of turns a lizard must stay on the map before darting away
+const MinimumAgeBeforeDisappearing = 7
 
 const DefaultMinPromiximityToPlayer = 5
 const DefaultMaxPromiximityToPlayer = 13
@@ -144,9 +148,9 @@ export const dartLizard: CreatureScript & WorldScript = {
     }
   },
   onTurnEnd: ({ creature }, api) => {
-    // each turn a lizard is near heavy brush, there is a chance they dash into it
-    if (nextToHeavyBrush(api, creature.x, creature.y)) {
-      if (random(0, 99) < DisappearChance) {
+    // after a few turns, each turn a lizard is near heavy brush, there is a chance they dash into it
+    if (getAge(creature) > MinimumAgeBeforeDisappearing && random(0, 99) < DisappearChance) {
+      if (nextToHeavyBrush(api, creature.x, creature.y)) {
         api.showMessage('A dart lizard dashes into the brush!')
         api.removeCreature(creature.id)
 

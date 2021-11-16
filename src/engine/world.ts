@@ -307,8 +307,8 @@ export class World extends TypedEventEmitter<WorldEvents> implements Updateable 
     }
 
     creature.onTurnEnd()
-
     this._nextActor = (this._nextActor + 1) % this._creatures.length
+    this._creatures[this._nextActor].onTurnStart()
 
     // update initaitive for this turn (we add it _after_ decrementing to
     // more easily handle the 'waiting for input' case)

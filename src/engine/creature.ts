@@ -260,6 +260,10 @@ export class Creature extends CreatureEventEmitter implements
     this.emit('turnEnd', { creature: this })
   }
 
+  public onTurnStart () {
+    this.emit('turnStart', { creature: this })
+  }
+
   /// ////////////////////////////////////////////
   // Combatant (Attacker)
 

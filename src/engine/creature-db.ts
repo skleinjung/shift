@@ -10,6 +10,7 @@ import { wanderBetweenRooms } from './behaviors/wander-between-rooms'
 import { MonsterLootTables } from './data/loot-tables'
 import { ItemTemplate } from './item-db'
 import { CreatureScript } from './script-api'
+import { ageSensor } from './scripts/age-sensor'
 import { dartLizard } from './scripts/dart-lizard'
 import { Generator } from './spawnable'
 
@@ -55,7 +56,7 @@ const creatureTypeArray = [
     lootTable: MonsterLootTables[1],
     melee: 1,
     name: 'Dart Lizard',
-    scripts: [dartLizard],
+    scripts: [ageSensor, dartLizard],
     speed: 100,
   },
   {
