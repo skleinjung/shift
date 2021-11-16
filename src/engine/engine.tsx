@@ -16,7 +16,7 @@ import { EventHandlerName } from './events/types'
 import { Item } from './item'
 import { MapCell } from './map/map'
 import { random } from './random'
-import { MapTile, ScriptApi, Speech } from './script-api'
+import { initializePlayer } from './scripts/player'
 
 class GameController implements ScriptApi {
   constructor (
@@ -196,9 +196,13 @@ export class Engine extends TypedEventEmitter<EngineEvents> implements Updateabl
     this.attach(this._world)
     this._world.initializeFromDungeon(this._campaign.createNextDungeon())
 
+    // initialize the campaign
     forEach((script) => {
       script.initialize?.(this._scriptApi)
     }, this._campaign.scripts)
+
+    // initialize the player
+    initializePlayer.initialize?.(this._scriptApi)
   }
 
   public get world () {
