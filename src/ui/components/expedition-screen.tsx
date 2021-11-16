@@ -68,6 +68,10 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
   const executePlayerMove = useCallback((x: number, y: number) => () => {
     if (!isPaused) {
       const player = world.player
+
+      // stop auto-pathfinding, if we were in the middle of it
+      player.destination = undefined
+
       const creature = world.map.getCreature(player.x + x, player.y + y)
       if (creature === undefined) {
         executeTurn(new MoveByAction(player, x, y))
