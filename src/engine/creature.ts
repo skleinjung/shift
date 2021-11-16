@@ -128,7 +128,7 @@ export class Creature extends CreatureEventEmitter implements
   public getScriptData <T = unknown> (key: string, optional = false): T | undefined {
     const data = this._scriptData[key]
     if (!optional && data === undefined) {
-      throw new Error(`Required script data with key '${key} not found on creature ${this.id} (name=${this.name})`)
+      throw new Error(`Required script data with key '${key}' not found on creature ${this.id} (name=${this.name})`)
     }
 
     return data

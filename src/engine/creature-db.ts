@@ -11,7 +11,9 @@ import { MonsterLootTables } from './data/loot-tables'
 import { ItemTemplate } from './item-db'
 import { CreatureScript } from './script-api'
 import { ageSensor } from './scripts/age-sensor'
+import { creaturesInFrontSensor } from './scripts/creature-sensors'
 import { dartLizard } from './scripts/dart-lizard'
+import { facingSensor } from './scripts/facing-sensor'
 import { Generator } from './spawnable'
 
 export type CreatureType = Readonly<{
@@ -56,7 +58,7 @@ const creatureTypeArray = [
     lootTable: MonsterLootTables[1],
     melee: 1,
     name: 'Dart Lizard',
-    scripts: [ageSensor, dartLizard],
+    scripts: [ageSensor, facingSensor, creaturesInFrontSensor(6), dartLizard],
     speed: 100,
   },
   {

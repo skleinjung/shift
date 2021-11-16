@@ -2,12 +2,12 @@ import { Item } from 'engine/item'
 import { getAdjacentCoordinates } from 'engine/map/map-utils'
 import { random } from 'engine/random'
 import { CreatureScript, ScriptApi, WorldScript } from 'engine/script-api'
-import { countBy, get, some } from 'lodash/fp'
+import { countBy, get, join, map, some } from 'lodash/fp'
 import { distance } from 'math'
 
 import { getAge } from './age-sensor'
-
-type Direction = 'up-left' | 'up' | 'up-right' | 'left' | 'right' | 'down-left' | 'down' | 'down-right' | 'none'
+import { getDetectedCreatures } from './creature-sensors'
+import { getFacing } from './facing-sensor'
 
 const DisappearChance = 10
 const SpawnChance = 3
@@ -16,34 +16,6 @@ const MinimumAgeBeforeDisappearing = 7
 
 const DefaultMinPromiximityToPlayer = 5
 const DefaultMaxPromiximityToPlayer = 13
-
-const getDirectionOfMovement = (newX: number, newY: number, oldX: number, oldY: number): Direction => {
-  if (newX < oldX) {
-    if (newY < oldY) {
-      return 'up-left'
-    } else if (newY === oldY) {
-      return 'left'
-    } else {
-      return 'down-left'
-    }
-  } else if (newX === oldX) {
-    if (newY < oldY) {
-      return 'up'
-    } else if (newY > oldY) {
-      return 'down'
-    }
-  } else if (newX > oldX) {
-    if (newY < oldY) {
-      return 'up-right'
-    } else if (newY === oldY) {
-      return 'right'
-    } else {
-      return 'down-right'
-    }
-  }
-
-  return 'none'
-}
 
 /**
  * Returns true if the specified coordinates are within 'minDistance' and 'maxDistance' (inclusive) tiles
@@ -73,8 +45,8 @@ const nextToHeavyBrush = (api: ScriptApi, x: number, y: number): boolean => {
 
 export const dartLizard: CreatureScript & WorldScript = {
   // move the tail with the lizard
-  onMove: ({ creature, x, y, xOld, yOld }, api) => {
-    const direction = getDirectionOfMovement(x, y, xOld, yOld)
+  onMove: ({ creature, x, y }, api) => {
+    const direction = getFacing(creature)
 
     const tailId = creature.getScriptData<number>('tailId')
 
@@ -145,6 +117,12 @@ export const dartLizard: CreatureScript & WorldScript = {
         api.showMessage('A dart lizard wanders out of the brush.')
         api.addCreature('dart_lizard', spawnLocation.x, spawnLocation.y)
       }
+    }
+  },
+  onTurnStart: ({ creature }, api) => {
+    const creatures = getDetectedCreatures(creature)
+    if (creatures.length > 0) {
+      api.showMessage(`Lizard will run because of: ${join(', ', map(get('name'), creatures))}`)
     }
   },
   onTurnEnd: ({ creature }, api) => {
