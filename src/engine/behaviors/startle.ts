@@ -39,12 +39,12 @@ export const startle = (): Behavior => {
         const destination = bestThird[random(0, bestThird.length - 1)]
 
         flightPath = world.map.getPath(creature, destination)
-        pathIndex = 0
+        pathIndex = 1
       }
     }
 
     // if we have a destination, we are startled... run towards it
-    if (flightPath !== undefined && flightPath.length > 0) {
+    if (flightPath !== undefined && flightPath.length > 1) {
       const nextCell = flightPath[pathIndex++]
       if (pathIndex >= flightPath.length) {
         flightPath = undefined
