@@ -35,8 +35,8 @@ export type CreatureType = Readonly<{
   /** name of this creature type */
   name: string
 
-  /** the script for this creature type, if any */
-  script?: CreatureScript
+  /** custom scripts for this creature type, if any */
+  scripts?: CreatureScript[]
 
   /** rate at which a creature acts; 100 == one move or standard attack per turn */
   speed: number
@@ -55,7 +55,7 @@ const creatureTypeArray = [
     lootTable: MonsterLootTables[1],
     melee: 1,
     name: 'Dart Lizard',
-    script: dartLizard,
+    scripts: [dartLizard],
     speed: 100,
   },
   {

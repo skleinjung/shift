@@ -1,5 +1,7 @@
 import { Creature } from './creature'
 import { CreatureTypeId } from './creature-db'
+import { CreatureEvents } from './events/creature-events'
+import { EventHandlerName } from './events/types'
 import { Item } from './item'
 import { MapCell } from './map/map'
 import { Objective } from './objective'
@@ -113,10 +115,6 @@ export interface WorldScript {
 }
 
 /** interface defining the functions that can be implemented by a creature-specific script */
-export interface CreatureScript {
-  /** called when a creature is first created and associated with the script */
-  onCreate?: (context: ScriptApi, creature: Creature) => void
-
-  /** called when the creature moves */
-  onMove?: (context: ScriptApi, creature: Creature, event: { x: number; y: number; oldX: number; oldY: number }) => void
+export type CreatureScript = {
+  readonly [k in keyof CreatureEvents as EventHandlerName<k>]?: (event: CreatureEvents[k], game: ScriptApi) => void
 }

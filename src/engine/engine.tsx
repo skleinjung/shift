@@ -5,11 +5,14 @@ import { ObjectiveTracker } from 'engine/objective-tracker'
 import { Updateable } from 'engine/types'
 import { World } from 'engine/world'
 import { stubTrue } from 'lodash'
-import { forEach } from 'lodash/fp'
+import { forEach, upperFirst } from 'lodash/fp'
 import { TypedEventEmitter } from 'typed-event-emitter'
 
 import { Creature } from './creature'
 import { CreatureTypeId, CreatureTypes } from './creature-db'
+import { CreatureEventNames, CreatureEvents } from './events/creature-events'
+import { EventManager, EventManagerEvents } from './events/event-manager'
+import { EventHandlerName } from './events/types'
 import { Item } from './item'
 import { MapCell } from './map/map'
 import { random } from './random'
@@ -18,8 +21,11 @@ import { MapTile, ScriptApi, Speech } from './script-api'
 class GameController implements ScriptApi {
   constructor (
     private _engine: Engine,
-    private _world: World
-  ) { }
+    private _world: World,
+    private _eventManager = new EventManager()
+  ) {
+    this._eventManager.on('registerCreature', this._handleCreatureEventRegistration.bind(this))
+  }
 
   /** @deprecated access to the world is being dropped soon */
   public get world () {
@@ -40,7 +46,10 @@ class GameController implements ScriptApi {
       ? creatureOrType
       : new Creature(CreatureTypes[creatureOrType], x, y)
 
+    this._eventManager.registerCreature(creature, creature)
     this._world.addCreature(creature)
+    creature.emit('create', { creature })
+
     return creature.id
   }
 
@@ -130,6 +139,21 @@ class GameController implements ScriptApi {
   public showSpeech (speech: Speech[]): void {
     this._engine.emit('speech', speech)
   }
+
+  /** When a creature is registered with the event manager, register all of it's script listeners */
+  private _handleCreatureEventRegistration ({ creature, eventEmitter }: EventManagerEvents['registerCreature']) {
+    forEach((script) => {
+      forEach((eventName) => {
+        const handlerName = `on${upperFirst(eventName)}` as EventHandlerName<keyof CreatureEvents>
+        const handler = script[handlerName]
+        if (handler !== undefined) {
+          eventEmitter.on(eventName, (event: any) => {
+            handler(event, this)
+          })
+        }
+      }, CreatureEventNames)
+    }, creature.scripts)
+  }
 }
 
 /** The engine is responsible for triggering speech, scripted events, updating quests, etc. */
@@ -147,7 +171,6 @@ export class Engine extends TypedEventEmitter<EngineEvents> implements Updateabl
   private _objectiveTracker = new ObjectiveTracker()
 
   // world event handlers
-  private _handleCreatureSpawnBinding = this._handleCreatureSpawn.bind(this)
   private _handleTurnBinding = this._handleTurn.bind(this)
 
   constructor (
@@ -198,7 +221,6 @@ export class Engine extends TypedEventEmitter<EngineEvents> implements Updateabl
     this._timer.addUpdateable(world)
 
     // attach our listeners
-    this._world.on('creatureSpawn', this._handleCreatureSpawnBinding)
     this._world.on('turn', this._handleTurnBinding)
   }
 
@@ -216,9 +238,6 @@ export class Engine extends TypedEventEmitter<EngineEvents> implements Updateabl
     if (this._world !== undefined) {
       this._timer.removeUpdateable(this._world)
       this._objectiveTracker.detach()
-
-      // detach our listeners
-      this._world.off('creatureSpawn', this._handleCreatureSpawnBinding)
     }
   }
 
@@ -226,14 +245,5 @@ export class Engine extends TypedEventEmitter<EngineEvents> implements Updateabl
     forEach((script) => {
       script.onTurn?.(this._scriptApi)
     }, this._campaign.scripts)
-  }
-
-  private _handleCreatureSpawn (creature: Creature) {
-    creature.script?.onCreate?.(this._scriptApi, creature)
-
-    // manually forwarding all events will get cumbersome, consider automating
-    creature.on('move', (creature, x, y, oldX, oldY) => {
-      creature.script?.onMove?.(this._scriptApi, creature, { x, y, oldX, oldY })
-    })
   }
 }

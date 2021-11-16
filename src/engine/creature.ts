@@ -1,5 +1,4 @@
 import { compact, find, flow, forEach, keys, map, reduce, values } from 'lodash/fp'
-import { TypedEventEmitter } from 'typed-event-emitter'
 
 import {
   Attack,
@@ -12,12 +11,12 @@ import {
 } from './combat'
 import { BasicContainer } from './container'
 import { CreatureType } from './creature-db'
-import { CreatureEvents } from './events'
+import { CreatureEventEmitter } from './events/creature-events'
 import { EquipmentSet, EquipmentSlot, EquipmentSlots, Item } from './item'
 import { newId } from './new-id'
 import { CreatureScript } from './script-api'
 import { createSensors } from './sensors/create-sensors'
-import { Actor, Behavior, Combatant, Damageable, EventSource, Moveable } from './types'
+import { Actor, Behavior, Combatant, Damageable, Moveable } from './types'
 import { World } from './world'
 
 export type Sensor<T> = {
@@ -60,13 +59,12 @@ export class Inventory extends BasicContainer {}
 /**
  * A Creature is an Actor subtype that specifically represents a living being.
  */
-export class Creature extends TypedEventEmitter<CreatureEvents> implements
+export class Creature extends CreatureEventEmitter implements
   Actor,
   Combatant,
   CreatureAttributeSet,
   Damageable,
-  Moveable,
-  EventSource<CreatureEvents> {
+  Moveable {
   private _health: number
   private _id = newId()
   private _equipment: EquipmentSet = {}
@@ -74,8 +72,8 @@ export class Creature extends TypedEventEmitter<CreatureEvents> implements
   /** inventory of items held by this creature */
   public readonly inventory: Inventory
 
-  /** custom script for this creature */
-  public readonly script: CreatureScript | undefined
+  /** custom scripts for this creature */
+  public readonly scripts: CreatureScript[]
 
   /** sensors that can be used by behaviors */
   public readonly sensors = createSensors(this)
@@ -101,7 +99,7 @@ export class Creature extends TypedEventEmitter<CreatureEvents> implements
     this.inventory = new Inventory()
     this.speed = this._type.speed
     this._behavior = this._type.createBehavior()
-    this.script = this._type.script
+    this.scripts = this._type.scripts ?? []
 
     const loot = this._type.lootTable?.collect() ?? []
     forEach((itemTemplate) => {
@@ -272,15 +270,21 @@ export class Creature extends TypedEventEmitter<CreatureEvents> implements
     }
   }
 
-  public onAttackComplete (result: AttackResult) {
-    this.emit('attack', result, this)
+  public onAttackComplete (attackResult: AttackResult) {
+    this.emit('attack', {
+      attackResult,
+      creature: this,
+    })
   }
 
   /// ////////////////////////////////////////////
   // Combatant (Attackable)
 
   public generateDefense (attack: Attack): Defense {
-    this.emit('defend', attack, this)
+    this.emit('defend', {
+      attack,
+      creature: this,
+    })
 
     return {
       immune: false,
@@ -294,7 +298,11 @@ export class Creature extends TypedEventEmitter<CreatureEvents> implements
     const taken = Math.max(0, oldHealth - this.health)
     const overkill = attack.damageRolled - taken
 
-    this.emit('damaged', taken, attack.attacker, this)
+    this.emit('damaged', {
+      amount: taken,
+      creature: this,
+      source: attack.attacker,
+    })
 
     return overkill > 0 ? {
       taken,
@@ -321,7 +329,7 @@ export class Creature extends TypedEventEmitter<CreatureEvents> implements
     this._health = Math.max(0, this._health - amount)
 
     if (this._health < 1) {
-      this.emit('death', this)
+      this.emit('death', { creature: this })
     }
   }
 
@@ -342,12 +350,18 @@ export class Creature extends TypedEventEmitter<CreatureEvents> implements
    * Move the creature to the specified location.
    */
   public moveTo (x: number, y: number) {
-    const oldX = this._x
-    const oldY = this._y
+    const xOld = this._x
+    const yOld = this._y
 
     this._x = x
     this._y = y
-    this.emit('move', this, x, y, oldX, oldY)
+    this.emit('move', {
+      creature: this,
+      x,
+      y,
+      xOld,
+      yOld,
+    })
   }
 
   private _getModifiedAttribute (baseValue: number, modifierName: CreatureAttributeModifierMethodName) {

@@ -80,7 +80,7 @@ class CreatureTile extends AbstractTile {
     this._creature.on('defend', () => {
       this.highlight(missed())
     })
-    this._creature.on('damaged', (amount) => {
+    this._creature.on('damaged', ({ amount }) => {
       this.highlight(damaged(amount > 9 ? '*' : `${amount}`))
     })
   }

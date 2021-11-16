@@ -3,10 +3,10 @@ import { filter, find, findIndex, forEach, get, initial, join, last, map, omit, 
 import { TypedEventEmitter } from 'typed-event-emitter'
 
 import { getResultMessage } from './actions/result-handler'
-import { AttackResult } from './combat'
 import { Creature } from './creature'
 import { Dungeon } from './dungeon/dungeon'
 import { WorldEvents } from './events'
+import { CreatureEvents } from './events/creature-events'
 import { Item } from './item'
 import { ExpeditionMap } from './map/map'
 import { Player } from './player'
@@ -183,7 +183,7 @@ export class World extends TypedEventEmitter<WorldEvents> implements Updateable 
     this._registerCreature(this._player)
     this.map.setCreature(this._player.x, this._player.y, this._player)
 
-    this._player.on('move', (_, x, y) => {
+    this._player.on('move', ({ x, y }) => {
       const itemNames = map(get('name'), this.map.getItems(x, y))
       if (itemNames.length > 2) {
         // list of three or more, so use commas with 'and'
@@ -199,19 +199,20 @@ export class World extends TypedEventEmitter<WorldEvents> implements Updateable 
   }
 
   /** Adds the results of an attack to the message log. */
-  private _logAttack (attack: AttackResult) {
-    if (attack.success) {
+  private _logAttack ({ attackResult }: CreatureEvents['attack']) {
+    if (attackResult.success) {
       // we don't display 'overkill' or 'taken' damage broken out for the user
-      const damages = mapI(omit(['overkill', 'taken'], attack.damage), (value, type) => `${value} ${type}`)
+      const damages = mapI(omit(['overkill', 'taken'], attackResult.damage), (value, type) => `${value} ${type}`)
       const damagesString = damages.length === 0
         ? ''
         : ` (${join(', ', damages)})`
 
       this.logMessage(
-        `${attack.attacker.name} hits ${attack.target.name} for ${attack.damageRolled} damage.${damagesString}`
+        // eslint-disable-next-line max-len
+        `${attackResult.attacker.name} hits ${attackResult.target.name} for ${attackResult.damageRolled} damage.${damagesString}`
       )
     } else {
-      this.logMessage(`${attack.attacker.name} misses ${attack.target.name}.`)
+      this.logMessage(`${attackResult.attacker.name} misses ${attackResult.target.name}.`)
     }
   }
 
