@@ -3,7 +3,7 @@ import { MapCell } from 'engine/map/map'
 import { MapSymbol } from 'engine/map/map-symbol'
 import { getCreatureSymbol, getItemSymbol, getTerrainSymbol, withDefaultBackground } from 'engine/map/map-symbolizer'
 import { World } from 'engine/world'
-import { compact } from 'lodash/fp'
+import { compact, forEach, get, keys, map as lodashMap, values, without } from 'lodash/fp'
 import * as PIXI from 'pixi.js'
 import { FontNames } from 'ui/fonts'
 import { damaged, HighlightEffect, missed } from 'ui/visual-effects/highlights'
@@ -49,6 +49,10 @@ abstract class AbstractTile {
     }
 
     container.addChild(this.container)
+  }
+
+  public removeFrom (container: PIXI.Container) {
+    container.removeChild(this.container)
   }
 
   public setVisible (visible: boolean) {
@@ -124,7 +128,7 @@ class MapCellTile extends AbstractTile {
 
 export class MapSceneGraph {
   private _root: PIXI.Container
-  private _creatureTiles: CreatureTile[] = []
+  private _creatureTiles: { [k in string]: CreatureTile } = {}
   private _mapCellTiles: MapCellTile[][] = []
 
   constructor (
@@ -175,6 +179,14 @@ export class MapSceneGraph {
       }
     }
 
+    // TODO: use appropriate events from creatures instead of looping through this...
+    const validKeys = lodashMap((id) => `${id}`, compact(lodashMap(get('id'), world.creatures)))
+    const removedCreatureIds = without(validKeys, keys(this._creatureTiles))
+    forEach((id) => {
+      this._creatureTiles[id].removeFrom(this._root)
+      delete this._creatureTiles[id]
+    }, removedCreatureIds)
+
     // create any missing tiles
     for (const creature of world.creatures) {
       if (this._creatureTiles[creature.id] === undefined) {
@@ -184,16 +196,14 @@ export class MapSceneGraph {
     }
 
     // update the creature tiles
-    for (const tile of compact(this._creatureTiles)) {
-      tile.update()
-    }
+    this.update()
   }
 
   /**
    * Perform strictly visual-only effect updates for creatures, during a PIXI ticker callback.
    */
-  public update (_elapsedFrames: number) {
-    for (const tile of compact(this._creatureTiles)) {
+  public update () {
+    for (const tile of values(this._creatureTiles)) {
       tile.update()
     }
   }

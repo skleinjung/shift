@@ -1,5 +1,5 @@
-import { Attack } from 'engine/combat'
 import { Creature, Sensor } from 'engine/creature'
+import { CreatureEvents } from 'engine/events/creature-events'
 
 export class LastAggressorSensor implements Sensor<Creature | undefined> {
   /** the last creature to attack this one, or undefined */
@@ -11,7 +11,8 @@ export class LastAggressorSensor implements Sensor<Creature | undefined> {
     this._creature.on('defend', this._onDefend.bind(this))
   }
 
-  private _onDefend ({ attacker }: Attack) {
+  private _onDefend ({ attack }: CreatureEvents['defend']) {
+    const attacker = attack.attacker
     if (attacker instanceof Creature) {
       this._lastAggressor = attacker
     }

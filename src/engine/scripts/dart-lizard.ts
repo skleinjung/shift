@@ -7,9 +7,11 @@ import { distance } from 'math'
 
 type Direction = 'up-left' | 'up' | 'up-right' | 'left' | 'right' | 'down-left' | 'down' | 'down-right' | 'none'
 
-const SpawnChance = 10
+const DisappearChance = 10
+const SpawnChance = 3
+
 const DefaultMinPromiximityToPlayer = 5
-const DefaultMaxPromiximityToPlayer = 15
+const DefaultMaxPromiximityToPlayer = 13
 
 const getDirectionOfMovement = (newX: number, newY: number, oldX: number, oldY: number): Direction => {
   if (newX < oldX) {
@@ -67,8 +69,8 @@ const nextToHeavyBrush = (api: ScriptApi, x: number, y: number): boolean => {
 
 export const dartLizard: CreatureScript & WorldScript = {
   // move the tail with the lizard
-  onMove: (api, creature, { x, y, oldX, oldY }) => {
-    const direction = getDirectionOfMovement(x, y, oldX, oldY)
+  onMove: ({ creature, x, y, xOld, yOld }, api) => {
+    const direction = getDirectionOfMovement(x, y, xOld, yOld)
 
     const tailId = creature.getScriptData<number>('tailId')
 
@@ -109,13 +111,18 @@ export const dartLizard: CreatureScript & WorldScript = {
     }
   },
   // add the lizard's tail to the map when a lizard created
-  onCreate: (api, creature) => {
+  onCreate: ({ creature }, api) => {
     const tail = new Item({
       name: 'dart lizard tail',
     })
 
     const tailId = api.addMapItem(tail, creature.x, creature.y + 1)
     creature.setScriptData('tailId', tailId)
+  },
+  onDeath: ({ creature }, api) => {
+    const tailId = creature.getScriptData<number>('tailId')
+    api.removeMapItem(tailId)
+    creature.setScriptData('tailId', undefined)
   },
   onTurn: (api) => {
     const countsByTypeId = countBy(get(['type', 'id']), api.creatures)
@@ -131,8 +138,20 @@ export const dartLizard: CreatureScript & WorldScript = {
           throw new Error('No valid spawn locations found.')
         }
 
-        api.showMessage('A dart lizard wanders out of the brush!')
+        api.showMessage('A dart lizard wanders out of the brush.')
         api.addCreature('dart_lizard', spawnLocation.x, spawnLocation.y)
+      }
+    }
+  },
+  onTurnEnd: ({ creature }, api) => {
+    // each turn a lizard is near heavy brush, there is a chance they dash into it
+    if (nextToHeavyBrush(api, creature.x, creature.y)) {
+      if (random(0, 99) < DisappearChance) {
+        api.showMessage('A dart lizard dashes into the brush!')
+        api.removeCreature(creature.id)
+
+        const tailId = creature.getScriptData<number>('tailId')
+        api.removeMapItem(tailId)
       }
     }
   },

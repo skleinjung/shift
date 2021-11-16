@@ -94,6 +94,7 @@ class GameController implements ScriptApi {
     const creature = this._world.getCreature(id)
     if (creature !== undefined) {
       this._world.removeCreature(creature)
+      this._eventManager.unregisterCreature(creature.id)
     }
   }
 

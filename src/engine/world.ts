@@ -223,6 +223,7 @@ export class World extends TypedEventEmitter<WorldEvents> implements Updateable 
   private _registerCreature (creature: Creature) {
     this._creatures.push(creature)
     creature.on('attack', this._logAttack.bind(this))
+    this.map.setCreature(creature.x, creature.y, creature)
     this.emit('creatureSpawn', creature)
   }
 
@@ -304,6 +305,8 @@ export class World extends TypedEventEmitter<WorldEvents> implements Updateable 
       // TODO: think through 'undefined' results from monsters
       creature.initiative -= 100
     }
+
+    creature.onTurnEnd()
 
     this._nextActor = (this._nextActor + 1) % this._creatures.length
 

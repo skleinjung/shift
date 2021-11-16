@@ -256,8 +256,8 @@ export class Creature extends CreatureEventEmitter implements
     return this._behavior(this, world)
   }
 
-  public turnEnded (_world: World) {
-    // do nothing by default
+  public onTurnEnd () {
+    this.emit('turnEnd', { creature: this })
   }
 
   /// ////////////////////////////////////////////

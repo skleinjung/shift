@@ -107,7 +107,7 @@ export interface Actor extends Entity {
   /**
    * Called by the engine after each turn passes.
    */
-  turnEnded: (world: World) => void
+  onTurnEnd: () => void
 }
 
 /** A Positionable entity has coordinates on the map grid. */
