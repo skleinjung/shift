@@ -130,9 +130,6 @@ class MapCellTile extends AbstractTile {
   public update () {
     this.container.position.set(this.x * this.cellWidth, this.y * this.cellHeight)
 
-    // hide ourselves if a creature is here, it's rendering takes precendence
-    this.setVisible(this._cell.creature === undefined)
-
     if (this._cell.items.length > 0) {
       this.setMapSymbol(withDefaultBackground(this._cell, getItemSymbol(this._cell.items)))
     } else {

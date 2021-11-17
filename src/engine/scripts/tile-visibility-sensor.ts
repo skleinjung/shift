@@ -1,5 +1,6 @@
 import { Creature } from 'engine/creature'
 import { castRay } from 'engine/map/cast-ray'
+import { TileProvider } from 'engine/map/map'
 import { CreatureScript, ScriptApi } from 'engine/script-api'
 import { forEach } from 'lodash/fp'
 import { distance } from 'math'
@@ -37,33 +38,138 @@ export const isTileVisibleTo = (creature: Creature, x: number, y: number, api: P
   }
 
   const cache = creature.getScriptData<boolean[][]>(KEY_CACHE)
-  if (cache[y]?.[x] === undefined) {
-    const tilesInRay = castRay(creature.x, creature.y, x, y)
+  return cache[y]?.[x] ?? false
+}
 
-    let blocked = false
-    forEach(({ x, y }) => {
-      if (cache[y] === undefined) {
-        cache[y] = []
-      }
+/**
+ * Casts a ray from the start to end point, and uses it to determine the visibility from the start point to each
+ * tile along it. Will store whether tile (x, y) is visible in the result array element (result[y][x]). Uses the
+ * terrain data stored in the tile provider to determine line of sight for individual tiles.
+ */
+const castVisibilityRay = (
+  xStart: number,
+  yStart: number,
+  xEnd: number,
+  yEnd: number,
+  result: boolean[][],
+  tileProvider: TileProvider
+) => {
+  const rayTiles = castRay(xStart, yStart, xEnd, yEnd)
 
-      // we can always see our tile, and it doesn't block immediate neighbors
-      if (creature.x === x && creature.y === y) {
-        cache[y][x] = true
-        return
-      }
+  let blocked = false
+  forEach(({ x, y }) => {
+    if (result[y] === undefined) {
+      result[y] = []
+    }
 
-      cache[y][x] = !blocked
-      const tile = api.getMapTile(x, y)
-      if (tile !== undefined) {
-        // if this is a blocking tile, block all the tiles behind it
-        if (tile.terrain.blocksLineOfSight) {
-          blocked = true
-        }
+    // we can always see our start tile, and it doesn't block immediate neighbors
+    if (xStart === x && yStart === y) {
+      result[y][x] = true
+      return
+    }
+
+    // if we haven't been blocked yet, it means this tile is visible (even it blocks ones behind it)
+    result[y][x] = !blocked
+
+    // if this tile is undefined (i.e. off the map), or blocks line of sight, set the blocked flag for all tiles behind
+    const tile = tileProvider.getMapTile(x, y)
+    if (tile !== undefined) {
+      // if this is a blocking tile, block all the tiles behind it
+      if (tile.terrain.blocksLineOfSight) {
+        blocked = true
       }
-    }, tilesInRay)
+    }
+  }, rayTiles)
+}
+
+const calculateRayCastVisibility = (x: number, y: number, maxRange: number, tileProvider: TileProvider) => {
+  const result: boolean[][] = []
+
+  const xMin = x - maxRange
+  const xMax = x + maxRange
+  const yMin = y - maxRange
+  const yMax = y + maxRange
+
+  // cast rays to left and right extents of sight
+  for (let row = yMin; row <= yMax; row++) {
+    castVisibilityRay(x, y, xMin, row, result, tileProvider)
+    castVisibilityRay(x, y, xMax, row, result, tileProvider)
   }
 
-  return cache[y]?.[x] ?? false
+  // cast rays to top and bottom extents of sight
+  for (let column = xMin; column <= xMax; column++) {
+    castVisibilityRay(x, y, column, yMin, result, tileProvider)
+    castVisibilityRay(x, y, column, yMax, result, tileProvider)
+  }
+
+  return result
+}
+
+/**
+ * Post-processes raycast visibility data to fix artifacts (invisible wall sections that shouldn't be). Note that the
+ * internals of this method use the terminology (wall, ground, north-west, etc.) from the source article, even though
+ * they aren't used elsewhere in this game.
+ *
+ * @see https://sites.google.com/site/jicenospam/visibilitydetermination
+ */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const postProcess = (x: number, y: number, maxRange: number, visibility: boolean[][], tileProvider: TileProvider) => {
+  const xMin = x - maxRange
+  const xMax = x + maxRange
+  const yMin = y - maxRange
+  const yMax = y + maxRange
+
+  /** ensures that we have data whenever checking a cell neighbor */
+  const inBounds = (x: number, y: number) => {
+    return visibility[y]?.[x] !== undefined
+  }
+
+  const isHiddenWallCell = (x: number, y: number) => {
+    return inBounds(x, y) &&
+      !visibility[y][x] &&
+      tileProvider.getMapTile(x, y)?.terrain?.blocksLineOfSight === true
+  }
+
+  const isVisibleGroundCell = (x: number, y: number) => {
+    return inBounds(x, y) &&
+      visibility[y][x] &&
+      tileProvider.getMapTile(x, y)?.terrain?.blocksLineOfSight === false
+  }
+
+  for (let row = yMin; row <= yMax; row++) {
+    for (let column = xMin; column <= xMax; column++) {
+      // this fix only applies to 'walls' that are NOT visible, so skip this tile if this isn't us
+      if (!isHiddenWallCell(column, row)) {
+        continue
+      }
+
+      if (column < x) {
+        if (row < y) {
+          // north-west region
+          if (isVisibleGroundCell(column + 1, row) || isVisibleGroundCell(column, row + 1)) {
+            visibility[row][column] = true
+          }
+        } else if (row > y) {
+          // south-west region
+          if (isVisibleGroundCell(column + 1, row) || isVisibleGroundCell(column, row - 1)) {
+            visibility[row][column] = true
+          }
+        }
+      } else {
+        if (row < y) {
+          // north-east region
+          if (isVisibleGroundCell(column - 1, row) || isVisibleGroundCell(column, row + 1)) {
+            visibility[row][column] = true
+          }
+        } else if (row > y) {
+          // south-east region
+          if (isVisibleGroundCell(column - 1, row) || isVisibleGroundCell(column, row - 1)) {
+            visibility[row][column] = true
+          }
+        }
+      }
+    }
+  }
 }
 
 /** sensor supporting line-of-sight calculations for tiles in a creature-aware manner */
@@ -74,8 +180,11 @@ export const tileVisibilitySensor: CreatureScript = {
       distanceLimit: MaximumSightDistance,
     })
   },
-  onTurnStart: ({ creature }) => {
-    creature.setScriptData(KEY_CACHE, [])
+  onTurnStart: ({ creature }, api) => {
+    const visibilityData = calculateRayCastVisibility(creature.x, creature.y, MaximumSightDistance, api)
+    postProcess(creature.x, creature.y, MaximumSightDistance, visibilityData, api)
+
+    creature.setScriptData(KEY_CACHE, visibilityData)
     creature.setScriptData<TileVisibilitySettings>(KEY_SETTINGS, {
       distanceLimit: MaximumSightDistance,
     })
