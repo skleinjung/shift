@@ -128,7 +128,6 @@ At rest, its mouth tilts upward giving you a clear view of the dual, fin-like cr
     defense: 0,
     healthMax: 3,
     id: 'thorn_gremlin',
-    lootTable: MonsterLootTables[2],
     melee: 2,
     name: 'Thorn Gremlin',
     scripts: [

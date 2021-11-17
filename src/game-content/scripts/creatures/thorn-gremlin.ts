@@ -1,13 +1,20 @@
+import { hardLoot } from 'engine/data/loot-tables'
 import { getAdjacentCoordinates } from 'engine/map/map-utils'
 import { random } from 'engine/random'
 import { CreatureScript, MapApi } from 'engine/script-api'
 import { pullAt } from 'lodash'
-import { forEach } from 'lodash/fp'
+import { forEach, sample } from 'lodash/fp'
 
 export const thornGremlin: CreatureScript = {
   onCreate: ({ creature }, api) => {
     createClearing(api, creature.x, creature.y, 30)
     api.setTerrain(creature.x, creature.y, 'thorn_gremlin_home')
+
+    const itemSpawnLocation = sample(getAdjacentCoordinates(creature))
+    if (itemSpawnLocation !== undefined) {
+      const item = hardLoot.collect()[0].create()
+      api.addMapItem(item, itemSpawnLocation.x, itemSpawnLocation.y)
+    }
   },
 }
 
