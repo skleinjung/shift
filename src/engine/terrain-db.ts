@@ -1,9 +1,6 @@
 import { keys, reduce } from 'lodash/fp'
 
 export interface TerrainType {
-  /** if true, then this type of terrain blocks line of sight */
-  blocksLineOfSight: boolean
-
   /** optional default description for this terrain type */
   description?: string
 
@@ -15,60 +12,58 @@ export interface TerrainType {
 
   /** indicates whether creatures can walk over this type of terrain */
   traversable: boolean
+
+  /** % of visibility reduction caused by this tile, from 0-100% (default: 0) */
+  visibilityReduction?: number
 }
 
 const terrainTypeArray = [
   {
     id: 'default',
-    blocksLineOfSight: true,
     name: 'Unknown Region',
     traversable: false,
+    visibilityReduction: 100,
   },
   {
     id: 'brambles',
-    blocksLineOfSight: true,
     name: 'Thick Brambles',
     traversable: true,
+    visibilityReduction: 50,
   },
   {
     id: 'door',
-    blocksLineOfSight: true,
     name: 'A Doorway',
     traversable: true,
+    visibilityReduction: 100,
   },
   {
     id: 'floor',
-    blocksLineOfSight: false,
     name: 'a floor',
     traversable: true,
   },
   {
     id: 'heavy_brush',
-    blocksLineOfSight: true,
     name: 'Deep Forest',
     traversable: true,
+    visibilityReduction: 20,
   },
   {
     id: 'light_brush_1',
-    blocksLineOfSight: false,
     name: 'Flower-Filled Clearing',
     traversable: true,
   },
   {
     id: 'light_brush_2',
-    blocksLineOfSight: false,
     name: 'An Open Space',
     traversable: true,
   },
   {
     id: 'light_brush_3',
-    blocksLineOfSight: false,
     name: 'Forest',
     traversable: true,
   },
   {
     id: 'path',
-    blocksLineOfSight: false,
     description: `This narrow dirt trail has been partially overtaken by brush. Although you see no clear footprints
 or wagon tracks, something has kept the surrounding forest from reclaiming this space.`,
     name: 'Lightly-Trodden Path',
@@ -76,21 +71,19 @@ or wagon tracks, something has kept the surrounding forest from reclaiming this 
   },
   {
     id: 'water',
-    blocksLineOfSight: false,
     name: 'Deep Water',
     traversable: false,
   },
   {
     id: 'water_shallow',
-    blocksLineOfSight: false,
     name: 'Shallows',
     traversable: true,
   },
   {
     id: 'wall',
-    blocksLineOfSight: true,
     name: 'Non-Descript Wall',
     traversable: false,
+    visibilityReduction: 100,
   },
 ] as const
 

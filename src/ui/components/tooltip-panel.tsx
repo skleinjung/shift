@@ -50,10 +50,9 @@ export const TooltipPanel = ({
   ...rest
 }: TooltipPanelProps) => {
   const world = useWorld()
-  const map = world.map
   const player = world.player
 
-  const visible = focusedTile !== undefined && isTileVisibleTo(player, focusedTile.x, focusedTile.y, map)
+  const visible = focusedTile !== undefined && isTileVisibleTo(player, focusedTile.x, focusedTile.y)
 
   const observationString = focusedTile === undefined
     ? undefined

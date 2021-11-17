@@ -1,7 +1,7 @@
 import { Creature } from 'engine/creature'
 import { castRay } from 'engine/map/cast-ray'
 import { TileProvider } from 'engine/map/map'
-import { CreatureScript, ScriptApi } from 'engine/script-api'
+import { CreatureScript } from 'engine/script-api'
 import { forEach } from 'lodash/fp'
 import { distance } from 'math'
 
@@ -16,11 +16,6 @@ const KEY_CACHE = 'sensor.tile-visibility.cache'
 // and the creature's state
 const KEY_SETTINGS = 'sensor.tile-visibility.settings'
 
-interface TileVisibilitySettings {
-  /** the maximum distanced, in tiles, that can be seen */
-  distanceLimit: number
-}
-
 const isWithinSightRange = (creature: Creature, x: number, y: number) => {
   const settings = creature.getScriptData<TileVisibilitySettings>(KEY_SETTINGS, false)
   const d = distance(creature.x, creature.y, x, y)
@@ -31,14 +26,75 @@ const isWithinSightRange = (creature: Creature, x: number, y: number) => {
  * Determines if the given creature can see the tile at (x, y), given it's current state.
  * The API is used to retrieve tile information needed for performing the calculations.
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export const isTileVisibleTo = (creature: Creature, x: number, y: number, api: Pick<ScriptApi, 'getMapTile'>) => {
+export const isTileVisibleTo = (creature: Creature, x: number, y: number) => {
   if (!isWithinSightRange(creature, x, y)) {
     return false
   }
 
-  const cache = creature.getScriptData<boolean[][]>(KEY_CACHE)
-  return cache[y]?.[x] ?? false
+  const cache = creature.getScriptData<TileVisibilityCache>(KEY_CACHE)
+  return cache.isVisible(x, y, false)
+}
+
+export class TileVisibilityCache {
+  private _cache: number[][] = []
+
+  // We have a post-processor that works by forcing some tiles to be visible even throu
+  // their scores indicate they shouldn't be. The data for this is stored here.
+  private _overrides: boolean[][] = []
+
+  /**
+   * Sets the visibility score as a percentage of 'fully visible' for a tile.
+   **/
+  public setVisibility (x: number, y: number, visibility: number) {
+    if (this._cache[y] === undefined) {
+      this._cache[y] = []
+    }
+
+    this._cache[y][x] = visibility
+  }
+
+  /** Used by the post-processor to correct calculations to 'look' better by overriding some cells */
+  public setVisibilityOverride (x: number, y: number, visibilityOverride: boolean) {
+    if (this._overrides[y] === undefined) {
+      this._overrides[y] = []
+    }
+
+    this._overrides[y][x] = visibilityOverride
+  }
+
+  /**
+   * Returns a boolean indicating if a tile is visible or not. If we have no data for this tile, then
+   * the specified default is returned.
+   **/
+  public isVisible (x: number, y: number, defaultValue = false) {
+    const override = this._overrides[y]?.[x]
+    if (override !== undefined) {
+      return override
+    }
+
+    const visibility = this._cache[y]?.[x]
+    return visibility === undefined ? defaultValue : visibility > 0
+  }
+
+  /**
+   * Returns true if we have data for the cell (i.e. it's visibility score has been calculated.)
+   */
+  public inBounds (x: number, y: number) {
+    return this._cache[y]?.[x] !== undefined
+  }
+
+  /**
+   * Returns the visibility score as a percentage of 'fully visible' for a tile. If we have no data for
+   * this tile, the specified default is returned.
+   **/
+  public getVisibility (x: number, y: number, defaultValue = 0) {
+    return Math.max(0, Math.min(100, this._cache[y]?.[x] ?? defaultValue))
+  }
+}
+
+interface TileVisibilitySettings {
+  /** the maximum distanced, in tiles, that can be seen */
+  distanceLimit: number
 }
 
 /**
@@ -51,39 +107,33 @@ const castVisibilityRay = (
   yStart: number,
   xEnd: number,
   yEnd: number,
-  result: boolean[][],
+  data: TileVisibilityCache,
   tileProvider: TileProvider
 ) => {
   const rayTiles = castRay(xStart, yStart, xEnd, yEnd)
 
-  let blocked = false
+  // last processed coordinates are used to determine if we are moving diagonally or not
+  let percentBlocked = 0
   forEach(({ x, y }) => {
-    if (result[y] === undefined) {
-      result[y] = []
-    }
-
     // we can always see our start tile, and it doesn't block immediate neighbors
     if (xStart === x && yStart === y) {
-      result[y][x] = true
+      data.setVisibility(x, y, 100)
       return
     }
 
-    // if we haven't been blocked yet, it means this tile is visible (even it blocks ones behind it)
-    result[y][x] = !blocked
+    data.setVisibility(x, y, Math.max(0, 100 - percentBlocked))
 
     // if this tile is undefined (i.e. off the map), or blocks line of sight, set the blocked flag for all tiles behind
     const tile = tileProvider.getMapTile(x, y)
     if (tile !== undefined) {
-      // if this is a blocking tile, block all the tiles behind it
-      if (tile.terrain.blocksLineOfSight) {
-        blocked = true
-      }
+      // reduce our visbility based on the % blocking of the current tile
+      percentBlocked += (tile.terrain.visibilityReduction ?? 0)
     }
   }, rayTiles)
 }
 
 const calculateRayCastVisibility = (x: number, y: number, maxRange: number, tileProvider: TileProvider) => {
-  const result: boolean[][] = []
+  const result = new TileVisibilityCache()
 
   const xMin = x - maxRange
   const xMax = x + maxRange
@@ -113,7 +163,13 @@ const calculateRayCastVisibility = (x: number, y: number, maxRange: number, tile
  * @see https://sites.google.com/site/jicenospam/visibilitydetermination
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-const postProcess = (x: number, y: number, maxRange: number, visibility: boolean[][], tileProvider: TileProvider) => {
+const postProcess = (
+  x: number,
+  y: number,
+  maxRange: number,
+  visibility: TileVisibilityCache,
+  tileProvider: TileProvider
+) => {
   const xMin = x - maxRange
   const xMax = x + maxRange
   const yMin = y - maxRange
@@ -121,19 +177,19 @@ const postProcess = (x: number, y: number, maxRange: number, visibility: boolean
 
   /** ensures that we have data whenever checking a cell neighbor */
   const inBounds = (x: number, y: number) => {
-    return visibility[y]?.[x] !== undefined
+    return visibility.inBounds(x, y)
   }
 
   const isHiddenWallCell = (x: number, y: number) => {
     return inBounds(x, y) &&
-      !visibility[y][x] &&
-      tileProvider.getMapTile(x, y)?.terrain?.blocksLineOfSight === true
+      visibility.getVisibility(x, y) < 1 &&
+      (tileProvider.getMapTile(x, y)?.terrain?.visibilityReduction ?? 0) > 0
   }
 
   const isVisibleGroundCell = (x: number, y: number) => {
     return inBounds(x, y) &&
-      visibility[y][x] &&
-      tileProvider.getMapTile(x, y)?.terrain?.blocksLineOfSight === false
+      visibility.getVisibility(x, y) > 0 &&
+      (tileProvider.getMapTile(x, y)?.terrain?.visibilityReduction ?? 0) === 0
   }
 
   for (let row = yMin; row <= yMax; row++) {
@@ -143,28 +199,43 @@ const postProcess = (x: number, y: number, maxRange: number, visibility: boolean
         continue
       }
 
+      // The original post-processing algorithm (which worked on boolean visibility), "unhid" walls
+      // behind visibile tiles. To replicate this effect, we set the visibile of such walls to the
+      // same value as the tile in front of it.
       if (column < x) {
         if (row < y) {
           // north-west region
-          if (isVisibleGroundCell(column + 1, row) || isVisibleGroundCell(column, row + 1)) {
-            visibility[row][column] = true
+          if (isVisibleGroundCell(column + 1, row)) {
+            visibility.setVisibilityOverride(column, row, true)
+          }
+          if (isVisibleGroundCell(column, row + 1)) {
+            visibility.setVisibilityOverride(column, row, true)
           }
         } else if (row > y) {
           // south-west region
-          if (isVisibleGroundCell(column + 1, row) || isVisibleGroundCell(column, row - 1)) {
-            visibility[row][column] = true
+          if (isVisibleGroundCell(column + 1, row)) {
+            visibility.setVisibilityOverride(column, row, true)
+          }
+          if (isVisibleGroundCell(column, row - 1)) {
+            visibility.setVisibilityOverride(column, row, true)
           }
         }
       } else {
         if (row < y) {
           // north-east region
-          if (isVisibleGroundCell(column - 1, row) || isVisibleGroundCell(column, row + 1)) {
-            visibility[row][column] = true
+          if (isVisibleGroundCell(column - 1, row)) {
+            visibility.setVisibilityOverride(column, row, true)
+          }
+          if (isVisibleGroundCell(column, row + 1)) {
+            visibility.setVisibilityOverride(column, row, true)
           }
         } else if (row > y) {
           // south-east region
-          if (isVisibleGroundCell(column - 1, row) || isVisibleGroundCell(column, row - 1)) {
-            visibility[row][column] = true
+          if (isVisibleGroundCell(column - 1, row)) {
+            visibility.setVisibilityOverride(column, row, true)
+          }
+          if (isVisibleGroundCell(column, row - 1)) {
+            visibility.setVisibilityOverride(column, row, true)
           }
         }
       }
@@ -175,7 +246,7 @@ const postProcess = (x: number, y: number, maxRange: number, visibility: boolean
 /** sensor supporting line-of-sight calculations for tiles in a creature-aware manner */
 export const tileVisibilitySensor: CreatureScript = {
   onCreate: ({ creature }) => {
-    creature.setScriptData(KEY_CACHE, [])
+    creature.setScriptData(KEY_CACHE, new TileVisibilityCache())
     creature.setScriptData<TileVisibilitySettings>(KEY_SETTINGS, {
       distanceLimit: MaximumSightDistance,
     })
