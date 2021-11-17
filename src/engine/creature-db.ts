@@ -1,4 +1,5 @@
 import { BehaviorFactory } from 'engine/types'
+import { thornGremlin } from 'game-content/scripts/creatures/thorn-gremlin'
 import { filter, keys, reduce } from 'lodash/fp'
 
 import { dartLizard, DefaultDartLizardSpeed } from '../game-content/scripts/creatures/dart-lizard'
@@ -7,7 +8,7 @@ import { player } from '../game-content/scripts/creatures/player'
 import { attackPlayer } from './behaviors/attack'
 import { BehaviorChain } from './behaviors/behavior-chain'
 import { maybeIdle } from './behaviors/idle'
-import { MoveRandomlyBehavior } from './behaviors/move-randomly'
+import { MoveRandomlyBehavior, MoveRandomlyNearHome } from './behaviors/move-randomly'
 import { retaliate } from './behaviors/retaliate'
 import { startle } from './behaviors/startle'
 import { wanderBetweenRooms } from './behaviors/wander-between-rooms'
@@ -17,6 +18,7 @@ import { CreatureScript } from './script-api'
 import { ageSensor } from './sensors/age-sensor'
 import { creaturesInFrontSensor } from './sensors/creature-sensors'
 import { facingSensor } from './sensors/facing-sensor'
+import { homeSensor } from './sensors/home-sensor'
 import { startleSensor } from './sensors/startle-sensor'
 import { tileVisibilitySensor } from './sensors/tile-visibility-sensor'
 import { Generator } from './spawnable'
@@ -108,13 +110,17 @@ At rest, its mouth tilts upward giving you a clear view of the dual, fin-like cr
     speed: 100,
   },
   {
-    createBehavior: () => BehaviorChain(retaliate, attackPlayer, moveRandom20Percent),
+    createBehavior: () => BehaviorChain(retaliate, attackPlayer, maybeIdle(MoveRandomlyNearHome(2), 80)),
     defense: 0,
     healthMax: 3,
     id: 'thorn_gremlin',
     lootTable: MonsterLootTables[2],
     melee: 2,
     name: 'Thorn Gremlin',
+    scripts: [
+      homeSensor,
+      thornGremlin,
+    ],
     speed: 100,
   },
   {
