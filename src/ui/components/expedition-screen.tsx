@@ -33,7 +33,7 @@ export interface ExpeditionScreenProps {
 export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
   const [inMenus, setInMenus] = useState(false)
   const [inSpeech, setInSpeech] = useState(false)
-  const [highlightedCell, setHighlightedCell] = useState<CellCoordinate | undefined>()
+  const [focusedCell, setFocusedCell] = useState<CellCoordinate | undefined>()
 
   const world = useWorld()
   const updateExpedition = useSetRecoilState(expeditionState)
@@ -88,11 +88,15 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
     world.player.destination = { x, y }
   }, [world.player])
 
-  const handleMapHighlight = useCallback((x: number, y: number) => {
-    setHighlightedCell((previous) => {
-      return x === previous?.x && y === previous?.y
+  const handleCellFocus = useCallback((cell) => {
+    setFocusedCell((previous) => {
+      if (cell === undefined) {
+        return cell
+      }
+
+      return cell.x === previous?.x && cell.y === previous?.y
         ? previous
-        : { x, y }
+        : cell
     })
   }, [])
 
@@ -117,9 +121,9 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
         <MapPanel
           active={!isPaused}
           containerClass="expedition-panel"
-          focusedCell={highlightedCell}
+          focusedCell={focusedCell}
+          onCellFocus={handleCellFocus}
           onMapClick={handleMapClick}
-          onMapHover={handleMapHighlight}
           onKeyDown={mapKeyHandler}
         />
 
@@ -162,12 +166,10 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
         <TooltipPanel
           containerClass="expedition-panel"
           columns={SidebarColumns}
-          focusedTile={highlightedCell
-            ? world.map.getMapTile(highlightedCell.x, highlightedCell.y)
+          focusedTile={focusedCell
+            ? world.map.getMapTile(focusedCell.x, focusedCell.y)
             : undefined}
-        >
-          {highlightedCell && `(${highlightedCell.x}, ${highlightedCell.y})`}
-        </TooltipPanel>
+        />
       </div>
 
       <SpeechWindow

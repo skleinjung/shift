@@ -30,11 +30,11 @@ export interface MapPanelProps extends Omit<PanelProps, 'columns' | 'rows'> {
   /** (x, y) coordinate of the cell to highlight, if any */
   focusedCell?: CellCoordinate
 
+  /** optional callback that is notified when the user moves the mouse over a cell on the map */
+  onCellFocus?: (cell: CellCoordinate | undefined) => void
+
   /** optional callback that is notified whenever the user clicks on the map */
   onMapClick?: (mapX: number, mapY: number) => void
-
-  /** optional callback that is notified when the user moves the mouse over a cell on the map */
-  onMapHover?: (mapX: number, mapY: number) => void
 
   /** callback notified whenever the size of the viewport changes, with new dimensions in map cell coordinates */
   onViewportSizeChanged?: (width: number, height: number) => void
@@ -80,8 +80,8 @@ const calculateViewportCenter = (
 
 export const MapPanel = ({
   focusedCell,
+  onCellFocus = noop,
   onMapClick = noop,
-  onMapHover = noop,
   onViewportSizeChanged = noop,
   ...panelProps
 }: MapPanelProps) => {
@@ -226,9 +226,12 @@ export const MapPanel = ({
   }, [convertMouseCoordinatesToCell, onMapClick])
 
   const handleMouseMove = useCallback((event: React.MouseEvent) => {
-    const { x, y } = convertMouseCoordinatesToCell(event.clientX, event.clientY)
-    onMapHover(x, y)
-  }, [convertMouseCoordinatesToCell, onMapHover])
+    onCellFocus(convertMouseCoordinatesToCell(event.clientX, event.clientY))
+  }, [convertMouseCoordinatesToCell, onCellFocus])
+
+  const handleMouseOut = useCallback(() => {
+    onCellFocus(undefined)
+  }, [onCellFocus])
 
   return (<>
     <Panel {...panelProps}>
@@ -236,6 +239,7 @@ export const MapPanel = ({
         className="map-canvas"
         onClick={handleClick}
         onMouseMove={handleMouseMove}
+        onMouseOut={handleMouseOut}
         style={{ flex: 1, height: '100%' }}
         ref={pixiRefCallback}
       />
