@@ -1,4 +1,4 @@
-import { BasicContainer } from 'engine/container'
+import { BasicContainer, Container } from 'engine/container'
 import { Creature } from 'engine/creature'
 import { Item } from 'engine/item'
 import { TerrainType, TerrainTypes } from 'engine/terrain-db'
@@ -23,7 +23,30 @@ export interface PathFindingOptions {
   getNeighbors?: AStarOptions['getNeighbors']
 }
 
-export class MapCell extends BasicContainer {
+/**
+ * A MapTile is a read-only, simplified version of a full map cell that is used by
+ * scripts that need to access map data.
+ */
+export interface MapTile extends Pick<Container, 'containsItem' | 'items'> {
+  /** x coordinate of the cell */
+  readonly x: number
+  /** y coordinate of the cell */
+  readonly y: number
+  /** type of terrain in this cell */
+  readonly terrain: TerrainType
+  /** ID of the creature occupying this cell, if any */
+  readonly creature?: Creature
+}
+
+export interface TileProvider {
+  /** Retrieves the map tile at a given coordinate, or undefined. */
+  getMapTile: (x: number, y: number) => MapTile | undefined
+}
+
+/**
+ * MapCell is the full, mutable data structure of which the map is built.
+ */
+export class MapCell extends BasicContainer implements MapTile {
   constructor (
     /** x coordinate of the cell */
     public x: number,
@@ -38,7 +61,7 @@ export class MapCell extends BasicContainer {
   }
 }
 
-export class ExpeditionMap {
+export class ExpeditionMap implements TileProvider {
   private _defaultTerrain = TerrainTypes.default
 
   private _cells: MapCell[][] = []
@@ -53,6 +76,10 @@ export class ExpeditionMap {
 
   public getCell (x: number, y: number): MapCell {
     return this._getCell(x, y, true)
+  }
+
+  public getMapTile (x: number, y: number): MapTile | undefined {
+    return this._getCell(x, y, false)
   }
 
   /** Returns true if the (sparse) map has a cell at the given coordinates already. */

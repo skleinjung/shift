@@ -2,6 +2,7 @@ import { Creature } from 'engine/creature'
 import { MapCell } from 'engine/map/map'
 import { MapSymbol } from 'engine/map/map-symbol'
 import { getCreatureSymbol, getItemSymbol, getTerrainSymbol, withDefaultBackground } from 'engine/map/map-symbolizer'
+import { isTileVisibleTo } from 'engine/scripts/tile-visibility-sensor'
 import { World } from 'engine/world'
 import { compact, forEach, get, keys, map as lodashMap, values, without } from 'lodash/fp'
 import * as PIXI from 'pixi.js'
@@ -212,7 +213,8 @@ export class MapSceneGraph {
       if (tile.x < xOffset ||
         tile.x > (xOffset + viewWidth + 1) ||
         tile.y < yOffset ||
-        tile.y > (yOffset + viewHeight + 1)
+        tile.y > (yOffset + viewHeight + 1) ||
+        !isTileVisibleTo(world.player, tile.x, tile.y, world.map)
       ) {
         tile.inFrame = false
       } else {

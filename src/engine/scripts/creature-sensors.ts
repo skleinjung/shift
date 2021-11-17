@@ -1,5 +1,6 @@
 import { Creature } from 'engine/creature'
-import { CreatureScript, MapTile } from 'engine/script-api'
+import { MapTile } from 'engine/map/map'
+import { CreatureScript } from 'engine/script-api'
 import { compact, filter, map } from 'lodash/fp'
 
 import { getFacing } from './facing-sensor'

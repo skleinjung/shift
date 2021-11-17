@@ -14,8 +14,9 @@ import { CreatureEventNames, CreatureEvents } from './events/creature-events'
 import { EventManager, EventManagerEvents } from './events/event-manager'
 import { EventHandlerName } from './events/types'
 import { Item } from './item'
-import { MapCell } from './map/map'
+import { MapCell, MapTile } from './map/map'
 import { random } from './random'
+import { ScriptApi, Speech } from './script-api'
 import { initializePlayer } from './scripts/player'
 
 class GameController implements ScriptApi {
@@ -99,9 +100,7 @@ class GameController implements ScriptApi {
   }
 
   public getMapTile (x: number, y: number): MapTile | undefined {
-    return this._world.map.hasCell(x, y)
-      ? this._world.map.getCell(x, y)
-      : undefined
+    return this._world.map.getMapTile(x, y)
   }
 
   public addMapItem (item: Item, x: number, y: number): number {
