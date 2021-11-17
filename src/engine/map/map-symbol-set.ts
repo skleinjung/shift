@@ -126,4 +126,15 @@ export const TerrainSymbols: { [k in TerrainTypeId]: MapSymbol } = {
     color: 0x555555,
     symbol: '#',
   },
+  // thorn gremlin tiles
+  thorn_gremlin_home: {
+    background: 0x140d07,
+    color: 0xffffff,
+    symbol: '.',
+  },
+  thorn_gremlin_clearing: {
+    background: 0x140d07,
+    color: 0x002200,
+    symbol: '.',
+  },
 } as const

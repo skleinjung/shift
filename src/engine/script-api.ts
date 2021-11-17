@@ -5,6 +5,7 @@ import { EventHandlerName } from './events/types'
 import { Item } from './item'
 import { MapTile, TileProvider } from './map/map'
 import { Objective } from './objective'
+import { TerrainTypeId } from './terrain-db'
 
 /** A single piece of content that should be displayed during a dialog 'cutscene'. */
 export interface Speech {
@@ -48,13 +49,13 @@ export type CreatureApi = Readonly<{
   removeCreature (id: number): void
 }>
 
-/** API exposed to scripts attached to creatures, items, etc. */
-export interface ScriptApi extends CreatureApi, TileProvider {
-  /**
-   * Retrieves the map tile at the given coordinates, or undefined if it is outside the existing map.
-   */
-  getMapTile (x: number, y: number): MapTile | undefined
+export type MapApi = Readonly<TileProvider & {
+  /** Updates the map data by setting the terrain at a specified location. */
+  setTerrain: (x: number, y: number, terrain: TerrainTypeId) => void
+}>
 
+/** API exposed to scripts attached to creatures, items, etc. */
+export interface ScriptApi extends CreatureApi, MapApi {
   /**
    * Puts an item in the map cell at the specified coordinates. The ID of the newly added
    * item is returned.

@@ -85,6 +85,22 @@ or wagon tracks, something has kept the surrounding forest from reclaiming this 
     traversable: false,
     visibilityReduction: 100,
   },
+  // thorn gremlin tiles
+  {
+    id: 'thorn_gremlin_home',
+    name: 'Stony Clearing',
+    description: `This is a small, circular clearing in the surrounding briars. In the center of 
+the clearing is a black stone statue that bears an uncanny resemblance to the Winter's Breath 
+flowers you've seen elsewhere in the forest.`,
+    traversable: true,
+  },
+  {
+    id: 'thorn_gremlin_clearing',
+    name: 'Briar-Filled Thicket',
+    description: `The looming trees of the surrounding forest are absent from this clearing. Instead,
+it is devoid of vegetation other than a thick carpet of black, thorn-covered vines.`,
+    traversable: true,
+  },
 ] as const
 
 export const TerrainTypes = reduce((result, type) => ({
