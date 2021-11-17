@@ -1,5 +1,5 @@
 import { map as mapI } from 'lodash'
-import { filter, find, findIndex, forEach, get, initial, join, last, map, omit, values } from 'lodash/fp'
+import { filter, find, findIndex, forEach, join, omit, values } from 'lodash/fp'
 import { TypedEventEmitter } from 'typed-event-emitter'
 
 import { getResultMessage } from './actions/result-handler'
@@ -40,21 +40,16 @@ export class World extends TypedEventEmitter<WorldEvents> implements Updateable 
   // the creature whose turn is next
   private _nextActor = 0
 
-  private _player: Player
+  private _player?: Player
 
   constructor () {
     super()
-
-    this._player = new Player()
-
     this.logMessage('Expedition started.')
   }
 
   public initializeFromDungeon (dungeon: Dungeon) {
     this._dungeon = dungeon
     this._map = dungeon.createMap()
-
-    this._initializePlayer()
 
     this._dungeon.forEachCreature(this._registerCreature.bind(this))
     this._dungeon.forEachItem(this.addItemToMap.bind(this))
@@ -132,6 +127,10 @@ export class World extends TypedEventEmitter<WorldEvents> implements Updateable 
   }
 
   public get player () {
+    if (this._player === undefined) {
+      throw new Error('The player is undefined.')
+    }
+
     return this._player
   }
 
@@ -179,25 +178,6 @@ export class World extends TypedEventEmitter<WorldEvents> implements Updateable 
     }
   }
 
-  private _initializePlayer () {
-    this._registerCreature(this._player)
-    this.map.setCreature(this._player.x, this._player.y, this._player)
-
-    this._player.on('move', ({ x, y }) => {
-      const itemNames = map(get('name'), this.map.getItems(x, y))
-      if (itemNames.length > 2) {
-        // list of three or more, so use commas with 'and'
-        const listContents = [...initial(itemNames), `and ${last(itemNames)}`]
-        this.logMessage(`You see some items here: ${join(', ', listContents)}.`)
-      } else if (itemNames.length === 2) {
-        // two items, just put 'and' between them
-        this.logMessage(`You see ${itemNames[0]} and ${itemNames[1]} here.`)
-      } else if (itemNames.length === 1) {
-        this.logMessage(`You see a ${itemNames[0]} here.`)
-      }
-    })
-  }
-
   /** Adds the results of an attack to the message log. */
   private _logAttack ({ attackResult }: CreatureEvents['attack']) {
     if (attackResult.success) {
@@ -222,6 +202,11 @@ export class World extends TypedEventEmitter<WorldEvents> implements Updateable 
    */
   private _registerCreature (creature: Creature) {
     this._creatures.push(creature)
+
+    if (creature instanceof Player) {
+      this._player = creature
+    }
+
     creature.on('attack', this._logAttack.bind(this))
     this.map.setCreature(creature.x, creature.y, creature)
     this.emit('creatureSpawn', creature)

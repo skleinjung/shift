@@ -63,13 +63,9 @@ class ForestPathRegion extends BasicRegion {
       y: random(this._region2.top, this._region2.bottom),
     }
 
-    // eslint-disable-next-line no-console
-    console.log('p1 to p2', point1, point2)
     const path = map.getPath(point1, point2, {
       costFunction: randomCosts({ maximumCost: 1000 }),
     })
-    // eslint-disable-next-line no-console
-    console.log('done')
 
     const createPath = (x: number, y: number, overwrite = false) => {
       if (overwrite || map.getTerrain(x, y) === TerrainTypes.heavy_brush) {

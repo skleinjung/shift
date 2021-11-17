@@ -14,9 +14,10 @@ import { CreatureEventNames, CreatureEvents } from './events/creature-events'
 import { EventManager, EventManagerEvents } from './events/event-manager'
 import { EventHandlerName } from './events/types'
 import { Item } from './item'
-import { MapCell } from './map/map'
+import { MapCell, MapTile } from './map/map'
 import { random } from './random'
-import { MapTile, ScriptApi, Speech } from './script-api'
+import { ScriptApi, Speech } from './script-api'
+import { initializePlayer } from './scripts/player'
 
 class GameController implements ScriptApi {
   constructor (
@@ -99,9 +100,7 @@ class GameController implements ScriptApi {
   }
 
   public getMapTile (x: number, y: number): MapTile | undefined {
-    return this._world.map.hasCell(x, y)
-      ? this._world.map.getCell(x, y)
-      : undefined
+    return this._world.map.getMapTile(x, y)
   }
 
   public addMapItem (item: Item, x: number, y: number): number {
@@ -196,9 +195,13 @@ export class Engine extends TypedEventEmitter<EngineEvents> implements Updateabl
     this.attach(this._world)
     this._world.initializeFromDungeon(this._campaign.createNextDungeon())
 
+    // initialize the campaign
     forEach((script) => {
       script.initialize?.(this._scriptApi)
     }, this._campaign.scripts)
+
+    // initialize the player
+    initializePlayer.initialize?.(this._scriptApi)
   }
 
   public get world () {

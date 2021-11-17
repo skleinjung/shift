@@ -3,7 +3,7 @@ import { CreatureTypeId } from './creature-db'
 import { CreatureEvents } from './events/creature-events'
 import { EventHandlerName } from './events/types'
 import { Item } from './item'
-import { MapCell } from './map/map'
+import { MapTile, TileProvider } from './map/map'
 import { Objective } from './objective'
 
 /** A single piece of content that should be displayed during a dialog 'cutscene'. */
@@ -14,15 +14,6 @@ export interface Speech {
   /** the actual message (description, dialog, etc.) */
   message: string
 }
-
-export type MapTile = Readonly<Pick<MapCell,
-'creature' |
-'containsItem' |
-'items' |
-'terrain'|
-'x' |
-'y'
->>
 
 export type CreatureApi = Readonly<{
   /**
@@ -58,7 +49,7 @@ export type CreatureApi = Readonly<{
 }>
 
 /** API exposed to scripts attached to creatures, items, etc. */
-export interface ScriptApi extends CreatureApi {
+export interface ScriptApi extends CreatureApi, TileProvider {
   /**
    * Retrieves the map tile at the given coordinates, or undefined if it is outside the existing map.
    */

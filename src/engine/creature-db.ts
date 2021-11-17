@@ -15,7 +15,9 @@ import { ageSensor } from './scripts/age-sensor'
 import { creaturesInFrontSensor } from './scripts/creature-sensors'
 import { dartLizard, DefaultDartLizardSpeed } from './scripts/dart-lizard'
 import { facingSensor } from './scripts/facing-sensor'
+import { player } from './scripts/player'
 import { startleSensor } from './scripts/startle-sensor'
+import { tileVisibilitySensor } from './scripts/tile-visibility-sensor'
 import { Generator } from './spawnable'
 
 export type CreatureType = Readonly<{
@@ -107,6 +109,7 @@ const creatureTypeArray = [
     id: 'player',
     melee: 1,
     name: 'Player',
+    scripts: [tileVisibilitySensor, player],
     speed: 100,
   },
 ] as const
