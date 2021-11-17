@@ -8,6 +8,8 @@ import { stubTrue } from 'lodash'
 import { forEach, upperFirst } from 'lodash/fp'
 import { TypedEventEmitter } from 'typed-event-emitter'
 
+import { initializePlayer } from '../game-content/scripts/creatures/player'
+
 import { Creature } from './creature'
 import { CreatureTypeId, CreatureTypes } from './creature-db'
 import { CreatureEventNames, CreatureEvents } from './events/creature-events'
@@ -17,7 +19,6 @@ import { Item } from './item'
 import { MapCell, MapTile } from './map/map'
 import { random } from './random'
 import { ScriptApi, Speech } from './script-api'
-import { initializePlayer } from './scripts/player'
 
 class GameController implements ScriptApi {
   constructor (

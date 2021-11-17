@@ -1,6 +1,9 @@
 import { BehaviorFactory } from 'engine/types'
 import { filter, keys, reduce } from 'lodash/fp'
 
+import { dartLizard, DefaultDartLizardSpeed } from '../game-content/scripts/creatures/dart-lizard'
+import { player } from '../game-content/scripts/creatures/player'
+
 import { attackPlayer } from './behaviors/attack'
 import { BehaviorChain } from './behaviors/behavior-chain'
 import { maybeIdle } from './behaviors/idle'
@@ -11,13 +14,11 @@ import { wanderBetweenRooms } from './behaviors/wander-between-rooms'
 import { MonsterLootTables } from './data/loot-tables'
 import { ItemTemplate } from './item-db'
 import { CreatureScript } from './script-api'
-import { ageSensor } from './scripts/age-sensor'
-import { creaturesInFrontSensor } from './scripts/creature-sensors'
-import { dartLizard, DefaultDartLizardSpeed } from './scripts/dart-lizard'
-import { facingSensor } from './scripts/facing-sensor'
-import { player } from './scripts/player'
-import { startleSensor } from './scripts/startle-sensor'
-import { tileVisibilitySensor } from './scripts/tile-visibility-sensor'
+import { ageSensor } from './sensors/age-sensor'
+import { creaturesInFrontSensor } from './sensors/creature-sensors'
+import { facingSensor } from './sensors/facing-sensor'
+import { startleSensor } from './sensors/startle-sensor'
+import { tileVisibilitySensor } from './sensors/tile-visibility-sensor'
 import { Generator } from './spawnable'
 
 export type CreatureType = Readonly<{
@@ -104,6 +105,16 @@ At rest, its mouth tilts upward giving you a clear view of the dual, fin-like cr
     lootTable: MonsterLootTables[2],
     melee: 2,
     name: 'Orc',
+    speed: 100,
+  },
+  {
+    createBehavior: () => BehaviorChain(retaliate, attackPlayer, moveRandom20Percent),
+    defense: 0,
+    healthMax: 3,
+    id: 'thorn_gremlin',
+    lootTable: MonsterLootTables[2],
+    melee: 2,
+    name: 'Thorn Gremlin',
     speed: 100,
   },
   {

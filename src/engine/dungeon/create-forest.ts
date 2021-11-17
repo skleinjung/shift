@@ -125,7 +125,7 @@ export const createForest = () => {
     const y = baseMap.top + random(0, baseMap.height) + 1
 
     return new OrganicRegion(x, y, size)
-  }, 20)
+  }, 2)
 
   const paths = times(() => {
     return new ForestPathRegion(

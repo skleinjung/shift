@@ -2,12 +2,12 @@ import { Item } from 'engine/item'
 import { getAdjacentCoordinates } from 'engine/map/map-utils'
 import { random } from 'engine/random'
 import { CreatureScript, ScriptApi, WorldScript } from 'engine/script-api'
+import { getFacing } from 'engine/sensors/facing-sensor'
+import { getStartledTurns, isStartled } from 'engine/sensors/startle-sensor'
 import { countBy, get, some } from 'lodash/fp'
 import { distance } from 'math'
 
-import { getAge } from './age-sensor'
-import { getFacing } from './facing-sensor'
-import { getStartledTurns, isStartled } from './startle-sensor'
+import { getAge } from '../../../engine/sensors/age-sensor'
 
 export const DefaultDartLizardSpeed = 100
 
@@ -113,7 +113,9 @@ export const dartLizard: CreatureScript & WorldScript = {
         })
 
         if (spawnLocation === undefined) {
-          throw new Error('No valid spawn locations found.')
+          // eslint-disable-next-line no-console
+          console.warn('No valid spawn locations found.')
+          return
         }
 
         api.showMessage('A dart lizard wanders out of the brush.')

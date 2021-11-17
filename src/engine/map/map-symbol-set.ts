@@ -41,6 +41,10 @@ export const CreatureSymbols: { default: MapSymbol } & { [k in CreatureTypeId]?:
     ...ColorValues.AggressiveCreature,
     symbol: 'o',
   },
+  thorn_gremlin: {
+    ...ColorValues.AggressiveCreature,
+    symbol: 'i',
+  },
   player: {
     background: 0x002200,
     color: 0xffffff,

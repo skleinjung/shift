@@ -1,9 +1,11 @@
+import { dartLizard } from '../game-content/scripts/creatures/dart-lizard'
+import { forestMap } from '../game-content/scripts/maps/forest-map'
+
 import { Objectives } from './data/objective-db'
 import { createForest } from './dungeon/create-forest'
 import { Dungeon } from './dungeon/dungeon'
 import { Objective } from './objective'
 import { WorldScript } from './script-api'
-import { dartLizard } from './scripts/dart-lizard'
 
 /**
  * The Campaign represents all game and player state that persists beyond a single expedition.
@@ -44,6 +46,7 @@ export class DemoCampaign extends Campaign {
     this.addObjective(new Objective(Objectives.problem_of_scale))
     this.addObjective(new Objective(Objectives.strange_blue_rock))
 
+    this.addScript(forestMap)
     this.addScript(dartLizard)
   }
 }
