@@ -8,6 +8,8 @@ import { stubTrue } from 'lodash'
 import { forEach, upperFirst } from 'lodash/fp'
 import { TypedEventEmitter } from 'typed-event-emitter'
 
+import { initializePlayer } from '../game-content/scripts/creatures/player'
+
 import { Creature } from './creature'
 import { CreatureTypeId, CreatureTypes } from './creature-db'
 import { CreatureEventNames, CreatureEvents } from './events/creature-events'
@@ -17,7 +19,7 @@ import { Item } from './item'
 import { MapCell, MapTile } from './map/map'
 import { random } from './random'
 import { ScriptApi, Speech } from './script-api'
-import { initializePlayer } from './scripts/player'
+import { TerrainTypeId, TerrainTypes } from './terrain-db'
 
 class GameController implements ScriptApi {
   constructor (
@@ -101,6 +103,10 @@ class GameController implements ScriptApi {
 
   public getMapTile (x: number, y: number): MapTile | undefined {
     return this._world.map.getMapTile(x, y)
+  }
+
+  public setTerrain (x: number, y: number, terrain: TerrainTypeId): void {
+    this._world.map.setTerrain(x, y, TerrainTypes[terrain])
   }
 
   public addMapItem (item: Item, x: number, y: number): number {

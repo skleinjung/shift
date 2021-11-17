@@ -33,7 +33,7 @@ const mediumLoot = ProductGroup.rollOne(
   ]
 )
 
-const hardLoot = ProductGroup.rollOne(
+export const hardLoot = ProductGroup.rollOne(
   [
     [5, ItemTemplates.leather_armor],
     [0, ItemTemplates.leather_boots],

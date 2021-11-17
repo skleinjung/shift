@@ -41,6 +41,10 @@ export const CreatureSymbols: { default: MapSymbol } & { [k in CreatureTypeId]?:
     ...ColorValues.AggressiveCreature,
     symbol: 'o',
   },
+  thorn_gremlin: {
+    ...ColorValues.AggressiveCreature,
+    symbol: 'i',
+  },
   player: {
     background: 0x002200,
     color: 0xffffff,
@@ -121,5 +125,16 @@ export const TerrainSymbols: { [k in TerrainTypeId]: MapSymbol } = {
     background: 0x333333,
     color: 0x555555,
     symbol: '#',
+  },
+  // thorn gremlin tiles
+  thorn_gremlin_home: {
+    background: 0x140d07,
+    color: 0xffffff,
+    symbol: '.',
+  },
+  thorn_gremlin_clearing: {
+    background: 0x140d07,
+    color: 0x002200,
+    symbol: '.',
   },
 } as const

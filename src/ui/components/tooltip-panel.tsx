@@ -2,7 +2,7 @@ import './log-panel.css'
 
 import { MapTile } from 'engine/map/map'
 import { Player } from 'engine/player'
-import { isTileVisibleTo } from 'engine/scripts/tile-visibility-sensor'
+import { isTileVisibleTo } from 'engine/sensors/tile-visibility-sensor'
 import { join, map } from 'lodash/fp'
 import { useWorld } from 'ui/hooks/use-world'
 import { WithExtraClasses } from 'ui/to-class-name'

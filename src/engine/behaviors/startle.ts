@@ -1,7 +1,7 @@
 import { MoveToAction } from 'engine/actions/move-to'
 import { CellCoordinate, MapCell } from 'engine/map/map'
 import { random } from 'engine/random'
-import { getStartledBy } from 'engine/scripts/startle-sensor'
+import { getStartledBy } from 'engine/sensors/startle-sensor'
 import { Behavior } from 'engine/types'
 import { sortBy, takeRight } from 'lodash/fp'
 import { distance } from 'math'
