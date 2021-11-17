@@ -18,10 +18,10 @@ import { InventoryPanel } from './inventory-panel'
 import { LogPanel } from './log-panel'
 import { MapPanel } from './map-panel'
 import { ObjectivePanel } from './objective-panel'
-import { Panel } from './panel'
 import { PlayerStatusPanel } from './player-status-panel'
 import { SpeechWindow } from './speech-window'
 import { TileDescriptionPanel } from './tile-description-panel'
+import { TooltipPanel } from './tooltip-panel'
 
 const SidebarColumns = 45
 
@@ -159,13 +159,15 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
           showSlot={true}
         />
 
-        <Panel
+        <TooltipPanel
           containerClass="expedition-panel"
           columns={SidebarColumns}
-          rows={8}
+          focusedTile={highlightedCell
+            ? world.map.getMapTile(highlightedCell.x, highlightedCell.y)
+            : undefined}
         >
           {highlightedCell && `(${highlightedCell.x}, ${highlightedCell.y})`}
-        </Panel>
+        </TooltipPanel>
       </div>
 
       <SpeechWindow

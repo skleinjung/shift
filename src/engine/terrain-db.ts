@@ -45,7 +45,7 @@ const terrainTypeArray = [
   {
     id: 'heavy_brush',
     blocksLineOfSight: true,
-    name: 'Lost in the Forest',
+    name: 'Deep Forest',
     traversable: true,
   },
   {
