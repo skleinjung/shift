@@ -1,5 +1,6 @@
 import { ShaderSystem } from '@pixi/core'
 import { install } from '@pixi/unsafe-eval'
+import { CellCoordinate } from 'engine/map/map'
 import { isArray, noop } from 'lodash/fp'
 import * as PIXI from 'pixi.js'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
@@ -26,8 +27,14 @@ interface ViewportSize {
 }
 
 export interface MapPanelProps extends Omit<PanelProps, 'columns' | 'rows'> {
+  /** (x, y) coordinate of the cell to highlight, if any */
+  focusedCell?: CellCoordinate
+
   /** optional callback that is notified whenever the user clicks on the map */
   onMapClick?: (mapX: number, mapY: number) => void
+
+  /** optional callback that is notified when the user moves the mouse over a cell on the map */
+  onMapHover?: (mapX: number, mapY: number) => void
 
   /** callback notified whenever the size of the viewport changes, with new dimensions in map cell coordinates */
   onViewportSizeChanged?: (width: number, height: number) => void
@@ -72,7 +79,9 @@ const calculateViewportCenter = (
 }
 
 export const MapPanel = ({
+  focusedCell,
   onMapClick = noop,
+  onMapHover = noop,
   onViewportSizeChanged = noop,
   ...panelProps
 }: MapPanelProps) => {
@@ -128,6 +137,8 @@ export const MapPanel = ({
         viewportSize.width,
         viewportSize.height
       )
+
+      sceneGraphRef.current.setCellFocus(focusedCell)
     }
   })
 
@@ -202,17 +213,29 @@ export const MapPanel = ({
     }
   }, [initializePixiApp, initializeResizeListener])
 
+  const convertMouseCoordinatesToCell = useCallback((mouseX: number, mouseY: number) => {
+    return {
+      x: Math.floor((mouseX / CellWidth) + offsetXRef.current - 0.5) - 1,
+      y: Math.floor((mouseY / CellHeight) + offsetYRef.current - 0.5) - 1,
+    }
+  }, [])
+
   const handleClick = useCallback((event: React.MouseEvent) => {
-    const mapX = Math.floor((event.clientX / CellWidth) + offsetXRef.current) - 1
-    const mapY = Math.floor((event.clientY / CellHeight) + offsetYRef.current) - 1
-    onMapClick(mapX, mapY)
-  }, [onMapClick])
+    const { x, y } = convertMouseCoordinatesToCell(event.clientX, event.clientY)
+    onMapClick(x, y)
+  }, [convertMouseCoordinatesToCell, onMapClick])
+
+  const handleMouseMove = useCallback((event: React.MouseEvent) => {
+    const { x, y } = convertMouseCoordinatesToCell(event.clientX, event.clientY)
+    onMapHover(x, y)
+  }, [convertMouseCoordinatesToCell, onMapHover])
 
   return (<>
     <Panel {...panelProps}>
       <div
         className="map-canvas"
         onClick={handleClick}
+        onMouseMove={handleMouseMove}
         style={{ flex: 1, height: '100%' }}
         ref={pixiRefCallback}
       />

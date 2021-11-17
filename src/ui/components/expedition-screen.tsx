@@ -3,6 +3,7 @@ import './expedition-screen.css'
 import { AttackAction } from 'engine/actions/attack'
 import { DoNothing } from 'engine/actions/do-nothing'
 import { MoveByAction } from 'engine/actions/move-by'
+import { CellCoordinate } from 'engine/map/map'
 import { Action } from 'engine/types'
 import { useCallback, useEffect, useState } from 'react'
 import { useSetRecoilState } from 'recoil'
@@ -32,6 +33,7 @@ export interface ExpeditionScreenProps {
 export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
   const [inMenus, setInMenus] = useState(false)
   const [inSpeech, setInSpeech] = useState(false)
+  const [highlightedCell, setHighlightedCell] = useState<CellCoordinate | undefined>()
 
   const world = useWorld()
   const updateExpedition = useSetRecoilState(expeditionState)
@@ -86,6 +88,14 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
     world.player.destination = { x, y }
   }, [world.player])
 
+  const handleMapHighlight = useCallback((x: number, y: number) => {
+    setHighlightedCell((previous) => {
+      return x === previous?.x && y === previous?.y
+        ? previous
+        : { x, y }
+    })
+  }, [])
+
   const keyMap = getKeyMap()
   const mapKeyHandler = useKeyHandler({
     [keyMap.MoveDown]: executePlayerMove(0, 1),
@@ -107,7 +117,9 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
         <MapPanel
           active={!isPaused}
           containerClass="expedition-panel"
+          focusedCell={highlightedCell}
           onMapClick={handleMapClick}
+          onMapHover={handleMapHighlight}
           onKeyDown={mapKeyHandler}
         />
 
@@ -152,7 +164,7 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
           columns={SidebarColumns}
           rows={8}
         >
-          Lorem ipsum dolor sit amet.
+          {highlightedCell && `(${highlightedCell.x}, ${highlightedCell.y})`}
         </Panel>
       </div>
 
