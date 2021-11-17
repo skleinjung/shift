@@ -95,6 +95,11 @@ export const MapPanel = ({
   const offsetXRef = useRef(0)
   const offsetYRef = useRef(0)
 
+  // we store the most recent mouse coordinates in a ref, so if the viepwort
+  // moves we can notify the onCellFocus callback
+  const mouseRef = useRef<{x: number; y: number} | undefined>()
+  const lastFocusedCellRef = useRef<CellCoordinate | undefined>()
+
   if (viewportSize !== undefined) {
     const { x, y } = calculateViewportCenter(
       viewportSize.width,
@@ -139,6 +144,16 @@ export const MapPanel = ({
       )
 
       sceneGraphRef.current.setCellFocus(focusedCell)
+
+      if (mouseRef.current !== undefined) {
+        // If the mouse is in our bounds, check if a new cell has been focused
+        // due to the viewport scrolling. If so, notify our callback
+        const newFocusCell = convertMouseCoordinatesToCell(mouseRef.current.x, mouseRef.current.y)
+        if (newFocusCell.x !== lastFocusedCellRef.current?.x || newFocusCell.y !== lastFocusedCellRef.current?.y) {
+          lastFocusedCellRef.current = newFocusCell
+          onCellFocus(newFocusCell)
+        }
+      }
     }
   })
 
@@ -226,10 +241,16 @@ export const MapPanel = ({
   }, [convertMouseCoordinatesToCell, onMapClick])
 
   const handleMouseMove = useCallback((event: React.MouseEvent) => {
-    onCellFocus(convertMouseCoordinatesToCell(event.clientX, event.clientY))
+    const focusedCell = convertMouseCoordinatesToCell(event.clientX, event.clientY)
+
+    mouseRef.current = { x: event.clientX, y: event.clientY }
+    lastFocusedCellRef.current = focusedCell
+    onCellFocus(focusedCell)
   }, [convertMouseCoordinatesToCell, onCellFocus])
 
   const handleMouseOut = useCallback(() => {
+    mouseRef.current = undefined
+    lastFocusedCellRef.current = undefined
     onCellFocus(undefined)
   }, [onCellFocus])
 
