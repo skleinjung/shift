@@ -239,7 +239,7 @@ export class MapSceneGraph {
         tile.x > (xOffset + viewWidth + 1) ||
         tile.y < yOffset ||
         tile.y > (yOffset + viewHeight + 1) ||
-        !isTileVisibleTo(world.player, tile.x, tile.y, world.map)
+        !isTileVisibleTo(world.player, tile.x, tile.y)
       ) {
         tile.inFrame = false
       } else {
