@@ -27,6 +27,9 @@ export type CreatureType = Readonly<{
   /** defense stat for this creature */
   defense: number
 
+  /** optional description of this creature, used when it is examined */
+  description?: string
+
   /** maximum health of creatures of this type */
   healthMax: number
 
@@ -57,6 +60,8 @@ const creatureTypeArray = [
   {
     createBehavior: () => BehaviorChain(startle(), maybeIdle(MoveRandomlyBehavior(), 50)),
     defense: 0,
+    description: `This long, snake-like reptile is covered in yellow and green scales arranged in a mossy pattern. 
+At rest, its mouth tilts upward giving you a clear view of the dual, fin-like crests atop it's head.`,
     healthMax: 2,
     id: 'dart_lizard',
     lootTable: MonsterLootTables[1],
@@ -105,6 +110,7 @@ const creatureTypeArray = [
     // player creates its own behavior, so implement a noop here
     createBehavior: () => () => undefined,
     defense: 0,
+    description: 'It\'s you!',
     healthMax: 10,
     id: 'player',
     melee: 1,

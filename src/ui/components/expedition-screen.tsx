@@ -3,6 +3,7 @@ import './expedition-screen.css'
 import { AttackAction } from 'engine/actions/attack'
 import { DoNothing } from 'engine/actions/do-nothing'
 import { MoveByAction } from 'engine/actions/move-by'
+import { CellCoordinate } from 'engine/map/map'
 import { Action } from 'engine/types'
 import { useCallback, useEffect, useState } from 'react'
 import { useSetRecoilState } from 'recoil'
@@ -17,11 +18,12 @@ import { InventoryPanel } from './inventory-panel'
 import { LogPanel } from './log-panel'
 import { MapPanel } from './map-panel'
 import { ObjectivePanel } from './objective-panel'
-import { Panel } from './panel'
 import { PlayerStatusPanel } from './player-status-panel'
 import { SpeechWindow } from './speech-window'
+import { TileDescriptionPanel } from './tile-description-panel'
+import { TooltipPanel } from './tooltip-panel'
 
-const SidebarColumns = 35
+const SidebarColumns = 45
 
 export interface ExpeditionScreenProps {
   /** function that allows inter-screen navigation */
@@ -31,6 +33,7 @@ export interface ExpeditionScreenProps {
 export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
   const [inMenus, setInMenus] = useState(false)
   const [inSpeech, setInSpeech] = useState(false)
+  const [focusedCell, setFocusedCell] = useState<CellCoordinate | undefined>()
 
   const world = useWorld()
   const updateExpedition = useSetRecoilState(expeditionState)
@@ -85,6 +88,18 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
     world.player.destination = { x, y }
   }, [world.player])
 
+  const handleCellFocus = useCallback((cell) => {
+    setFocusedCell((previous) => {
+      if (cell === undefined) {
+        return cell
+      }
+
+      return cell.x === previous?.x && cell.y === previous?.y
+        ? previous
+        : cell
+    })
+  }, [])
+
   const keyMap = getKeyMap()
   const mapKeyHandler = useKeyHandler({
     [keyMap.MoveDown]: executePlayerMove(0, 1),
@@ -106,14 +121,24 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
         <MapPanel
           active={!isPaused}
           containerClass="expedition-panel"
+          focusedCell={focusedCell}
+          onCellFocus={handleCellFocus}
           onMapClick={handleMapClick}
           onKeyDown={mapKeyHandler}
         />
 
-        <LogPanel
-          containerClass="expedition-panel"
-          world={world}
-        />
+        <div className='main-content-footer'>
+          <LogPanel
+            containerClass="expedition-panel expedition-screen-log"
+            style={{ flex: 1 }}
+            world={world}
+          />
+
+          <TileDescriptionPanel
+            containerClass="expedition-panel expedition-screen-tile-description"
+            style={{ flex: 1 }}
+          />
+        </div>
       </div>
 
       <div className="sidebar">
@@ -138,13 +163,13 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
           showSlot={true}
         />
 
-        <Panel
+        <TooltipPanel
           containerClass="expedition-panel"
           columns={SidebarColumns}
-          rows={8}
-        >
-          Lorem ipsum dolor sit amet.
-        </Panel>
+          focusedTile={focusedCell
+            ? world.map.getMapTile(focusedCell.x, focusedCell.y)
+            : undefined}
+        />
       </div>
 
       <SpeechWindow

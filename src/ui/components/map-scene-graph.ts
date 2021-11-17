@@ -1,5 +1,5 @@
 import { Creature } from 'engine/creature'
-import { MapCell } from 'engine/map/map'
+import { CellCoordinate, MapCell } from 'engine/map/map'
 import { MapSymbol } from 'engine/map/map-symbol'
 import { getCreatureSymbol, getItemSymbol, getTerrainSymbol, withDefaultBackground } from 'engine/map/map-symbolizer'
 import { isTileVisibleTo } from 'engine/scripts/tile-visibility-sensor'
@@ -143,6 +143,7 @@ export class MapSceneGraph {
   private _mapCellsContainer: PIXI.Container
   private _creaturesContainer: PIXI.Container
 
+  private _cellHighlight: PIXI.Graphics | undefined
   private _creatureTiles: { [k in string]: CreatureTile } = {}
   private _mapCellTiles: MapCellTile[][] = []
   private _allTiles: MapCellTile[] = []
@@ -167,6 +168,33 @@ export class MapSceneGraph {
     background.drawRect(0, 0, _cellWidth, _cellHeight)
 
     this._backgroundTexture = app.renderer.generateTexture(background)
+  }
+
+  /**
+   * Sets or clears the currently 'focused' cell, which will be shown with a border
+   * or other highlight effect.
+   */
+  public setCellFocus (coordinate: CellCoordinate | undefined) {
+    if (coordinate === undefined) {
+      if (this._cellHighlight !== undefined) {
+        this._root.removeChild(this._cellHighlight)
+        this._cellHighlight = undefined
+      }
+    } else {
+      if (this._cellHighlight === undefined) {
+        this._cellHighlight = new PIXI.Graphics()
+        this._cellHighlight.lineStyle(1, 0xff0000, 0.66)
+        this._cellHighlight.beginFill(0xff0000, 0.2)
+        this._cellHighlight.drawRect(0, 0, this._cellWidth, this._cellHeight)
+
+        this._root.addChild(this._cellHighlight)
+      }
+
+      this._cellHighlight.position.set(
+        coordinate.x * this._cellWidth,
+        coordinate.y * this._cellHeight
+      )
+    }
   }
 
   public setOffset (cellX: number, cellY: number) {

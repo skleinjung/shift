@@ -1,5 +1,6 @@
 import { ShaderSystem } from '@pixi/core'
 import { install } from '@pixi/unsafe-eval'
+import { CellCoordinate } from 'engine/map/map'
 import { isArray, noop } from 'lodash/fp'
 import * as PIXI from 'pixi.js'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
@@ -26,6 +27,12 @@ interface ViewportSize {
 }
 
 export interface MapPanelProps extends Omit<PanelProps, 'columns' | 'rows'> {
+  /** (x, y) coordinate of the cell to highlight, if any */
+  focusedCell?: CellCoordinate
+
+  /** optional callback that is notified when the user moves the mouse over a cell on the map */
+  onCellFocus?: (cell: CellCoordinate | undefined) => void
+
   /** optional callback that is notified whenever the user clicks on the map */
   onMapClick?: (mapX: number, mapY: number) => void
 
@@ -72,6 +79,8 @@ const calculateViewportCenter = (
 }
 
 export const MapPanel = ({
+  focusedCell,
+  onCellFocus = noop,
   onMapClick = noop,
   onViewportSizeChanged = noop,
   ...panelProps
@@ -85,6 +94,11 @@ export const MapPanel = ({
   const centerYRef = useRef(0)
   const offsetXRef = useRef(0)
   const offsetYRef = useRef(0)
+
+  // we store the most recent mouse coordinates in a ref, so if the viepwort
+  // moves we can notify the onCellFocus callback
+  const mouseRef = useRef<{x: number; y: number} | undefined>()
+  const lastFocusedCellRef = useRef<CellCoordinate | undefined>()
 
   if (viewportSize !== undefined) {
     const { x, y } = calculateViewportCenter(
@@ -128,6 +142,18 @@ export const MapPanel = ({
         viewportSize.width,
         viewportSize.height
       )
+
+      sceneGraphRef.current.setCellFocus(focusedCell)
+
+      if (mouseRef.current !== undefined) {
+        // If the mouse is in our bounds, check if a new cell has been focused
+        // due to the viewport scrolling. If so, notify our callback
+        const newFocusCell = convertMouseCoordinatesToCell(mouseRef.current.x, mouseRef.current.y)
+        if (newFocusCell.x !== lastFocusedCellRef.current?.x || newFocusCell.y !== lastFocusedCellRef.current?.y) {
+          lastFocusedCellRef.current = newFocusCell
+          onCellFocus(newFocusCell)
+        }
+      }
     }
   })
 
@@ -202,17 +228,39 @@ export const MapPanel = ({
     }
   }, [initializePixiApp, initializeResizeListener])
 
+  const convertMouseCoordinatesToCell = useCallback((mouseX: number, mouseY: number) => {
+    return {
+      x: Math.floor((mouseX / CellWidth) + offsetXRef.current - 0.5) - 1,
+      y: Math.floor((mouseY / CellHeight) + offsetYRef.current - 0.5) - 1,
+    }
+  }, [])
+
   const handleClick = useCallback((event: React.MouseEvent) => {
-    const mapX = Math.floor((event.clientX / CellWidth) + offsetXRef.current) - 1
-    const mapY = Math.floor((event.clientY / CellHeight) + offsetYRef.current) - 1
-    onMapClick(mapX, mapY)
-  }, [onMapClick])
+    const { x, y } = convertMouseCoordinatesToCell(event.clientX, event.clientY)
+    onMapClick(x, y)
+  }, [convertMouseCoordinatesToCell, onMapClick])
+
+  const handleMouseMove = useCallback((event: React.MouseEvent) => {
+    const focusedCell = convertMouseCoordinatesToCell(event.clientX, event.clientY)
+
+    mouseRef.current = { x: event.clientX, y: event.clientY }
+    lastFocusedCellRef.current = focusedCell
+    onCellFocus(focusedCell)
+  }, [convertMouseCoordinatesToCell, onCellFocus])
+
+  const handleMouseOut = useCallback(() => {
+    mouseRef.current = undefined
+    lastFocusedCellRef.current = undefined
+    onCellFocus(undefined)
+  }, [onCellFocus])
 
   return (<>
     <Panel {...panelProps}>
       <div
         className="map-canvas"
         onClick={handleClick}
+        onMouseMove={handleMouseMove}
+        onMouseOut={handleMouseOut}
         style={{ flex: 1, height: '100%' }}
         ref={pixiRefCallback}
       />

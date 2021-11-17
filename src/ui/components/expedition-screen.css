@@ -12,6 +12,17 @@
   overflow: hidden;
 }
 
+.main-content-footer {
+  display: flex;
+  flex-direction: row;
+}
+.expedition-panel.expedition-screen-log {
+  margin-right: 4px;
+}
+.expedition-panel.expedition-screen-tile-description {
+  margin-left: 4px;
+}
+
 .sidebar {
   display: flex;
   justify-self: flex-start;
