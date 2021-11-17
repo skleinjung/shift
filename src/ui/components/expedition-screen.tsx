@@ -20,8 +20,9 @@ import { ObjectivePanel } from './objective-panel'
 import { Panel } from './panel'
 import { PlayerStatusPanel } from './player-status-panel'
 import { SpeechWindow } from './speech-window'
+import { TileDescriptionPanel } from './tile-description-panel'
 
-const SidebarColumns = 35
+const SidebarColumns = 45
 
 export interface ExpeditionScreenProps {
   /** function that allows inter-screen navigation */
@@ -110,10 +111,18 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
           onKeyDown={mapKeyHandler}
         />
 
-        <LogPanel
-          containerClass="expedition-panel"
-          world={world}
-        />
+        <div className='main-content-footer'>
+          <LogPanel
+            containerClass="expedition-panel expedition-screen-log"
+            style={{ flex: 1 }}
+            world={world}
+          />
+
+          <TileDescriptionPanel
+            containerClass="expedition-panel expedition-screen-tile-description"
+            style={{ flex: 1 }}
+          />
+        </div>
       </div>
 
       <div className="sidebar">
