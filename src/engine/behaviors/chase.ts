@@ -5,7 +5,7 @@ import { pathFindingBehavior } from './path-finding-behavior'
 
 export const chase = (target: Creature): Behavior => pathFindingBehavior(() => {
   if (target.dead) {
-    // target is deadh, nothing to chase
+    // target is dead, nothing to chase
     return undefined
   }
 

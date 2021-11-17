@@ -33,7 +33,14 @@ export const MoveRandomlyBehavior = ({
   return destination === undefined ? undefined : new MoveToAction(creature, destination.x, destination.y)
 }
 
+export interface MoveRandomlyNearHomeOptions {
+  /** if creature is more than this distance from home, it will path back home until it's close enough */
+  maxDistance: number
+}
+
 /** Wandering behavior that ensures the creature never wanders more than 'maxDistance' from its home. */
-export const MoveRandomlyNearHome = (maxDistance: number) => MoveRandomlyBehavior({
+export const MoveRandomlyNearHome = ({
+  maxDistance,
+}: MoveRandomlyNearHomeOptions) => MoveRandomlyBehavior({
   isAllowedDestination: (x, y, creature) => getDistanceFromHome(creature, x, y) <= maxDistance,
 })

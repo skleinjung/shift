@@ -7,18 +7,20 @@ import { player } from '../game-content/scripts/creatures/player'
 
 import { attackPlayer } from './behaviors/attack'
 import { BehaviorChain } from './behaviors/behavior-chain'
+import { guard } from './behaviors/guard'
 import { maybeIdle } from './behaviors/idle'
 import { MoveRandomlyBehavior, MoveRandomlyNearHome } from './behaviors/move-randomly'
 import { retaliate } from './behaviors/retaliate'
+import { returnHome } from './behaviors/return-home'
 import { startle } from './behaviors/startle'
 import { wanderBetweenRooms } from './behaviors/wander-between-rooms'
 import { MonsterLootTables } from './data/loot-tables'
 import { ItemTemplate } from './item-db'
 import { CreatureScript } from './script-api'
 import { ageSensor } from './sensors/age-sensor'
-import { creaturesInFrontSensor } from './sensors/creature-sensors'
+import { allCreaturesSensor, creaturesInFrontSensor } from './sensors/creature-sensors'
 import { facingSensor } from './sensors/facing-sensor'
-import { homeSensor } from './sensors/home-sensor'
+import { getHome, homeSensor } from './sensors/home-sensor'
 import { startleSensor } from './sensors/startle-sensor'
 import { tileVisibilitySensor } from './sensors/tile-visibility-sensor'
 import { Generator } from './spawnable'
@@ -110,7 +112,19 @@ At rest, its mouth tilts upward giving you a clear view of the dual, fin-like cr
     speed: 100,
   },
   {
-    createBehavior: () => BehaviorChain(retaliate, attackPlayer, maybeIdle(MoveRandomlyNearHome(2), 80)),
+    // Thorn gremlins will:
+    //   * attack any non-thorn gremlins within 5 tiles of their home
+    //   * return within 2 tiles of their home if no enemies are within 10 tiles
+    //   * have a 20% chance each turn to wander randomly within 2 tiles of their home
+    createBehavior: () => BehaviorChain(
+      guard({
+        getGuardedLocation: getHome,
+        isHostile: (creature) => creature.type.id !== 'thorn_gremlin',
+        radius: 5,
+      }),
+      returnHome({ maxDistance: 2 }),
+      maybeIdle(MoveRandomlyNearHome({ maxDistance: 2 }), 80)
+    ),
     defense: 0,
     healthMax: 3,
     id: 'thorn_gremlin',
@@ -119,6 +133,7 @@ At rest, its mouth tilts upward giving you a clear view of the dual, fin-like cr
     name: 'Thorn Gremlin',
     scripts: [
       homeSensor,
+      allCreaturesSensor,
       thornGremlin,
     ],
     speed: 100,
