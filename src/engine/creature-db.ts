@@ -1,5 +1,6 @@
 import { BehaviorFactory } from 'engine/types'
 import { thornGremlin } from 'game-content/scripts/creatures/thorn-gremlin'
+import { drawFieldOfView } from 'game-content/scripts/draw-field-of-view'
 import { filter, keys, reduce } from 'lodash/fp'
 
 import { dartLizard, DefaultDartLizardSpeed } from '../game-content/scripts/creatures/dart-lizard'
@@ -146,7 +147,7 @@ At rest, its mouth tilts upward giving you a clear view of the dual, fin-like cr
     id: 'player',
     melee: 1,
     name: 'Player',
-    scripts: [tileVisibilitySensor, player],
+    scripts: [tileVisibilitySensor, player, facingSensor, drawFieldOfView],
     speed: 100,
   },
 ] as const
