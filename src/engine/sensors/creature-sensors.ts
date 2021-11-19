@@ -27,11 +27,12 @@ export const allCreaturesSensor: CreatureScript = {
 
 /**
  * Sensor script that detects the presence of all creatures in front of this one, within the specified distance.
- * This sensor does not account for line of sight obstructions, invisible creatures, etc.
+ * 'In front' of is a pretty loose, triangular region. Need real field of view at some point. This sensor does
+ * not account for line of sight obstructions, invisible creatures, etc.
  */
 export const creaturesInFrontSensor = (distance: number): CreatureScript => ({
   ...initialize,
-  onTurnStart: ({ creature }, api) => {
+  onMove: ({ creature }, api) => {
     const facing = getFacing(creature)
 
     const getTilesFromHorizontalEdge = (distance: number, xDirection: -1 | 0 | 1): MapTile[] => {
@@ -39,7 +40,7 @@ export const creaturesInFrontSensor = (distance: number): CreatureScript => ({
 
       for (let d = 1; d <= distance; d++) {
         const x = creature.x + (xDirection * d)
-        for (let yOffset = -d; yOffset <= d; yOffset++) {
+        for (let yOffset = -d * 2; yOffset <= d * 2; yOffset++) {
           const tile = api.getMapTile(x, creature.y + yOffset)
           if (tile !== undefined) {
             result.push(tile)
@@ -55,7 +56,7 @@ export const creaturesInFrontSensor = (distance: number): CreatureScript => ({
 
       for (let d = 1; d <= distance; d++) {
         const y = creature.y + (yDirection * d)
-        for (let xOffset = -d; xOffset <= d; xOffset++) {
+        for (let xOffset = -d * 2; xOffset <= d * 2; xOffset++) {
           const tile = api.getMapTile(creature.x + xOffset, y)
           if (tile !== undefined) {
             result.push(tile)

@@ -1,6 +1,5 @@
 import { BehaviorFactory } from 'engine/types'
 import { thornGremlin } from 'game-content/scripts/creatures/thorn-gremlin'
-import { drawFieldOfView } from 'game-content/scripts/draw-field-of-view'
 import { filter, keys, reduce } from 'lodash/fp'
 
 import { dartLizard, DefaultDartLizardSpeed } from '../game-content/scripts/creatures/dart-lizard'
@@ -19,9 +18,10 @@ import { MonsterLootTables } from './data/loot-tables'
 import { ItemTemplate } from './item-db'
 import { CreatureScript } from './script-api'
 import { ageSensor } from './sensors/age-sensor'
-import { allCreaturesSensor, creaturesInFrontSensor } from './sensors/creature-sensors'
+import { allCreaturesSensor, creaturesInFrontSensor, getDetectedCreatures } from './sensors/creature-sensors'
 import { facingSensor } from './sensors/facing-sensor'
 import { getHome, homeSensor } from './sensors/home-sensor'
+import { movementSensor } from './sensors/movement-sensor'
 import { startleSensor } from './sensors/startle-sensor'
 import { tileVisibilitySensor } from './sensors/tile-visibility-sensor'
 import { Generator } from './spawnable'
@@ -77,7 +77,8 @@ At rest, its mouth tilts upward giving you a clear view of the dual, fin-like cr
       ageSensor,
       facingSensor,
       creaturesInFrontSensor(6),
-      startleSensor({ turnsToFlee: 10 }),
+      movementSensor({ getCreatures: getDetectedCreatures }),
+      startleSensor({ creaturesSensorKey: 'sensor.movement.matches', turnsToFlee: 10 }),
       dartLizard,
     ],
     speed: DefaultDartLizardSpeed,
@@ -147,7 +148,7 @@ At rest, its mouth tilts upward giving you a clear view of the dual, fin-like cr
     id: 'player',
     melee: 1,
     name: 'Player',
-    scripts: [tileVisibilitySensor, player, facingSensor, drawFieldOfView],
+    scripts: [tileVisibilitySensor, player, facingSensor],
     speed: 100,
   },
 ] as const
