@@ -87,29 +87,33 @@ export const TerrainSymbols: { [k in TerrainTypeId]: MapSymbol } = {
     symbol: '.',
   },
   heavy_brush: {
-    background: 0x140d07,
-    color: 0x002200,
+    // hsv=125,100,18
+    background: 0x002e04,
+    color: 0x001100,
     symbol: '#',
   },
   light_brush_1: {
-    background: 0x008000,
-    color: 0x725d18,
+    // hsv=125,100,36 (2x value of heavy brush)
+    background: 0x005c08,
+    color: 0x91d8f5,
     symbol: 'v',
   },
   light_brush_2: {
-    background: 0x028a0f,
-    color: 0x046040,
-    symbol: ';',
+    background: 0x005c08,
+    color: 0x003300,
+    symbol: '.',
   },
   light_brush_3: {
-    background: 0x002200,
+    background: 0x005c08,
     color: 0x113300,
     symbol: '/',
   },
   path: {
-    background: 0x333300,
-    color: 0x555500,
-    symbol: ':',
+    // hsv=125, 75, 36 (60% saturation clearings)
+    background: 0x255c29,
+    // -12% value of background
+    color: 0x215225,
+    symbol: '=',
   },
   water: {
     background: 0x172c99,
@@ -128,13 +132,11 @@ export const TerrainSymbols: { [k in TerrainTypeId]: MapSymbol } = {
   },
   // thorn gremlin tiles
   thorn_gremlin_home: {
-    background: 0x140d07,
     color: 0xffffff,
     symbol: '.',
   },
   thorn_gremlin_clearing: {
-    background: 0x140d07,
-    color: 0x002200,
+    color: 0x140d07,
     symbol: '.',
   },
 } as const
