@@ -1,8 +1,10 @@
+import { Campaign, DemoCampaign } from 'engine/campaign'
 import { Creature } from 'engine/creature'
 import { CreatureTypeId, CreatureTypes } from 'engine/creature-db'
 import { Engine } from 'engine/engine'
 import { CreatureEventNames, CreatureEvents } from 'engine/events/creature'
 import { EventManager, EventManagerEvents } from 'engine/events/event-manager'
+import { GameEventEmitter } from 'engine/events/game'
 import { EventHandlerName } from 'engine/events/types'
 import { Item } from 'engine/item'
 import { MapCell, MapTile } from 'engine/map/map'
@@ -11,15 +13,40 @@ import { World } from 'engine/world'
 import { forEach, random, stubTrue, upperFirst } from 'lodash/fp'
 
 import { ScriptApi } from './script-api'
-import { Speech } from './ui-api'
+import { Speech, UiCallback, UiController } from './ui-api'
 
-export class GameController implements ScriptApi {
+export class GameController extends GameEventEmitter implements ScriptApi {
+  private _engine: Engine
+  private _eventManager: EventManager
+  private _world: World
+  private _campaign: Campaign
+
   constructor (
-    private _engine: Engine,
-    private _world: World,
-    private _eventManager = new EventManager()
+    private _ui: UiController
   ) {
+    super()
+
+    this._eventManager = new EventManager()
     this._eventManager.on('registerCreature', this._handleCreatureEventRegistration.bind(this))
+
+    this._campaign = new DemoCampaign()
+    this._engine = new Engine(this._campaign, this)
+    this._world = this._engine.world
+    this._engine.onInitialize()
+
+    this._ui.on('ready', () => {
+      this._engine.onUiReady()
+    })
+  }
+
+  /** Gets the active campaign */
+  public get campaign () {
+    return this._campaign
+  }
+
+  /** Gets the game engine */
+  public get engine () {
+    return this._engine
   }
 
   /** @deprecated access to the world is being dropped soon */
@@ -130,14 +157,6 @@ export class GameController implements ScriptApi {
     }
   }
 
-  public showMessage (message: string): void {
-    this._engine.world.logMessage(message)
-  }
-
-  public showSpeech (speech: Speech[]): void {
-    this._engine.emit('speech', speech)
-  }
-
   /** When a creature is registered with the event manager, register all of it's script listeners */
   private _handleCreatureEventRegistration ({ creature, eventEmitter }: EventManagerEvents['registerCreature']) {
     forEach((script) => {
@@ -151,5 +170,16 @@ export class GameController implements ScriptApi {
         }
       }, CreatureEventNames)
     }, creature.scripts)
+  }
+
+  // UI API delegation
+
+  public showMessage (message: string): void {
+    this._engine.world.logMessage(message)
+  }
+
+  public showSpeech (speech: Speech[], callback?: UiCallback): void {
+    this._ui.showSpeech(speech, callback)
+    // this._engine.emit('speech', speech)
   }
 }

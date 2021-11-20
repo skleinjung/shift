@@ -1,6 +1,7 @@
 import { Objective } from 'engine/objective'
 
 import { ScriptApi } from './script-api'
+import { UiApi } from './ui-api'
 
 /**
  * A script is a piece of automation that can be inserted into the normal game flow, to display
@@ -8,8 +9,12 @@ import { ScriptApi } from './script-api'
  * handlers that are called by the engine whenever the relevant event occurs.
  */
 export interface WorldScript {
-  /** called when the script is first loaded into a new world */
-  initialize?: (context: ScriptApi) => void
+  /**
+   * Called when the script is first loaded into a new world. This method can load assets, create
+   * data and otherwise prepare the world. However, the UI is not yet ready at this point, and so
+   * no methods of the UiApi are available yet. Use onUiReady to display 'onLoad' ui elements.
+   **/
+  onInitialize?: (context: Omit<ScriptApi, keyof UiApi>) => void
 
   onObjectiveProgress?: (progress: number, objective: Objective, context: ScriptApi) => void
 
@@ -18,4 +23,7 @@ export interface WorldScript {
    * has had a chance to act.
    **/
   onTurn?: (api: ScriptApi) => void
+
+  /** Called at some point after 'onInitialize', when the UI has reported that is visible and ready. */
+  onUiReady?: (context: ScriptApi) => void
 }

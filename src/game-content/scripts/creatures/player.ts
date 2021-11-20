@@ -4,7 +4,7 @@ import { Player } from 'engine/player'
 import { get, initial, join, last, map } from 'lodash/fp'
 
 export const initializePlayer: WorldScript = {
-  initialize: (api) => {
+  onInitialize: (api) => {
     api.addCreature(new Player())
   },
 }

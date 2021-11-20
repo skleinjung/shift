@@ -1,5 +1,4 @@
 import { Engine } from 'engine/engine'
-import { UiController } from 'engine/ui-controller'
 import { enumerate } from 'enumerate'
 import { TypedEventEmitter } from 'typed-event-emitter'
 
@@ -12,11 +11,6 @@ export type GameEvents = {
   engineReady: {
     engine: Engine
   }
-
-  /** Emitted when ther user interface is visible and responding to events. */
-  uiReady: {
-    ui: UiController
-  }
 }
 
 /**
@@ -24,8 +18,7 @@ export type GameEvents = {
  * The types guarantee this is an exhaustive list.
  */
 export const GameEventNames = enumerate<keyof GameEvents>()(
-  'engineReady',
-  'uiReady'
+  'engineReady'
 )
 
 /** event emitter type for creatures */

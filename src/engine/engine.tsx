@@ -10,7 +10,6 @@ import { TypedEventEmitter } from 'typed-event-emitter'
 import { initializePlayer } from '../game-content/scripts/creatures/player'
 
 import { GameController } from './api/game-controller'
-import { ScriptApi } from './api/script-api'
 
 /** The engine is responsible for triggering speech, scripted events, updating quests, etc. */
 export class Engine extends TypedEventEmitter<EngineEvents> implements Updateable {
@@ -20,9 +19,6 @@ export class Engine extends TypedEventEmitter<EngineEvents> implements Updateabl
   // the currently attached world
   private _world: World
 
-  // script controller, that facilitates communicate between scripts, the UI, and the world
-  private _scriptApi: ScriptApi
-
   /** objective tracker listens to world events, and updates campaign objectives */
   private _objectiveTracker = new ObjectiveTracker()
 
@@ -30,13 +26,16 @@ export class Engine extends TypedEventEmitter<EngineEvents> implements Updateabl
   private _handleTurnBinding = this._handleTurn.bind(this)
 
   constructor (
-    private _campaign: Campaign
+    private _campaign: Campaign,
+    private _controller: GameController
   ) {
     super()
 
     this._world = new World()
-    this._scriptApi = new GameController(this, this._world)
+    this.attach(this._world)
+  }
 
+  public onInitialize () {
     this._timer.addUpdateable(this)
     forEach((objective) => {
       this._objectiveTracker.addObjective(objective)
@@ -44,20 +43,27 @@ export class Engine extends TypedEventEmitter<EngineEvents> implements Updateabl
 
     this._objectiveTracker.on('objectiveProgress', (progress, objective) => {
       forEach((script) => {
-        script.onObjectiveProgress?.(progress, objective, this._scriptApi)
+        script.onObjectiveProgress?.(progress, objective, this._controller)
       }, this._campaign.scripts)
     })
 
-    this.attach(this._world)
     this._world.initializeFromDungeon(this._campaign.createNextDungeon())
 
     // initialize the campaign
     forEach((script) => {
-      script.initialize?.(this._scriptApi)
+      script.onInitialize?.(this._controller)
     }, this._campaign.scripts)
 
     // initialize the player
-    initializePlayer.initialize?.(this._scriptApi)
+    initializePlayer.onInitialize?.(this._controller)
+  }
+
+  /** Called once the UI is ready and listening for events or commands. */
+  public onUiReady () {
+    // notify any campaign scripts that the UI is visible
+    forEach((script) => {
+      script.onUiReady?.(this._controller)
+    }, this._campaign.scripts)
   }
 
   public get world () {
@@ -103,7 +109,7 @@ export class Engine extends TypedEventEmitter<EngineEvents> implements Updateabl
 
   private _handleTurn () {
     forEach((script) => {
-      script.onTurn?.(this._scriptApi)
+      script.onTurn?.(this._controller)
     }, this._campaign.scripts)
   }
 }

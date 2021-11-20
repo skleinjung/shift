@@ -3,7 +3,7 @@ import { filter, random } from 'lodash/fp'
 import { distance } from 'math'
 
 export const forestMap: WorldScript = {
-  initialize: (environment) => {
+  onInitialize: (environment) => {
     const x = random(-70, 30)
     const y = random(-100, -90)
     environment.addCreature('thorn_gremlin', x, y)
