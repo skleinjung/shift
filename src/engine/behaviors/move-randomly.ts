@@ -15,7 +15,7 @@ export interface MoveRandomlyOptions {
    * creature or not. If unspecified, there are no movement restrictions (other than traversability).
    * This can be used to customize the types of movements a specific creature will make.
    */
-  isAllowedDestination?: (x: number, y: number, creature: Creature) => boolean
+  isAllowedDestination?: (x: number, y: number, creature: Creature, world: World) => boolean
 }
 
 const isValidMove = (world: World) => ({ x, y }: CellCoordinate) =>
@@ -26,7 +26,7 @@ export const MoveRandomlyBehavior = ({
   isAllowedDestination = stubTrue,
 }: MoveRandomlyOptions = {}): Behavior => (creature, world) => {
   const options = filter((coordinate) => {
-    return isAllowedDestination(coordinate.x, coordinate.y, creature) && isValidMove(world)(coordinate)
+    return isAllowedDestination(coordinate.x, coordinate.y, creature, world) && isValidMove(world)(coordinate)
   }, getAdjacentCoordinates(creature))
 
   const destination = isEmpty(options) ? undefined : sample(options)

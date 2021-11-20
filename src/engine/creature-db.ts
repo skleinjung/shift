@@ -1,6 +1,6 @@
 import { BehaviorFactory } from 'engine/types'
 import { thornGremlin } from 'game-content/scripts/creatures/thorn-gremlin'
-import { filter, keys, reduce } from 'lodash/fp'
+import { filter, findIndex, flow, keys, map, reduce } from 'lodash/fp'
 
 import { dartLizard, DefaultDartLizardSpeed } from '../game-content/scripts/creatures/dart-lizard'
 import { player } from '../game-content/scripts/creatures/player'
@@ -15,7 +15,9 @@ import { returnHome } from './behaviors/return-home'
 import { startle } from './behaviors/startle'
 import { wanderBetweenRooms } from './behaviors/wander-between-rooms'
 import { MonsterLootTables } from './data/loot-tables'
+import { Item } from './item'
 import { ItemTemplate } from './item-db'
+import { getTraversableNeighbors } from './map/map-utils'
 import { CreatureScript } from './script-api'
 import { ageSensor } from './sensors/age-sensor'
 import { allCreaturesSensor, creaturesInFrontSensor, getDetectedCreatures } from './sensors/creature-sensors'
@@ -24,7 +26,7 @@ import { getHome, homeSensor } from './sensors/home-sensor'
 import { movementSensor } from './sensors/movement-sensor'
 import { startleSensor } from './sensors/startle-sensor'
 import { tileVisibilitySensor } from './sensors/tile-visibility-sensor'
-import { Generator } from './spawnable'
+import { Generator, ProductGroup } from './spawnable'
 
 export type CreatureType = Readonly<{
   /** create the behavior used to determine this creature's actions */
@@ -112,6 +114,42 @@ At rest, its mouth tilts upward giving you a clear view of the dual, fin-like cr
     melee: 2,
     name: 'Orc',
     speed: 100,
+  },
+  {
+    createBehavior: () => BehaviorChain(
+      retaliate,
+      returnHome({ maxDistance: 2 }),
+      MoveRandomlyBehavior({
+        // river toads only move into tiles that are next to water_shallow, or are water_shallow
+        isAllowedDestination: (x, y, _creature, world) => {
+          if (world.map.getTerrain(x, y).id === 'water_shallow') {
+            return true
+          }
+
+          const neighboringTerrainIds = flow(
+            getTraversableNeighbors(world.map),
+            map(({ x, y }) => world.map.getTerrain(x, y).id)
+          )({ x, y })
+          return findIndex('water_shallow', neighboringTerrainIds) !== -1
+        },
+      })
+    ),
+    defense: 0,
+    healthMax: 1,
+    id: 'river_toad',
+    lootTable: ProductGroup.rollOne([[60, {
+      id: 'river_toad_meat',
+      create: () => new Item({
+        description: 'This small strip of brown frog-flesh smells like garbage water and is very... squishy.',
+        name: 'chunk of river toad',
+      }),
+    }]]),
+    melee: 1,
+    name: 'River Toad',
+    scripts: [
+      homeSensor,
+    ],
+    speed: 75,
   },
   {
     // Thorn gremlins will:
