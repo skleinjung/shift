@@ -4,7 +4,7 @@ import { TypedEventEmitter } from 'typed-event-emitter'
 /** A single piece of content that should be displayed during a dialog 'cutscene'. */
 export interface Speech {
   /** the source (i.e. speaker, etc.) of the narration or dialog */
-  speaker: string
+  speaker?: string
 
   /** the actual message (description, dialog, etc.) */
   message: string

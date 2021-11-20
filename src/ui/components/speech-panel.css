@@ -1,0 +1,32 @@
+.speech-panel {
+  display: flex;
+  font-size: 32px;
+  height: 200px;
+  width: 600px;
+}
+
+.speech-panel .panel-title {
+  background-color: #990;
+  color: #220;
+  font-size: 1em;
+  margin: 0 0 12px 0;
+  padding: 8px;
+  text-align: center;
+  text-transform: none;
+}
+
+.speech-panel-message {
+  flex: 1 1;
+  line-height: 32px;
+}
+
+.speech-panel-controls {
+  color: #666;
+  cursor: pointer;
+  margin-bottom: 8px;
+  margin-right: 8px;
+  text-align: right;
+}
+.speech-panel-controls:hover {
+  color: #aa0;
+}
