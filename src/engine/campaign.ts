@@ -1,11 +1,11 @@
 import { dartLizard } from '../game-content/scripts/creatures/dart-lizard'
 import { forestMap } from '../game-content/scripts/maps/forest-map'
 
+import { WorldScript } from './api/world-script'
 import { Objectives } from './data/objective-db'
 import { createForest } from './dungeon/create-forest'
 import { Dungeon } from './dungeon/dungeon'
 import { Objective } from './objective'
-import { WorldScript } from './script-api'
 
 /**
  * The Campaign represents all game and player state that persists beyond a single expedition.

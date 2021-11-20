@@ -1,5 +1,5 @@
+import { CreatureScript } from 'engine/api/creature-script'
 import { Creature } from 'engine/creature'
-import { CreatureScript } from 'engine/script-api'
 
 const KEY = 'sensor.facing'
 

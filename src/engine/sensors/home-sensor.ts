@@ -1,6 +1,6 @@
+import { CreatureScript } from 'engine/api/creature-script'
 import { Creature } from 'engine/creature'
 import { CellCoordinate } from 'engine/map/map'
-import { CreatureScript } from 'engine/script-api'
 import { distance } from 'math'
 
 const ValueKey = 'sensor.home'

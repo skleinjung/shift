@@ -1,4 +1,4 @@
-import { WorldScript } from 'engine/script-api'
+import { WorldScript } from 'engine/api/world-script'
 import { filter, random } from 'lodash/fp'
 import { distance } from 'math'
 

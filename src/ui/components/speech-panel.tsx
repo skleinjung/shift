@@ -1,6 +1,6 @@
 import './narration-panel.css'
 
-import { Speech } from 'engine/script-api'
+import { Speech } from 'engine/api/ui-api'
 import { noop } from 'lodash'
 import { useCallback, useEffect, useState } from 'react'
 import { useKeyHandler } from 'ui/hooks/use-key-handler'

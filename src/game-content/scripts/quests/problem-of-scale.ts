@@ -1,4 +1,4 @@
-import { WorldScript } from 'engine/script-api'
+import { WorldScript } from 'engine/api/world-script'
 
 export const ProblemOfScale: WorldScript = {
   onObjectiveProgress: (progress, objective, context) => {
