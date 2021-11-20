@@ -1,5 +1,6 @@
-.container {
-  border: 1px solid #333;
+.container { 
+  background-color: #111;
+  border: 3px solid #330;
   display: flex;
   align-content: stretch;
   flex: 0;
@@ -26,7 +27,7 @@
 }
 
 .panel-title {
-  background-color: #111;
+  background-color: #220;
   font-size: 1em;
   margin: 0 0 6px 0;
   padding: 2px;

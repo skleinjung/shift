@@ -14,7 +14,7 @@ export interface LogPanelOptions extends Omit<PanelProps, 'rows'> {
   world: World
 }
 
-export const LogPanel = ({ rows = 8, world, ...rest }: LogPanelOptions) => {
+export const LogPanel = ({ rows, world, ...rest }: LogPanelOptions) => {
   const [lines, setLines] = useState<string[]>(world.messages)
 
   const messageAdded = useCallback(() => {

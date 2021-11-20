@@ -15,14 +15,12 @@ import { speechState } from 'ui/state/speech'
 
 import { ScreenName } from './app'
 import { ExpeditionMenuController } from './expedition-menu-controller'
-import { InventoryPanel } from './inventory-panel'
 import { LogPanel } from './log-panel'
 import { MapPanel } from './map-panel'
 import { ObjectivePanel } from './objective-panel'
 import { PlayerStatusPanel } from './player-status-panel'
 import { SpeechWindow } from './speech-window'
 import { TileDescriptionPanel } from './tile-description-panel'
-import { TooltipPanel } from './tooltip-panel'
 
 const SidebarColumns = 45
 
@@ -80,8 +78,10 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
   }, [executeTurn, isPaused, world.map, world.player])
 
   const handleMapClick = useCallback((x: number, y: number) => {
-    world.player.destination = { x, y }
-  }, [world.player])
+    if (!isPaused) {
+      world.player.destination = { x, y }
+    }
+  }, [isPaused, world.player])
 
   const handleCellFocus = useCallback((cell) => {
     setFocusedCell((previous) => {
@@ -115,25 +115,39 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
       <div className="main-content">
         <MapPanel
           active={!isPaused}
-          containerClass="expedition-panel"
+          containerClass="expedition-panel map-canvas"
           focusedCell={focusedCell}
           onCellFocus={handleCellFocus}
           onMapClick={handleMapClick}
           onKeyDown={mapKeyHandler}
         />
 
-        <div className='main-content-footer'>
-          <LogPanel
-            containerClass="expedition-panel expedition-screen-log"
-            style={{ flex: 1 }}
-            world={world}
+        {!inSpeech && (
+          <ExpeditionMenuController
+            onHideMenu={handleHideMenu}
+            onPlayerAction={executeTurn}
+            onQuitExpedition={handleQuitExpedition}
+            onShowMenu={handleShowMenu}
           />
+        )}
 
-          <TileDescriptionPanel
-            containerClass="expedition-panel expedition-screen-tile-description"
-            style={{ flex: 1 }}
-          />
+        <div className='main-content-footer'>
+
+          <SpeechWindow classes={inSpeech ? ['fade-in'] : ['fade-out']} />
+
+          {!inSpeech &&
+            <TileDescriptionPanel
+              containerClass="expedition-panel expedition-screen-tile-description fade-in"
+            />}
+
+          {/* <TooltipPanel
+            containerClass="expedition-panel expedition-screen-tooltip"
+            focusedTile={focusedCell
+              ? world.map.getMapTile(focusedCell.x, focusedCell.y)
+              : undefined}ee
+          /> */}
         </div>
+
       </div>
 
       <div className="sidebar">
@@ -150,33 +164,23 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
           showDescriptions={false}
         />
 
-        <InventoryPanel
+        {/* <InventoryPanel
           active={false}
           allowSelection={false}
           columns={SidebarColumns}
           containerClass="expedition-panel"
           showSlot={true}
+        /> */}
+
+        <LogPanel
+          columns={SidebarColumns}
+          containerClass="expedition-panel"
+          style={{ flex: 1 }}
+          world={world}
         />
 
-        <TooltipPanel
-          containerClass="expedition-panel"
-          columns={SidebarColumns}
-          focusedTile={focusedCell
-            ? world.map.getMapTile(focusedCell.x, focusedCell.y)
-            : undefined}
-        />
       </div>
 
-      <SpeechWindow />
-
-      {!inSpeech && (
-        <ExpeditionMenuController
-          onHideMenu={handleHideMenu}
-          onPlayerAction={executeTurn}
-          onQuitExpedition={handleQuitExpedition}
-          onShowMenu={handleShowMenu}
-        />
-      ) }
     </div>
   )
 }

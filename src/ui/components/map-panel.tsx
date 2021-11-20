@@ -257,7 +257,6 @@ export const MapPanel = ({
   return (<>
     <Panel {...panelProps}>
       <div
-        className="map-canvas"
         onClick={handleClick}
         onMouseMove={handleMouseMove}
         onMouseOut={handleMouseOut}
