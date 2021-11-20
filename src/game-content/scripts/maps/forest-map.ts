@@ -8,6 +8,14 @@ export const forestMap: WorldScript = {
     const y = random(-100, -90)
     environment.addCreature('thorn_gremlin', x, y)
   },
+  onUiReady: async (environment) => {
+    await environment.showSpeech([
+      {
+        message: 'You enter the forest.',
+        speaker: 'Narrator',
+      },
+    ])
+  },
   onTurn: (environment) => {
     // if there are fewer than 2 toads, spawn one in a random river tile that
     // is 25 tiles away from the player's location

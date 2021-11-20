@@ -13,7 +13,7 @@ import { World } from 'engine/world'
 import { forEach, random, stubTrue, upperFirst } from 'lodash/fp'
 
 import { ScriptApi } from './script-api'
-import { Speech, UiCallback, UiController } from './ui-api'
+import { Speech, UiController } from './ui-api'
 
 export class GameController extends GameEventEmitter implements ScriptApi {
   private _engine: Engine
@@ -47,6 +47,10 @@ export class GameController extends GameEventEmitter implements ScriptApi {
   /** Gets the game engine */
   public get engine () {
     return this._engine
+  }
+
+  public get ui () {
+    return this._ui
   }
 
   /** @deprecated access to the world is being dropped soon */
@@ -178,8 +182,7 @@ export class GameController extends GameEventEmitter implements ScriptApi {
     this._engine.world.logMessage(message)
   }
 
-  public showSpeech (speech: Speech[], callback?: UiCallback): void {
-    this._ui.showSpeech(speech, callback)
-    // this._engine.emit('speech', speech)
+  public showSpeech (speech: Speech[]): Promise<void> {
+    return this._ui.showSpeech(speech)
   }
 }

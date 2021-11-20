@@ -6,11 +6,12 @@ import { MoveByAction } from 'engine/actions/move-by'
 import { CellCoordinate } from 'engine/map/map'
 import { Action } from 'engine/types'
 import { useCallback, useEffect, useState } from 'react'
-import { useSetRecoilState } from 'recoil'
+import { useRecoilValue, useSetRecoilState } from 'recoil'
 import { useKeyHandler } from 'ui/hooks/use-key-handler'
 import { useWorld } from 'ui/hooks/use-world'
 import { getKeyMap } from 'ui/key-map'
 import { endTurn, expeditionState } from 'ui/state/expedition'
+import { speechState } from 'ui/state/speech'
 
 import { ScreenName } from './app'
 import { ExpeditionMenuController } from './expedition-menu-controller'
@@ -32,8 +33,10 @@ export interface ExpeditionScreenProps {
 
 export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
   const [inMenus, setInMenus] = useState(false)
-  const [inSpeech, setInSpeech] = useState(false)
+  const speech = useRecoilValue(speechState)
   const [focusedCell, setFocusedCell] = useState<CellCoordinate | undefined>()
+
+  const inSpeech = speech !== undefined && speech.speech.length > 0
 
   const world = useWorld()
   const updateExpedition = useSetRecoilState(expeditionState)
@@ -51,14 +54,6 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
 
   const handleHideMenu = useCallback(() => {
     setInMenus(false)
-  }, [])
-
-  const handleShowSpeech = useCallback(() => {
-    setInSpeech(true)
-  }, [])
-
-  const handleHideSpeech = useCallback(() => {
-    setInSpeech(false)
   }, [])
 
   const executeTurn = useCallback((playerAction: Action) => {
@@ -172,10 +167,8 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
         />
       </div>
 
-      <SpeechWindow
-        onHideSpeech={handleHideSpeech}
-        onShowSpeech={handleShowSpeech}
-      />
+      <SpeechWindow />
+
       {!inSpeech && (
         <ExpeditionMenuController
           onHideMenu={handleHideMenu}

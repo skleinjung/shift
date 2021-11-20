@@ -1,15 +1,13 @@
 import { GameController } from 'engine/api/game-controller'
-import { UiController } from 'engine/api/ui-api'
 import { useEffect, useRef } from 'react'
 import { useResetRecoilState } from 'recoil'
-import { CampaignContext } from 'ui/context-campaign'
-import { EngineContext } from 'ui/context-engine'
+import { GameControllerContext } from 'ui/context-game'
 import { expeditionState } from 'ui/state/expedition'
-import { ReactUiController } from 'ui/ui-controller'
 
 import { ScreenName } from './app'
 import { ExpeditionEndedScreen } from './expedition-ended-screen'
 import { ExpeditionScreen } from './expedition-screen'
+import { RebindableUiController, UiControllerBinding } from './ui-controller-binding'
 
 export interface GameProps {
   /** function that allows inter-screen navigation */
@@ -20,7 +18,7 @@ export interface GameProps {
 }
 
 export const GameRoot = ({ navigateTo, screen }: GameProps) => {
-  const uiRef = useRef<UiController>(new ReactUiController())
+  const uiRef = useRef(new RebindableUiController())
   const gameRef = useRef(new GameController(uiRef.current))
   const resetExpedition = useResetRecoilState(expeditionState)
 
@@ -30,8 +28,6 @@ export const GameRoot = ({ navigateTo, screen }: GameProps) => {
     const game = gameRef.current
     const currentEngine = game.engine
     currentEngine.start()
-
-    uiRef.current.emit('ready', { ui: uiRef.current })
 
     return () => {
       currentEngine.stop()
@@ -49,10 +45,10 @@ export const GameRoot = ({ navigateTo, screen }: GameProps) => {
   }
 
   return (
-    <CampaignContext.Provider value={gameRef.current.campaign}>
-      <EngineContext.Provider value={gameRef.current.engine}>
+    <GameControllerContext.Provider value={gameRef.current}>
+      <UiControllerBinding ui={uiRef.current}>
         {getActiveScreen()}
-      </EngineContext.Provider>
-    </CampaignContext.Provider>
+      </UiControllerBinding>
+    </GameControllerContext.Provider>
   )
 }

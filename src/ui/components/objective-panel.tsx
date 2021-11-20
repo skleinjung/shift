@@ -1,7 +1,7 @@
 import { Objective } from 'engine/objective'
 import { find, head, map } from 'lodash/fp'
 import { useCallback, useState } from 'react'
-import { useCampaign } from 'ui/hooks/use-campaign'
+import { useCampaign } from 'ui/hooks/use-game'
 
 import { ListItem, ListPanel, ListPanelProps } from './list-panel'
 

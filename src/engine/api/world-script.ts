@@ -14,16 +14,16 @@ export interface WorldScript {
    * data and otherwise prepare the world. However, the UI is not yet ready at this point, and so
    * no methods of the UiApi are available yet. Use onUiReady to display 'onLoad' ui elements.
    **/
-  onInitialize?: (context: Omit<ScriptApi, keyof UiApi>) => void
+  onInitialize?: (context: Omit<ScriptApi, keyof UiApi>) => void | Promise<void>
 
-  onObjectiveProgress?: (progress: number, objective: Objective, context: ScriptApi) => void
+  onObjectiveProgress?: (progress: number, objective: Objective, context: ScriptApi) => void | Promise<void>
 
   /**
    * Called once for each game turn -- that is, after each actor currently active in the game
    * has had a chance to act.
    **/
-  onTurn?: (api: ScriptApi) => void
+  onTurn?: (api: ScriptApi) => void | Promise<void>
 
   /** Called at some point after 'onInitialize', when the UI has reported that is visible and ready. */
-  onUiReady?: (context: ScriptApi) => void
+  onUiReady?: (context: ScriptApi) => void | Promise<void>
 }
