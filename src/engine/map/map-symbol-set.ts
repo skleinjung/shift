@@ -41,6 +41,10 @@ export const CreatureSymbols: { default: MapSymbol } & { [k in CreatureTypeId]?:
     ...ColorValues.AggressiveCreature,
     symbol: 'o',
   },
+  river_toad: {
+    ...ColorValues.PassiveCreature,
+    symbol: 'a',
+  },
   thorn_gremlin: {
     ...ColorValues.AggressiveCreature,
     symbol: 'i',
