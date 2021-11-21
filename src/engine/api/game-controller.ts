@@ -128,6 +128,10 @@ export class GameController extends GameEventEmitter implements ScriptApi {
     return this._world.map.getMapTile(x, y)
   }
 
+  public setTileDescription (x: number, y: number, description: string): void {
+    this._world.map.getCell(x, y).customDescription = description
+  }
+
   public setTerrain (x: number, y: number, terrain: TerrainTypeId): void {
     this._world.map.setTerrain(x, y, TerrainTypes[terrain])
   }

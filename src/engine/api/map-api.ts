@@ -29,6 +29,12 @@ export type MapApi = Readonly<TileProvider & {
    */
   removeMapItem (id: number): void
 
+  /**
+   * Sets the description of a map cell. The new description will override any default descriptions
+   * from the map region or terrain type.
+   */
+  setTileDescription: (x: number, y: number, description: string) => void
+
   /** Updates the map data by setting the terrain at a specified location. */
   setTerrain: (x: number, y: number, terrain: TerrainTypeId) => void
 }>

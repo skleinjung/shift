@@ -28,14 +28,21 @@ export interface PathFindingOptions {
  * scripts that need to access map data.
  */
 export interface MapTile extends Pick<Container, 'containsItem' | 'items'> {
-  /** x coordinate of the cell */
-  readonly x: number
-  /** y coordinate of the cell */
-  readonly y: number
-  /** type of terrain in this cell */
-  readonly terrain: TerrainType
   /** ID of the creature occupying this cell, if any */
   readonly creature?: Creature
+
+  /** Human-readable long description for this map tile. */
+  readonly description?: string
+
+  /** type of terrain in this cell */
+  readonly terrain: TerrainType
+
+  /** x coordinate of the cell */
+  readonly x: number
+
+  /** y coordinate of the cell */
+  readonly y: number
+
 }
 
 export interface TileProvider {
@@ -47,6 +54,9 @@ export interface TileProvider {
  * MapCell is the full, mutable data structure of which the map is built.
  */
 export class MapCell extends BasicContainer implements MapTile {
+  /** Optional custom description for this cell, which will override the terrain's description. */
+  public customDescription?: string
+
   constructor (
     /** x coordinate of the cell */
     public x: number,
@@ -58,6 +68,10 @@ export class MapCell extends BasicContainer implements MapTile {
     public creature?: Creature
   ) {
     super()
+  }
+
+  public get description () {
+    return this.customDescription ?? this.terrain.description
   }
 }
 
