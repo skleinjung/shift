@@ -1,18 +1,21 @@
 import { WorldScript } from 'engine/api/world-script'
 import { Item } from 'engine/item'
-import { filter, random } from 'lodash/fp'
+import { filter } from 'lodash/fp'
 import { distance } from 'math'
 
 export const forestMap: WorldScript = {
   onInitialize: (environment) => {
-    const x = random(-70, 30)
-    const y = random(-100, -90)
-    environment.addCreature('thorn_gremlin', x, y)
+    const spawnLocation = environment.getRandomLocation((tile) => {
+      return tile.terrain.id === 'heavy_brush'
+    })
+    if (spawnLocation !== undefined) {
+      environment.addCreature('thorn_gremlin', spawnLocation.x, spawnLocation.y)
+    }
 
     environment.addMapItem(new Item({ name: 'half-eaten hunk of rotting toad meat' }), -15, -40)
     environment.setTileDescription(-15, -40, `The heavily decayed body of an extremely large toad is
 on the path here. It appears that the creature was eaten by something that came out of the forest to
-the east. Clawed tracks head off again in that direction, although they appear at least a day or two old.`)
+the southwest. Clawed tracks head off again in that direction, although they appear at least a day or two old.`)
   },
   onUiReady: async (environment) => {
     await environment.showSpeech([

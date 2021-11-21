@@ -84,10 +84,8 @@ const loadMap = async (config: MapImageConfig): Promise<MapAsset> => {
     scan: (scanFunction: ScanFunction) => {
       image.scan(0, 0, image.bitmap.width, image.bitmap.height, (x, y) => {
         const terrain = getTerrainWithoutDefault(x + offsetX, y + offsetY)
-        if (terrain !== undefined) {
-          // only include defined cells, so the map is sparsely populated
-          scanFunction(x + offsetX, y + offsetY, terrain)
-        }
+        // consider only including defined cells, so the map is sparsely populated; behaves badly with 'getRandomTile'
+        scanFunction(x + offsetX, y + offsetY, terrain ?? config.defaultTerrain ?? TerrainTypes.default)
       })
     },
   }

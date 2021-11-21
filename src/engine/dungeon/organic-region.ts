@@ -27,6 +27,8 @@ export class OrganicRegion {
   public createTerrain (map: ExpeditionMap) {
     const possibleNewCells = [{ x: this._xOrigin, y: this._yOrigin }]
 
+    const hasFlowers = random(0, 100) < 20
+
     let size = 0
     while (size++ < this._size && possibleNewCells.length > 0) {
       const index = random(0, possibleNewCells.length - 1)
@@ -44,7 +46,7 @@ export class OrganicRegion {
       this._top = Math.min(this._top, newCell.y)
       this._bottom = Math.max(this._bottom, newCell.y)
 
-      const terrain = index < possibleNewCells.length / 3
+      const terrain = hasFlowers && random(0, 99) < 20
         ? TerrainTypes.light_brush_1
         : TerrainTypes.light_brush_2
       map.setTerrain(newCell.x, newCell.y, terrain)
