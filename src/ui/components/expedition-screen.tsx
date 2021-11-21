@@ -17,9 +17,9 @@ import { speechState } from 'ui/state/speech'
 import { ScreenName } from './app'
 import { CommandInputBox } from './command-input-box'
 import { ExpeditionMenuController } from './expedition-menu-controller'
+import { InventoryPanel } from './inventory-panel'
 import { LogPanel } from './log-panel'
 import { MapPanel } from './map-panel'
-import { ObjectivePanel } from './objective-panel'
 import { PlayerStatusPanel } from './player-status-panel'
 import { SpeechWindow } from './speech-window'
 import { TileDescriptionPanel } from './tile-description-panel'
@@ -172,22 +172,23 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
           containerClass="expedition-panel"
         />
 
-        <ObjectivePanel
+        {/* <ObjectivePanel
           active={false}
           allowSelection={false}
           columns={SidebarColumns}
           containerClass="expedition-panel"
           rows={7}
           showDescriptions={false}
-        />
+        /> */}
 
-        {/* <InventoryPanel
+        <InventoryPanel
           active={false}
           allowSelection={false}
           columns={SidebarColumns}
           containerClass="expedition-panel"
+          rows={7}
           showSlot={true}
-        /> */}
+        />
 
         <LogPanel
           columns={SidebarColumns}

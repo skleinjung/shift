@@ -125,14 +125,21 @@ export const createForest = () => {
     const y = baseMap.top + random(0, baseMap.height) + 1
 
     return new OrganicRegion(x, y, size)
-  }, 2)
+  }, 3)
 
   const paths = times(() => {
     return new ForestPathRegion(
       clearings[random(0, clearings.length - 1)],
       clearings[random(0, clearings.length - 1)]
     )
-  }, 4)
+  }, 3)
+
+  const clueRegion = new BasicRegion({
+    left: -15,
+    top: -40,
+    width: 1,
+    height: 1,
+  })
 
   paths.push(new ForestPathRegion(
     new BasicRegion({
@@ -141,7 +148,17 @@ export const createForest = () => {
       width: 1,
       height: 1,
     }),
-    clearings[random(0, clearings.length - 1)]
+    clueRegion
+  ))
+
+  paths.push(new ForestPathRegion(
+    clueRegion,
+    new BasicRegion({
+      left: clueRegion.left,
+      top: clueRegion.top - 11,
+      width: 1,
+      height: 1,
+    })
   ))
 
   return new Dungeon(
