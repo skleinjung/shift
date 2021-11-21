@@ -35,6 +35,7 @@ export const LogPanel = ({ rows, world, ...rest }: LogPanelOptions) => {
       classes="log-panel"
       rows={rows}
     >
+
       {map((line) => <div key={index++}>{line}</div>, reverse(lines))}
     </Panel>
   )

@@ -13,5 +13,6 @@ export const useKeyHandler = (handlerMap: Record<string, () => void>) => {
   return useCallback((event: React.KeyboardEvent) => {
     const keyHandler = handlerMap[event.key] ?? noop
     keyHandler()
+    event.preventDefault()
   }, [handlerMap])
 }

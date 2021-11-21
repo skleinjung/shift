@@ -1,0 +1,19 @@
+form.command-input-box {
+  display: flex;
+  flex-direction: row;
+}
+
+.command-input-box input {
+  background-color: #111;
+  border: 2px solid #333;
+  color: white;
+  flex: 1;
+  font-family: VT323;
+  font-size: 24px;
+  padding: 4px 12px;
+}
+.command-input-box input:focus { outline: none; }
+
+.command-input-box input.active {
+  border-color: #99b;
+}

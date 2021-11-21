@@ -4,7 +4,6 @@
   display: flex;
   align-content: stretch;
   flex: 0;
-  padding: 1px;
   color: #aaa;
 }
 .container:focus { outline: none; }

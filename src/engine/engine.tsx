@@ -4,12 +4,13 @@ import { GameTimer } from 'engine/game-timer'
 import { ObjectiveTracker } from 'engine/objective-tracker'
 import { Updateable } from 'engine/types'
 import { World } from 'engine/world'
-import { forEach } from 'lodash/fp'
+import { forEach, split } from 'lodash/fp'
 import { TypedEventEmitter } from 'typed-event-emitter'
 
 import { initializePlayer } from '../game-content/scripts/creatures/player'
 
 import { GameController } from './api/game-controller'
+import { Commands } from './commands'
 
 /** The engine is responsible for triggering speech, scripted events, updating quests, etc. */
 export class Engine extends TypedEventEmitter<EngineEvents> implements Updateable {
@@ -64,6 +65,20 @@ export class Engine extends TypedEventEmitter<EngineEvents> implements Updateabl
     forEach((script) => {
       script.onUiReady?.(this._controller)
     }, this._campaign.scripts)
+  }
+
+  /** Executes a given player command string */
+  public executeCommand (commanString: string) {
+    this.world.logMessage(`> ${commanString}`)
+
+    const [commandName, ...commandArgs] = split(' ', commanString)
+
+    const command = Commands[commandName]
+    if (command !== undefined) {
+      command.execute(commandArgs, this.world)
+    } else {
+      this.world.logMessage('Unrecognized command. (Try "help")')
+    }
   }
 
   public get world () {

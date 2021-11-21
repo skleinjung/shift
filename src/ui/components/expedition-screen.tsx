@@ -7,6 +7,7 @@ import { CellCoordinate } from 'engine/map/map'
 import { Action } from 'engine/types'
 import { useCallback, useEffect, useState } from 'react'
 import { useRecoilValue, useSetRecoilState } from 'recoil'
+import { useEngine } from 'ui/hooks/use-game'
 import { useKeyHandler } from 'ui/hooks/use-key-handler'
 import { useWorld } from 'ui/hooks/use-world'
 import { getKeyMap } from 'ui/key-map'
@@ -14,6 +15,7 @@ import { endTurn, expeditionState } from 'ui/state/expedition'
 import { speechState } from 'ui/state/speech'
 
 import { ScreenName } from './app'
+import { CommandInputBox } from './command-input-box'
 import { ExpeditionMenuController } from './expedition-menu-controller'
 import { LogPanel } from './log-panel'
 import { MapPanel } from './map-panel'
@@ -31,15 +33,17 @@ export interface ExpeditionScreenProps {
 
 export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
   const [inMenus, setInMenus] = useState(false)
+  const [enteringCommand, setEnteringCommand] = useState(false)
   const speech = useRecoilValue(speechState)
   const [focusedCell, setFocusedCell] = useState<CellCoordinate | undefined>()
 
   const inSpeech = speech !== undefined && speech.speech.length > 0
 
+  const engine = useEngine()
   const world = useWorld()
   const updateExpedition = useSetRecoilState(expeditionState)
 
-  const isPaused = inMenus || inSpeech || world.paused
+  const isPaused = inMenus || inSpeech || enteringCommand || world.paused
   const isComplete = world.expeditionEnded
 
   const handleQuitExpedition = useCallback(() => {
@@ -53,6 +57,11 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
   const handleHideMenu = useCallback(() => {
     setInMenus(false)
   }, [])
+
+  const executeCommand = useCallback((command: string) => {
+    setEnteringCommand(false)
+    engine.executeCommand(command)
+  }, [engine])
 
   const executeTurn = useCallback((playerAction: Action) => {
     world.player.nextAction = playerAction
@@ -77,6 +86,14 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
     }
   }, [executeTurn, isPaused, world.map, world.player])
 
+  const beginCommandEntry = useCallback(() => {
+    setEnteringCommand(true)
+  }, [setEnteringCommand])
+
+  const cancelCommandEntry = useCallback(() => {
+    setEnteringCommand(false)
+  }, [])
+
   const handleMapClick = useCallback((x: number, y: number) => {
     if (!isPaused) {
       world.player.destination = { x, y }
@@ -97,6 +114,7 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
 
   const keyMap = getKeyMap()
   const mapKeyHandler = useKeyHandler({
+    [keyMap.EnterCommand]: beginCommandEntry,
     [keyMap.MoveDown]: executePlayerMove(0, 1),
     [keyMap.MoveLeft]: executePlayerMove(-1, 0),
     [keyMap.MoveRight]: executePlayerMove(1, 0),
@@ -122,7 +140,7 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
           onKeyDown={mapKeyHandler}
         />
 
-        {!inSpeech && (
+        {!inSpeech && !enteringCommand && (
           <ExpeditionMenuController
             onHideMenu={handleHideMenu}
             onPlayerAction={executeTurn}
@@ -132,7 +150,6 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
         )}
 
         <div className='main-content-footer'>
-
           <SpeechWindow classes={inSpeech ? ['fade-in'] : ['fade-out']} />
 
           {!inSpeech &&
@@ -179,8 +196,12 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
           world={world}
         />
 
+        <CommandInputBox
+          active={enteringCommand}
+          onCancel={cancelCommandEntry}
+          onCommand={executeCommand}
+        />
       </div>
-
     </div>
   )
 }

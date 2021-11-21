@@ -39,6 +39,10 @@ export interface Action {
   execute: (world: World) => ActionResult | string | boolean | void
 }
 
+export interface Command {
+  execute: (options: string[], world: World) => void
+}
+
 /**
  * A behavior provides a function that generates an action for a creature during each turn. If a
  * player actor's behavior returns undefined, the game state will halt updates until it returns a
