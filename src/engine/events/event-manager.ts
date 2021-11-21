@@ -1,7 +1,7 @@
 import { Creature } from 'engine/creature'
 import { TypedEventEmitter } from 'typed-event-emitter'
 
-import { CreatureEventEmitter } from './creature-events'
+import { CreatureEventEmitter } from './creature'
 
 type ManagedCreature = Omit<Creature, keyof CreatureEventEmitter>
 

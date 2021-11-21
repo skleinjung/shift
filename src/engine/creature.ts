@@ -1,5 +1,6 @@
 import { compact, find, flow, forEach, keys, map, reduce, values } from 'lodash/fp'
 
+import { CreatureScript } from './api/creature-script'
 import {
   Attack,
   Attackable,
@@ -11,10 +12,9 @@ import {
 } from './combat'
 import { BasicContainer } from './container'
 import { CreatureType } from './creature-db'
-import { CreatureEventEmitter } from './events/creature-events'
+import { CreatureEventEmitter } from './events/creature'
 import { EquipmentSet, EquipmentSlot, EquipmentSlots, Item } from './item'
 import { newId } from './new-id'
-import { CreatureScript } from './script-api'
 import { createSensors } from './sensors/create-sensors'
 import { Actor, Behavior, Combatant, Damageable, Moveable } from './types'
 import { World } from './world'

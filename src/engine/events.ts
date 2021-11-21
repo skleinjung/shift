@@ -1,6 +1,6 @@
+import { Speech } from './api/ui-api'
 import { Creature } from './creature'
 import { Objective } from './objective'
-import { Speech } from './script-api'
 
 export interface WorldEvents {
   /** Emitted when any creature is killed */

@@ -6,22 +6,23 @@ import { MoveByAction } from 'engine/actions/move-by'
 import { CellCoordinate } from 'engine/map/map'
 import { Action } from 'engine/types'
 import { useCallback, useEffect, useState } from 'react'
-import { useSetRecoilState } from 'recoil'
+import { useRecoilValue, useSetRecoilState } from 'recoil'
+import { useEngine } from 'ui/hooks/use-game'
 import { useKeyHandler } from 'ui/hooks/use-key-handler'
 import { useWorld } from 'ui/hooks/use-world'
 import { getKeyMap } from 'ui/key-map'
 import { endTurn, expeditionState } from 'ui/state/expedition'
+import { speechState } from 'ui/state/speech'
 
 import { ScreenName } from './app'
+import { CommandInputBox } from './command-input-box'
 import { ExpeditionMenuController } from './expedition-menu-controller'
-import { InventoryPanel } from './inventory-panel'
 import { LogPanel } from './log-panel'
 import { MapPanel } from './map-panel'
 import { ObjectivePanel } from './objective-panel'
 import { PlayerStatusPanel } from './player-status-panel'
 import { SpeechWindow } from './speech-window'
 import { TileDescriptionPanel } from './tile-description-panel'
-import { TooltipPanel } from './tooltip-panel'
 
 const SidebarColumns = 45
 
@@ -32,13 +33,17 @@ export interface ExpeditionScreenProps {
 
 export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
   const [inMenus, setInMenus] = useState(false)
-  const [inSpeech, setInSpeech] = useState(false)
+  const [enteringCommand, setEnteringCommand] = useState(false)
+  const speech = useRecoilValue(speechState)
   const [focusedCell, setFocusedCell] = useState<CellCoordinate | undefined>()
 
+  const inSpeech = speech !== undefined && speech.speech.length > 0
+
+  const engine = useEngine()
   const world = useWorld()
   const updateExpedition = useSetRecoilState(expeditionState)
 
-  const isPaused = inMenus || inSpeech || world.paused
+  const isPaused = inMenus || inSpeech || enteringCommand || world.paused
   const isComplete = world.expeditionEnded
 
   const handleQuitExpedition = useCallback(() => {
@@ -53,13 +58,10 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
     setInMenus(false)
   }, [])
 
-  const handleShowSpeech = useCallback(() => {
-    setInSpeech(true)
-  }, [])
-
-  const handleHideSpeech = useCallback(() => {
-    setInSpeech(false)
-  }, [])
+  const executeCommand = useCallback((command: string) => {
+    setEnteringCommand(false)
+    engine.executeCommand(command)
+  }, [engine])
 
   const executeTurn = useCallback((playerAction: Action) => {
     world.player.nextAction = playerAction
@@ -84,9 +86,19 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
     }
   }, [executeTurn, isPaused, world.map, world.player])
 
+  const beginCommandEntry = useCallback(() => {
+    setEnteringCommand(true)
+  }, [setEnteringCommand])
+
+  const cancelCommandEntry = useCallback(() => {
+    setEnteringCommand(false)
+  }, [])
+
   const handleMapClick = useCallback((x: number, y: number) => {
-    world.player.destination = { x, y }
-  }, [world.player])
+    if (!isPaused) {
+      world.player.destination = { x, y }
+    }
+  }, [isPaused, world.player])
 
   const handleCellFocus = useCallback((cell) => {
     setFocusedCell((previous) => {
@@ -102,6 +114,7 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
 
   const keyMap = getKeyMap()
   const mapKeyHandler = useKeyHandler({
+    [keyMap.EnterCommand]: beginCommandEntry,
     [keyMap.MoveDown]: executePlayerMove(0, 1),
     [keyMap.MoveLeft]: executePlayerMove(-1, 0),
     [keyMap.MoveRight]: executePlayerMove(1, 0),
@@ -120,25 +133,38 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
       <div className="main-content">
         <MapPanel
           active={!isPaused}
-          containerClass="expedition-panel"
+          containerClass="expedition-panel map-canvas"
           focusedCell={focusedCell}
           onCellFocus={handleCellFocus}
           onMapClick={handleMapClick}
           onKeyDown={mapKeyHandler}
         />
 
-        <div className='main-content-footer'>
-          <LogPanel
-            containerClass="expedition-panel expedition-screen-log"
-            style={{ flex: 1 }}
-            world={world}
+        {!inSpeech && !enteringCommand && (
+          <ExpeditionMenuController
+            onHideMenu={handleHideMenu}
+            onPlayerAction={executeTurn}
+            onQuitExpedition={handleQuitExpedition}
+            onShowMenu={handleShowMenu}
           />
+        )}
 
-          <TileDescriptionPanel
-            containerClass="expedition-panel expedition-screen-tile-description"
-            style={{ flex: 1 }}
-          />
+        <div className='main-content-footer'>
+          <SpeechWindow classes={inSpeech ? ['fade-in'] : ['fade-out']} />
+
+          {!inSpeech &&
+            <TileDescriptionPanel
+              containerClass="expedition-panel expedition-screen-tile-description fade-in"
+            />}
+
+          {/* <TooltipPanel
+            containerClass="expedition-panel expedition-screen-tooltip"
+            focusedTile={focusedCell
+              ? world.map.getMapTile(focusedCell.x, focusedCell.y)
+              : undefined}ee
+          /> */}
         </div>
+
       </div>
 
       <div className="sidebar">
@@ -155,35 +181,27 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
           showDescriptions={false}
         />
 
-        <InventoryPanel
+        {/* <InventoryPanel
           active={false}
           allowSelection={false}
           columns={SidebarColumns}
           containerClass="expedition-panel"
           showSlot={true}
+        /> */}
+
+        <LogPanel
+          columns={SidebarColumns}
+          containerClass="expedition-panel"
+          style={{ flex: 1 }}
+          world={world}
         />
 
-        <TooltipPanel
-          containerClass="expedition-panel"
-          columns={SidebarColumns}
-          focusedTile={focusedCell
-            ? world.map.getMapTile(focusedCell.x, focusedCell.y)
-            : undefined}
+        <CommandInputBox
+          active={enteringCommand}
+          onCancel={cancelCommandEntry}
+          onCommand={executeCommand}
         />
       </div>
-
-      <SpeechWindow
-        onHideSpeech={handleHideSpeech}
-        onShowSpeech={handleShowSpeech}
-      />
-      {!inSpeech && (
-        <ExpeditionMenuController
-          onHideMenu={handleHideMenu}
-          onPlayerAction={executeTurn}
-          onQuitExpedition={handleQuitExpedition}
-          onShowMenu={handleShowMenu}
-        />
-      ) }
     </div>
   )
 }

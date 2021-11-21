@@ -1,7 +1,8 @@
+import { CreatureScript } from 'engine/api/creature-script'
+import { MapApi } from 'engine/api/map-api'
 import { hardLoot } from 'engine/data/loot-tables'
 import { getAdjacentCoordinates } from 'engine/map/map-utils'
 import { random } from 'engine/random'
-import { CreatureScript, MapApi } from 'engine/script-api'
 import { pullAt } from 'lodash'
 import { forEach, sample } from 'lodash/fp'
 

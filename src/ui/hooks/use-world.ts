@@ -1,7 +1,7 @@
 import { World } from 'engine/world'
 import { useEffect } from 'react'
 
-import { useEngine } from './use-engine'
+import { useEngine } from './use-game'
 import { useRerenderTrigger } from './use-rerender-trigger'
 
 export type WorldSelector<T extends any = any> = (world: World) => T

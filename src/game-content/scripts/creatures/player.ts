@@ -1,9 +1,10 @@
+import { CreatureScript } from 'engine/api/creature-script'
+import { WorldScript } from 'engine/api/world-script'
 import { Player } from 'engine/player'
-import { CreatureScript, WorldScript } from 'engine/script-api'
 import { get, initial, join, last, map } from 'lodash/fp'
 
 export const initializePlayer: WorldScript = {
-  initialize: (api) => {
+  onInitialize: (api) => {
     api.addCreature(new Player())
   },
 }

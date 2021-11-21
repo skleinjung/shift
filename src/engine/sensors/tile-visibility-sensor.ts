@@ -1,7 +1,7 @@
+import { CreatureScript } from 'engine/api/creature-script'
 import { Creature } from 'engine/creature'
 import { castRay } from 'engine/map/cast-ray'
 import { TileProvider } from 'engine/map/map'
-import { CreatureScript } from 'engine/script-api'
 import { forEach } from 'lodash/fp'
 import { distance } from 'math'
 

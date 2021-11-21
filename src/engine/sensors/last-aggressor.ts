@@ -1,5 +1,5 @@
 import { Creature, Sensor } from 'engine/creature'
-import { CreatureEvents } from 'engine/events/creature-events'
+import { CreatureEvents } from 'engine/events/creature'
 
 export class LastAggressorSensor implements Sensor<Creature | undefined> {
   /** the last creature to attack this one, or undefined */

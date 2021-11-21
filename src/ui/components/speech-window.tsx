@@ -1,50 +1,27 @@
-import { Speech } from 'engine/script-api'
-import { noop } from 'lodash'
-import { useCallback, useEffect, useState } from 'react'
-import { useEngine } from 'ui/hooks/use-engine'
+import { useCallback } from 'react'
+import { useRecoilState } from 'recoil'
+import { speechState } from 'ui/state/speech'
+import { WithExtraClasses } from 'ui/to-class-name'
 
-import { Modal } from './modal'
+import { PanelProps } from './panel'
 import { SpeechPanel } from './speech-panel'
 
-export interface SpeechWindowProps {
-  /** called when the speech window is hidden */
-  onHideSpeech?: () => void
+export type SpeechWindowProps = WithExtraClasses & Omit<PanelProps, 'className'>
 
-  /** called when the speech window is shown */
-  onShowSpeech?: () => void
-}
-
-export const SpeechWindow = ({
-  onHideSpeech = noop,
-  onShowSpeech = noop,
-}: SpeechWindowProps) => {
-  const engine = useEngine()
-  const [speech, setSpeech] = useState<Speech[] | undefined>(undefined)
+export const SpeechWindow = (props: SpeechWindowProps) => {
+  const [speech, setSpeech] = useRecoilState(speechState)
 
   const handleComplete = useCallback(() => {
+    speech?.onComplete()
     setSpeech(undefined)
-    onHideSpeech()
-  }, [onHideSpeech])
-
-  const handleSpeech = useCallback((newSpeech: Speech[]) => {
-    onShowSpeech()
-    setSpeech(newSpeech)
-  }, [onShowSpeech])
-
-  useEffect(() => {
-    engine.on('speech', handleSpeech)
-    return () => {
-      engine.off('speech', handleSpeech)
-    }
-  }, [engine, handleSpeech])
+  }, [setSpeech, speech])
 
   return speech === undefined ? null : (
-    <Modal classes="fade-in">
-      <SpeechPanel
-        active={true}
-        content={speech}
-        onComplete={handleComplete}
-      />
-    </Modal>
+    <SpeechPanel {...props}
+      active={true}
+      classes="fade-in"
+      content={speech.speech}
+      onComplete={handleComplete}
+    />
   )
 }

@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import { MoveToAction } from 'engine/actions/move-to'
 import { Creature } from 'engine/creature'
 import { CellCoordinate } from 'engine/map/map'

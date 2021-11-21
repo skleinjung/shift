@@ -1,6 +1,6 @@
-import './narration-panel.css'
+import './speech-panel.css'
 
-import { Speech } from 'engine/script-api'
+import { Speech } from 'engine/api/ui-api'
 import { noop } from 'lodash'
 import { useCallback, useEffect, useState } from 'react'
 import { useKeyHandler } from 'ui/hooks/use-key-handler'
@@ -27,7 +27,7 @@ export const SpeechPanel = ({
   classes = [],
   content,
   onComplete = noop,
-  textDelay = 13,
+  textDelay = 30,
   ...panelProps
 }: SpeechPanelProps) => {
   const [contentIndex, setContentIndex] = useState(0)
@@ -74,12 +74,12 @@ export const SpeechPanel = ({
   return (
     <Panel
       {...panelProps}
-      classes={[...classes, 'narration-panel']}
+      classes={[...classes, 'speech-panel']}
       onKeyDown={handleKeyDown}
       title={content[contentIndex].speaker}
     >
-      <div className="narration-panel-message">{getText()}</div>
-      <div className="narration-panel-controls" onClick={handleNextPage}>{lastPage ? '(close)' : '(more)'}</div>
+      <div className="speech-panel-message">{getText()}</div>
+      <div className="speech-panel-controls" onClick={handleNextPage}>{lastPage ? '(close)' : '(more)'}</div>
     </Panel>
   )
 }

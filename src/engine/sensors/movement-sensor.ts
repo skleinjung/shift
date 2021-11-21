@@ -1,6 +1,7 @@
+import { CreatureScript } from 'engine/api/creature-script'
+import { ScriptApi } from 'engine/api/script-api'
 import { Creature } from 'engine/creature'
-import { CreatureEvents } from 'engine/events/creature-events'
-import { CreatureScript, ScriptApi } from 'engine/script-api'
+import { CreatureEvents } from 'engine/events/creature'
 import { forEach } from 'lodash/fp'
 
 const KEY_MOVE_EVENT_HANDLER = 'sensor.movement.handler'

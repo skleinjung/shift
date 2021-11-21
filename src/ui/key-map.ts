@@ -1,5 +1,7 @@
 export interface KeyMap {
+  CancelCommand: string
   Confirm: string
+  EnterCommand: string
   Get: string
   MoveUp: string
   MoveDown: string
@@ -12,7 +14,9 @@ export interface KeyMap {
 
 const KeyMaps = {
   Sean: {
+    CancelCommand: 'Escape',
     Confirm: 'Enter',
+    EnterCommand: 'Enter',
     Get: 'g',
     MoveUp: 'e',
     MoveDown: 'd',
@@ -23,7 +27,9 @@ const KeyMaps = {
     Wait: ' ',
   },
   EveryoneElse: {
+    CancelCommand: 'Escape',
     Confirm: 'Enter',
+    EnterCommand: 'Enter',
     Get: 'g',
     MoveUp: 'w',
     MoveDown: 's',
