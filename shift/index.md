@@ -25,12 +25,17 @@ Shift features retro ASCII graphics and procedurally generated content. It aband
 
 ## Development Log
 
+### Did I Build That?
+
+I had a fun experience this week, where some creatures added to *Shift* interacted in a way that I didn't specifically script. Nevertheless, the interaction made total sense given the behavior of the creatures involved. I highlight how this is a goal of mine in the [most recent development log on unexpected behavior](devlog/unexpected-behavior.md)
+
+[> Read More...](devlog/unexpected-behavior.md)
+
 ### A Shift in Focus
 
 With the end of November fast approaching, I used the most recent development log to [take an inventory of Shift features, and set the release scope](devlog/shift-in-focus). I'm pretty excited (and nervous) at the prospect of launching something soon! [*11/16/2021*]
 
 [> Read More...](./devlog/shift-in-focus)
-
 
 ### Feature Recap: Items and Loot
 
