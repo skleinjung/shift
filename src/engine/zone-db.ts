@@ -1,5 +1,6 @@
 import { dartLizard } from 'game-content/scripts/creatures/dart-lizard'
 import { forest } from 'game-content/scripts/zones/forest'
+import { sanctuary } from 'game-content/scripts/zones/sanctuary'
 import { reduce } from 'lodash/fp'
 
 import { WorldScript } from './api/script-interfaces'
@@ -14,10 +15,16 @@ export type Zone = Readonly<{
 
 const zoneArray: readonly Zone[] = [
   {
-    id: 'sanctuary',
+    id: 'forest',
     scripts: [
       forest,
       dartLizard,
+    ],
+  },
+  {
+    id: 'sanctuary',
+    scripts: [
+      sanctuary,
     ],
   },
 ] as const
