@@ -7,6 +7,7 @@ import { CellCoordinate } from 'engine/map/map'
 import { Action } from 'engine/types'
 import { useCallback, useEffect, useState } from 'react'
 import { useRecoilValue, useSetRecoilState } from 'recoil'
+import { useGame } from 'ui/hooks/use-game'
 import { useKeyHandler } from 'ui/hooks/use-key-handler'
 import { useWorld } from 'ui/hooks/use-world'
 import { getKeyMap } from 'ui/key-map'
@@ -38,6 +39,7 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
 
   const inSpeech = speech !== undefined && speech.speech.length > 0
 
+  const game = useGame()
   const world = useWorld()
   const updateExpedition = useSetRecoilState(expeditionState)
 
@@ -59,8 +61,8 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const executeCommand = useCallback((command: string) => {
     setEnteringCommand(false)
-    // engine.executeCommand(command)
-  }, [])
+    game.executeCommand(command)
+  }, [game])
 
   const executeTurn = useCallback((playerAction: Action) => {
     world.player.nextAction = playerAction
@@ -118,6 +120,7 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
     [keyMap.MoveLeft]: executePlayerMove(-1, 0),
     [keyMap.MoveRight]: executePlayerMove(1, 0),
     [keyMap.MoveUp]: executePlayerMove(0, -1),
+    [keyMap.Travel]: () => executeCommand('use portal'),
     [keyMap.Wait]: () => executeTurn(DoNothing),
   })
 
@@ -185,14 +188,13 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
           allowSelection={false}
           columns={SidebarColumns}
           containerClass="expedition-panel"
-          rows={7}
           showSlot={true}
         />
 
         <LogPanel
           columns={SidebarColumns}
           containerClass="expedition-panel"
-          style={{ flex: 1 }}
+          rows={14}
           world={world}
         />
 

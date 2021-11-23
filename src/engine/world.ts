@@ -61,6 +61,7 @@ export class World extends TypedEventEmitter<WorldEvents> implements Updateable 
    */
   public logMessage (message: string) {
     this._messages.push(message)
+    this.emit('update', Empty)
   }
 
   public get dungeon () {

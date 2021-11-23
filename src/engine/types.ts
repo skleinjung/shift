@@ -1,5 +1,6 @@
 import TypedEmitter from 'typed-emitter'
 
+import { ScriptApi } from './api/script-api'
 import { Attackable, Attacker } from './combat'
 import { Creature } from './creature'
 import { World } from './world'
@@ -40,7 +41,7 @@ export interface Action {
 }
 
 export interface Command {
-  execute: (options: string[], world: World) => void
+  execute: (options: string[], api: ScriptApi) => void
 }
 
 /**
@@ -62,6 +63,23 @@ export type EventSource<T> = Omit<TypedEmitter<T>,
 | 'listenersCount'
 | 'getMaxListeners'
 | 'setMaxListeners'>
+
+/**
+ * Interface for objects that store data to be used by scripts.
+ */
+export interface Scriptable {
+  /**
+   * Gets the script property with the given key from the creature. If the optional property is
+   * false, an error will be thrown if it does not exist.
+   */
+  getScriptData <T = unknown>(key: string): T
+  getScriptData <T = unknown>(key: string, optional?: false): T
+  getScriptData <T = unknown>(key: string, optional: true): T | undefined
+  getScriptData <T = unknown>(key: string, optional?: boolean): T | undefined
+
+  /** Sets the script property with the specified key to the data value on the creature. */
+  setScriptData <T = any> (key: string, data: T): void
+}
 
 /**
  * An entity represents a 'noun' in the game world that has a unique, persistent identity. It

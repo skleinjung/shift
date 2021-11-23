@@ -1,3 +1,4 @@
+import { Commands } from 'engine/commands'
 import { Creature } from 'engine/creature'
 import { CreatureTypeId, CreatureTypes } from 'engine/creature-db'
 import { CreatureEventNames, CreatureEvents } from 'engine/events/creature'
@@ -11,7 +12,7 @@ import { Player } from 'engine/player'
 import { TerrainTypeId, TerrainTypes } from 'engine/terrain-db'
 import { World } from 'engine/world'
 import { Zone, ZoneId, Zones } from 'engine/zone-db'
-import { forEach, random, stubTrue, upperFirst } from 'lodash/fp'
+import { forEach, random, split, stubTrue, upperFirst } from 'lodash/fp'
 import { TypedEventEmitter } from 'typed-event-emitter'
 
 import { ScriptApi } from './script-api'
@@ -92,6 +93,26 @@ export class GameController extends GameControllerEventEmitter implements Script
   }
 
   /// ////////////////////////////////////////////
+  // ConsoleApi
+
+  public executeCommand (commandString: string): void {
+    this.showMessage(`> ${commandString}`)
+
+    const [commandName, ...commandArgs] = split(' ', commandString)
+
+    const command = Commands[commandName]
+    if (command !== undefined) {
+      command.execute(commandArgs, this)
+    } else {
+      this.showMessage('Unrecognized command. (Try "help")')
+    }
+  }
+
+  public showMessage (message: string): void {
+    this._world.logMessage(message)
+  }
+
+  /// ////////////////////////////////////////////
   // CreatureApi
 
   /** Adds a new creature to the world. It will emit any 'on-spawn' type of events. */
@@ -111,7 +132,7 @@ export class GameController extends GameControllerEventEmitter implements Script
     return this._world.creatures
   }
 
-  public get player (): Creature {
+  public get player (): Player {
     return this._world.player
   }
 
@@ -206,10 +227,6 @@ export class GameController extends GameControllerEventEmitter implements Script
 
   /// ////////////////////////////////////////////
   // UiApi
-
-  public showMessage (message: string): void {
-    this._world.logMessage(message)
-  }
 
   public showSpeech (speech: Speech[]): Promise<void> {
     return this._ui.showSpeech(speech)
