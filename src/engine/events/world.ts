@@ -13,7 +13,7 @@ export type WorldEvents = {
    *
    * TODO: include previous state, to be rehydrated
    **/
-  initializeWorld: {
+  initialize: {
     /** world instance to initialize from this zone's data */
     world: World
   }
@@ -28,7 +28,7 @@ export type WorldEvents = {
    * Emitted when a new world has been created or loaded, and is ready to process timer updates
    * and other events.
    */
-  worldReady: {
+  ready: {
     /** new world reference */
     world: World
   }
@@ -39,8 +39,8 @@ export type WorldEvents = {
  * The types guarantee this is an exhaustive list.
  */
 export const WorldEventNames = enumerate<keyof WorldEvents>()(
-  'initializeWorld',
+  'initialize',
+  'ready',
   'turn',
-  'update',
-  'worldReady'
+  'update'
 )

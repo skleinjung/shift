@@ -3,7 +3,7 @@ import { Creature } from 'engine/creature'
 import { CreatureTypeId, CreatureTypes } from 'engine/creature-db'
 import { CreatureEventNames, CreatureEvents } from 'engine/events/creature'
 import { EventManager, EventManagerEvents } from 'engine/events/event-manager'
-import { GameEvents } from 'engine/events/game'
+import { GameEventEmitter } from 'engine/events/game'
 import { EventHandlerName } from 'engine/events/types'
 import { WorldEventNames, WorldEvents } from 'engine/events/world'
 import { Item } from 'engine/item'
@@ -13,28 +13,20 @@ import { TerrainTypeId, TerrainTypes } from 'engine/terrain-db'
 import { World } from 'engine/world'
 import { Zone, ZoneId, Zones } from 'engine/zone-db'
 import { forEach, random, split, stubTrue, upperFirst } from 'lodash/fp'
-import { TypedEventEmitter } from 'typed-event-emitter'
 
 import { ScriptApi } from './script-api'
 import { WorldScript } from './script-interfaces'
 import { Speech, UiController } from './ui-api'
 
-type GameControllerEvents = GameEvents
-
-/** event emitter type for creatures */
-export class GameControllerEventEmitter extends TypedEventEmitter<{
-  [k in keyof GameControllerEvents]: (event: GameControllerEvents[k]) => void
-}> {}
-
 const StaticWorldScripts: readonly WorldScript[] = [
   {
-    onInitializeWorld: ({ api }) => {
+    onInitialize: ({ api }) => {
       api.addCreature(new Player())
     },
   },
 ] as const
 
-export class GameController extends GameControllerEventEmitter implements ScriptApi {
+export class GameController extends GameEventEmitter implements ScriptApi {
   private _eventManager: EventManager
   private _ui: UiController
   private _world: World
@@ -68,7 +60,7 @@ export class GameController extends GameControllerEventEmitter implements Script
   public update (): void {
     if (!this._worldReady) {
       if (this._ui.ready) {
-        this.world.emit('worldReady', { world: this._world })
+        this.world.emit('ready', { world: this._world })
         this._worldReady = true
       }
     } else {
@@ -86,8 +78,9 @@ export class GameController extends GameControllerEventEmitter implements Script
     this._registerZoneScripts(Zones[id])
 
     // emit load zone event, letting scripts proceess it
-    this.world.emit('initializeWorld', { world: this._world })
     this._worldReady = false
+    this.world.emit('initialize', { world: this._world })
+    this.emit('worldChange', { world: this._world })
 
     return this._world
   }

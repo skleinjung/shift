@@ -6,7 +6,7 @@ import { filter } from 'lodash/fp'
 import { distance } from 'math'
 
 export const forest: WorldScript = {
-  onInitializeWorld: ({ api, world }) => {
+  onInitialize: ({ api, world }) => {
     world.initializeFromDungeon(createForest())
 
     const spawnLocation = api.getRandomLocation((tile) => {
@@ -45,7 +45,7 @@ the southwest. Clawed tracks head off again in that direction, although they app
       }
     }
   },
-  onWorldReady: async ({ api }) => {
+  onReady: async ({ api }) => {
     await api.showSpeech([
       {
         message: `The winding path from the village opens into a large clearing filled with ice-blue flowers.

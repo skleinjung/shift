@@ -139,35 +139,37 @@ class MapCellTile extends AbstractTile {
 }
 
 export class MapSceneGraph {
-  private _root: PIXI.Container
-  private _mapCellsContainer: PIXI.Container
-  private _creaturesContainer: PIXI.Container
+  private _root!: PIXI.Container
+  private _mapCellsContainer!: PIXI.Container
+  private _creaturesContainer!: PIXI.Container
 
   private _cellHighlight: PIXI.Graphics | undefined
-  private _creatureTiles: { [k in string]: CreatureTile } = {}
-  private _mapCellTiles: MapCellTile[][] = []
-  private _allTiles: MapCellTile[] = []
+  private _creatureTiles!: { [k in string]: CreatureTile }
+  private _mapCellTiles!: MapCellTile[][]
+  private _allTiles!: MapCellTile[]
 
-  private _backgroundTexture
+  private _backgroundTexture!: PIXI.RenderTexture
 
   constructor (
-    app: PIXI.Application,
+    private _app: PIXI.Application,
     private _cellWidth: number,
     private _cellHeight: number
   ) {
-    this._root = new PIXI.Container()
-    this._mapCellsContainer = new PIXI.Container()
-    this._creaturesContainer = new PIXI.Container()
-
-    this._root.addChild(this._mapCellsContainer)
-    this._root.addChild(this._creaturesContainer)
-    app.stage.addChild(this._root)
-
     const background = new PIXI.Graphics()
     background.beginFill(0xffffff)
-    background.drawRect(0, 0, _cellWidth, _cellHeight)
+    background.drawRect(0, 0, this._cellWidth, this._cellHeight)
 
-    this._backgroundTexture = app.renderer.generateTexture(background)
+    this._backgroundTexture = this._app.renderer.generateTexture(background)
+
+    this._initialize()
+  }
+
+  /** Called when the world instance changes. Will clear all tile data in preparation for new data. */
+  public onWorldChange () {
+    this._app.stage.removeChild(this._root)
+    this._root.destroy({ children: true })
+
+    this._initialize()
   }
 
   /**
@@ -281,5 +283,20 @@ export class MapSceneGraph {
     for (const tile of values(this._creatureTiles)) {
       tile.update()
     }
+  }
+
+  /** Resets all tile arrays, creates PIXI containers, and adds our tile containers to the stage. */
+  private _initialize () {
+    this._creatureTiles = {}
+    this._mapCellTiles = []
+    this._allTiles = []
+
+    this._root = new PIXI.Container()
+    this._mapCellsContainer = new PIXI.Container()
+    this._creaturesContainer = new PIXI.Container()
+
+    this._root.addChild(this._mapCellsContainer)
+    this._root.addChild(this._creaturesContainer)
+    this._app.stage.addChild(this._root)
   }
 }
