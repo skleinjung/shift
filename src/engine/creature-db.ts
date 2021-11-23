@@ -3,7 +3,7 @@ import { thornGremlin } from 'game-content/scripts/creatures/thorn-gremlin'
 import { filter, findIndex, flow, keys, map, reduce } from 'lodash/fp'
 
 import { dartLizard, DefaultDartLizardSpeed } from '../game-content/scripts/creatures/dart-lizard'
-import { player } from '../game-content/scripts/creatures/player'
+import { commandHints, player } from '../game-content/scripts/creatures/player'
 
 import { CreatureScript } from './api/script-interfaces'
 import { attackPlayer } from './behaviors/attack'
@@ -186,7 +186,11 @@ At rest, its mouth tilts upward giving you a clear view of the dual, fin-like cr
     id: 'player',
     melee: 1,
     name: 'Player',
-    scripts: [tileVisibilitySensor, player, facingSensor],
+    scripts: [
+      tileVisibilitySensor,
+      player,
+      commandHints,
+    ],
     speed: 100,
   },
 ] as const

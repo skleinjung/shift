@@ -2,6 +2,7 @@ import { BasicContainer, Container } from 'engine/container'
 import { Creature } from 'engine/creature'
 import { Item } from 'engine/item'
 import { TerrainType, TerrainTypes } from 'engine/terrain-db'
+import { Scriptable } from 'engine/types'
 import { keys, stubTrue } from 'lodash'
 import { filter, findIndex } from 'lodash/fp'
 import { manhattanDistance } from 'math'
@@ -27,7 +28,7 @@ export interface PathFindingOptions {
  * A MapTile is a read-only, simplified version of a full map cell that is used by
  * scripts that need to access map data.
  */
-export interface MapTile extends Pick<Container, 'containsItem' | 'items'> {
+export interface MapTile extends Pick<Container, 'containsItem' | 'items'>, Scriptable {
   /** ID of the creature occupying this cell, if any */
   readonly creature?: Creature
 
@@ -46,8 +47,15 @@ export interface MapTile extends Pick<Container, 'containsItem' | 'items'> {
 }
 
 export interface TileProvider {
-  /** Retrieves the map tile at a given coordinate, or undefined. */
-  getMapTile: (x: number, y: number) => MapTile | undefined
+  getMapTile (x: number, y: number): MapTile | undefined
+  getMapTile (x: number, y: number, forceCreate: true): MapTile
+
+  /**
+   * Retrieves the map tile at a given coordinate, or undefined if it hasn't been created. If needed,
+   * the 'forceCreate' parameter can be set to true, which will guarantee the tile is populated. In this
+   * case, the function will not return undefined.
+   **/
+  getMapTile (x: number, y: number, forceCreate?: boolean): MapTile | undefined
 }
 
 /**
@@ -56,6 +64,9 @@ export interface TileProvider {
 export class MapCell extends BasicContainer implements MapTile {
   /** Optional custom description for this cell, which will override the terrain's description. */
   public customDescription?: string
+
+  /** addiitonal properties that are read/written by scripts */
+  private _scriptData: Record<string, any> = {}
 
   constructor (
     /** x coordinate of the cell */
@@ -72,6 +83,30 @@ export class MapCell extends BasicContainer implements MapTile {
 
   public get description () {
     return this.customDescription ?? this.terrain.description
+  }
+
+  /// ////////////////////////////////////////////
+  // Scriptable
+
+  /**
+   * Gets the script property with the given key from the cell. If the optional property is
+   * false, an error will be thrown if it does not exist.
+   */
+  public getScriptData <T = unknown>(key: string): T;
+  public getScriptData <T = unknown>(key: string, optional?: false): T;
+  public getScriptData <T = unknown>(key: string, optional: true): T | undefined
+  public getScriptData <T = unknown> (key: string, optional = false): T | undefined {
+    const data = this._scriptData[key]
+    if (!optional && data === undefined) {
+      throw new Error(`Required script data with key '${key}' not found for cell (${this.x}, ${this.y})`)
+    }
+
+    return data
+  }
+
+  /** Sets the script property with the specified key to the data value on the creature. */
+  public setScriptData <T = any> (key: string, data: T): void {
+    this._scriptData[key] = data
   }
 }
 
@@ -92,8 +127,10 @@ export class ExpeditionMap implements TileProvider {
     return this._getCell(x, y, true)
   }
 
-  public getMapTile (x: number, y: number): MapTile | undefined {
-    return this._getCell(x, y, false)
+  public getMapTile (x: number, y: number): MapTile | undefined
+  public getMapTile (x: number, y: number, forceCreate: true): MapTile
+  public getMapTile (x: number, y: number, forceCreate = false): MapTile | undefined {
+    return this._getCell(x, y, forceCreate)
   }
 
   /** Returns true if the (sparse) map has a cell at the given coordinates already. */

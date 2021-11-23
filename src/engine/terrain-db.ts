@@ -70,6 +70,14 @@ or wagon tracks, something has kept the surrounding forest from reclaiming this 
     traversable: true,
   },
   {
+    id: 'portal',
+    description: `There is an almost imperceptible curtain of rainbow-colored light here. Visible in your peripheral
+vision, it seems to disappear if you look directly at it. In other words, one of the portals you use to shift between
+worlds.`,
+    name: 'Faint, Shimmering Portal',
+    traversable: true,
+  },
+  {
     id: 'water',
     name: 'Deep Water',
     traversable: false,

@@ -1,6 +1,7 @@
 import { WorldScript } from 'engine/api/script-interfaces'
 import { createForest } from 'engine/dungeon/create-forest'
 import { Item } from 'engine/item'
+import { createDefaultPortalDescription, createPortal } from 'game-content/portal'
 import { filter } from 'lodash/fp'
 import { distance } from 'math'
 
@@ -19,6 +20,15 @@ export const forest: WorldScript = {
     api.setTileDescription(-15, -40, `The heavily decayed body of an extremely large toad is
 on the path here. It appears that the creature was eaten by something that came out of the forest to
 the southwest. Clawed tracks head off again in that direction, although they appear at least a day or two old.`)
+
+    createPortal({
+      api,
+      description: createDefaultPortalDescription('This portal will return you to the sanctuary.'),
+      destination: 'sanctuary',
+      terrain: 'portal',
+      x: 0,
+      y: 0,
+    })
   },
   onTurn: ({ api }) => {
     // if there are fewer than 2 toads, spawn one in a random river tile that

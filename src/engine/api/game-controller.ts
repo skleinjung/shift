@@ -177,8 +177,14 @@ export class GameController extends GameControllerEventEmitter implements Script
   /// ////////////////////////////////////////////
   // MapApi
 
-  public getMapTile (x: number, y: number): MapTile | undefined {
-    return this._world.map.getMapTile(x, y)
+  public getMapTile (x: number, y: number): MapTile | undefined
+  public getMapTile (x: number, y: number, forceCreate: true): MapTile
+  public getMapTile (x: number, y: number, forceCreate?: boolean): MapTile | undefined {
+    if (forceCreate) {
+      return this._world.map.getMapTile(x, y, true)
+    } else {
+      return this._world.map.getMapTile(x, y)
+    }
   }
 
   public addMapItem (item: Item, x: number, y: number): number {
