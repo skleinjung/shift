@@ -1,4 +1,5 @@
 import { GameController } from 'engine/api/game-controller'
+import { DemoCampaign } from 'engine/campaign'
 import { Engine } from 'engine/engine'
 import { useEffect, useRef } from 'react'
 import { useResetRecoilState } from 'recoil'
@@ -20,7 +21,7 @@ export interface GameProps {
 
 export const GameRoot = ({ navigateTo, screen }: GameProps) => {
   const uiRef = useRef(new RebindableUiController())
-  const gameRef = useRef(new GameController('sanctuary', uiRef.current))
+  const gameRef = useRef(new GameController(uiRef.current, new DemoCampaign()))
   const engineRef = useRef(new Engine(gameRef.current))
   const resetExpedition = useResetRecoilState(expeditionState)
 

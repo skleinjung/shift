@@ -1,3 +1,4 @@
+import { Campaign } from 'engine/campaign'
 import { Commands } from 'engine/commands'
 import { Creature } from 'engine/creature'
 import { CreatureTypeId, CreatureTypes } from 'engine/creature-db'
@@ -11,22 +12,15 @@ import { MapCell, MapTile } from 'engine/map/map'
 import { Player } from 'engine/player'
 import { TerrainTypeId, TerrainTypes } from 'engine/terrain-db'
 import { World } from 'engine/world'
-import { Zone, ZoneId, Zones } from 'engine/zone-db'
+import { ZoneId } from 'engine/zone-db'
 import { forEach, random, split, stubTrue, upperFirst } from 'lodash/fp'
 
 import { ScriptApi } from './script-api'
 import { WorldScript } from './script-interfaces'
 import { Speech, UiController } from './ui-api'
 
-const StaticWorldScripts: readonly WorldScript[] = [
-  {
-    onInitialize: ({ api }) => {
-      api.addCreature(new Player())
-    },
-  },
-] as const
-
 export class GameController extends GameEventEmitter implements ScriptApi {
+  private _campaign: Campaign
   private _eventManager: EventManager
   private _ui: UiController
   private _world: World
@@ -35,16 +29,25 @@ export class GameController extends GameEventEmitter implements ScriptApi {
   private _worldReady = false
 
   constructor (
-    defaultZoneId: ZoneId,
-    ui: UiController
+    ui: UiController,
+    campaign: Campaign
   ) {
     super()
 
+    this._campaign = campaign
     this._eventManager = new EventManager()
     this._eventManager.on('registerCreature', this._registerCreatureScripts.bind(this))
 
     this._ui = ui
-    this._world = this.loadZone(defaultZoneId)
+    if (this._campaign.defaultZone === undefined) {
+      throw new Error('Campaign has no default zone.')
+    }
+
+    this._world = this.loadZone(this._campaign.defaultZone)
+  }
+
+  public get campaign () {
+    return this._campaign
   }
 
   public get ui () {
@@ -71,13 +74,21 @@ export class GameController extends GameEventEmitter implements ScriptApi {
   /// ////////////////////////////////////////////
   // CampaignApi
 
+  public getTimesVisited (zoneId: ZoneId): number {
+    return this._campaign.getTimesVisited(zoneId)
+  }
+
+  public hasVisited (zoneId: ZoneId): boolean {
+    return this.getTimesVisited(zoneId) > 0
+  }
+
   public loadZone (id: ZoneId): World {
     this._world = new World()
 
     // register new zone script listeners, and remove previous ones
-    this._registerZoneScripts(Zones[id])
+    this._registerZoneScripts(this._campaign.getZoneScripts(id))
 
-    // emit load zone event, letting scripts proceess it
+    // emit initialize event for world, letting scripts proceess it
     this._worldReady = false
     this.world.emit('initialize', { world: this._world })
     this.emit('worldChange', { world: this._world })
@@ -234,7 +245,7 @@ export class GameController extends GameEventEmitter implements ScriptApi {
   /// ////////////////////////////////////////////
   // Event Listener Registration
 
-  private _registerZoneScripts ({ scripts }: Zone) {
+  private _registerZoneScripts (scripts: WorldScript[]) {
     // unbind previous scripts
     forEach((event) => {
       this.world.removeAllListeners(event)
@@ -251,7 +262,7 @@ export class GameController extends GameEventEmitter implements ScriptApi {
           })
         }
       }, WorldEventNames)
-    }, [...StaticWorldScripts, ...scripts])
+    }, scripts)
   }
 
   /** When a creature is registered with the event manager, register all of it's script listeners */

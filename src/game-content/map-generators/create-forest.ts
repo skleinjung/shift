@@ -5,10 +5,10 @@ import { random } from 'engine/random'
 import { TerrainTypes } from 'engine/terrain-db'
 import { forEach, times } from 'lodash/fp'
 
-import { Dungeon } from './dungeon'
-import { OrganicRegion } from './organic-region'
-import { BasicRegion, Region } from './region'
-import { StaticRegion } from './static-region'
+import { Dungeon } from '../../engine/dungeon/dungeon'
+import { OrganicRegion } from '../../engine/dungeon/organic-region'
+import { BasicRegion, Region } from '../../engine/dungeon/region'
+import { StaticRegion } from '../../engine/dungeon/static-region'
 
 const cellCosts: Record<string, number> = {}
 

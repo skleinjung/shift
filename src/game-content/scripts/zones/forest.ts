@@ -1,6 +1,6 @@
 import { WorldScript } from 'engine/api/script-interfaces'
-import { createForest } from 'engine/dungeon/create-forest'
 import { Item } from 'engine/item'
+import { createForest } from 'game-content/map-generators/create-forest'
 import { createDefaultPortalDescription, createPortal } from 'game-content/portal'
 import { filter } from 'lodash/fp'
 import { distance } from 'math'
