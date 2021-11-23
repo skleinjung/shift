@@ -1,4 +1,4 @@
-import { CreatureScript } from 'engine/api/creature-script'
+import { CreatureScript } from 'engine/api/script-interfaces'
 import { Creature } from 'engine/creature'
 import { castRay } from 'engine/map/cast-ray'
 import { TileProvider } from 'engine/map/map'
@@ -251,7 +251,7 @@ export const tileVisibilitySensor: CreatureScript = {
       distanceLimit: MaximumSightDistance,
     })
   },
-  onTurnStart: ({ creature }, api) => {
+  onTurnStart: ({ api, creature }) => {
     const visibilityData = calculateRayCastVisibility(creature.x, creature.y, MaximumSightDistance, api)
     postProcess(creature.x, creature.y, MaximumSightDistance, visibilityData, api)
 

@@ -5,7 +5,7 @@ import { filter, findIndex, flow, keys, map, reduce } from 'lodash/fp'
 import { dartLizard, DefaultDartLizardSpeed } from '../game-content/scripts/creatures/dart-lizard'
 import { player } from '../game-content/scripts/creatures/player'
 
-import { CreatureScript } from './api/creature-script'
+import { CreatureScript } from './api/script-interfaces'
 import { attackPlayer } from './behaviors/attack'
 import { BehaviorChain } from './behaviors/behavior-chain'
 import { guard } from './behaviors/guard'

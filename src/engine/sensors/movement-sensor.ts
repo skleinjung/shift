@@ -1,5 +1,5 @@
-import { CreatureScript } from 'engine/api/creature-script'
 import { ScriptApi } from 'engine/api/script-api'
+import { CreatureScript } from 'engine/api/script-interfaces'
 import { Creature } from 'engine/creature'
 import { CreatureEvents } from 'engine/events/creature'
 import { forEach } from 'lodash/fp'
@@ -45,7 +45,7 @@ export const movementSensor = ({
         observed.off('move', moveEventHandler)
       }, oldMonitored)
     },
-    onTurnEnd: ({ creature }, api) => {
+    onTurnEnd: ({ api, creature }) => {
       creature.setScriptData(KEY_MOVED_CREATURES, [])
       const moveEventHandler = creature.getScriptData<(...args: any[]) => void>(KEY_MOVE_EVENT_HANDLER)
 

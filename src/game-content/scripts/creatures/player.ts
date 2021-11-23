@@ -1,19 +1,11 @@
-import { CreatureScript } from 'engine/api/creature-script'
-import { WorldScript } from 'engine/api/world-script'
-import { Player } from 'engine/player'
+import { CreatureScript, WorldScript } from 'engine/api/script-interfaces'
 import { get, initial, join, last, map } from 'lodash/fp'
-
-export const initializePlayer: WorldScript = {
-  onInitialize: (api) => {
-    api.addCreature(new Player())
-  },
-}
 
 /**
  * Scripted behavior for the creature representing the player.
  */
 export const player: CreatureScript & WorldScript = {
-  onMove: ({ x, y }, api) => {
+  onMove: ({ api, x, y }) => {
     const itemNames = map(get('name'), api.getMapTile(x, y)?.items)
     if (itemNames.length > 2) {
       // list of three or more, so use commas with 'and'

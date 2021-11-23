@@ -1,11 +1,15 @@
-import { Speech, UiApi, UiController, UiControllerEventEmitter } from 'engine/api/ui-api'
+import { Speech, UiApi, UiController } from 'engine/api/ui-api'
 import { PropsWithChildren, useCallback, useEffect } from 'react'
 import { useSetRecoilState } from 'recoil'
 import { speechState } from 'ui/state/speech'
 
-export class RebindableUiController extends UiControllerEventEmitter implements UiController {
+export class RebindableUiController implements UiController {
   public bound = false
   private _bindings?: UiApi
+
+  public get ready () {
+    return this._bindings !== undefined
+  }
 
   public bind (ui: UiApi) {
     this.bound = true
@@ -42,14 +46,9 @@ export const UiControllerBinding = ({ children, ui }: PropsWithChildren<UiContro
   }, [setSpeech])
 
   useEffect(() => {
-    const wasBound = ui.bound
     ui.bind({
       showSpeech,
     })
-
-    if (!wasBound) {
-      ui.emit('ready', { ui })
-    }
 
     return () => {
       ui.unbind()

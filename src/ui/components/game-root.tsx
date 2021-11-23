@@ -1,4 +1,5 @@
 import { GameController } from 'engine/api/game-controller'
+import { Engine } from 'engine/engine'
 import { useEffect, useRef } from 'react'
 import { useResetRecoilState } from 'recoil'
 import { GameControllerContext } from 'ui/context-game'
@@ -19,14 +20,14 @@ export interface GameProps {
 
 export const GameRoot = ({ navigateTo, screen }: GameProps) => {
   const uiRef = useRef(new RebindableUiController())
-  const gameRef = useRef(new GameController(uiRef.current))
+  const gameRef = useRef(new GameController('sanctuary', uiRef.current))
+  const engineRef = useRef(new Engine(gameRef.current))
   const resetExpedition = useResetRecoilState(expeditionState)
 
   useEffect(() => {
     resetExpedition()
 
-    const game = gameRef.current
-    const currentEngine = game.engine
+    const currentEngine = engineRef.current
     currentEngine.start()
 
     return () => {

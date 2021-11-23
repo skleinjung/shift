@@ -5,8 +5,9 @@ import { TypedEventEmitter } from 'typed-event-emitter'
 import { getResultMessage } from './actions/result-handler'
 import { Creature } from './creature'
 import { Dungeon } from './dungeon/dungeon'
-import { WorldEvents } from './events'
 import { CreatureEvents } from './events/creature'
+import { Empty } from './events/types'
+import { WorldEvents } from './events/world'
 import { Item } from './item'
 import { ExpeditionMap } from './map/map'
 import { Player } from './player'
@@ -60,7 +61,6 @@ export class World extends TypedEventEmitter<WorldEvents> implements Updateable 
    */
   public logMessage (message: string) {
     this._messages.push(message)
-    this.emit('message', message)
   }
 
   public get dungeon () {
@@ -170,11 +170,11 @@ export class World extends TypedEventEmitter<WorldEvents> implements Updateable 
     if (!stillWaiting) {
       // if the next actor's index is zero, we looped through all creatures -- emit a turn event
       if (this._nextActor === 0) {
-        this.emit('turn')
+        this.emit('turn', Empty)
       }
 
       // emit a final update at the end of the loop if we aren't waiting
-      this.emit('update')
+      this.emit('update', Empty)
     }
   }
 
@@ -209,7 +209,6 @@ export class World extends TypedEventEmitter<WorldEvents> implements Updateable 
 
     creature.on('attack', this._logAttack.bind(this))
     this.map.setCreature(creature.x, creature.y, creature)
-    this.emit('creatureSpawn', creature)
   }
 
   /**
@@ -233,8 +232,6 @@ export class World extends TypedEventEmitter<WorldEvents> implements Updateable 
         forEach((item) => {
           this.map.getCell(creature.x, creature.y).addItem(item)
         }, [...creature.inventory.items])
-
-        this.emit('creatureDeath', creature)
       }, deadCreatures)
     }
   }

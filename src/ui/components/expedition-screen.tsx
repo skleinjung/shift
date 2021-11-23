@@ -7,7 +7,6 @@ import { CellCoordinate } from 'engine/map/map'
 import { Action } from 'engine/types'
 import { useCallback, useEffect, useState } from 'react'
 import { useRecoilValue, useSetRecoilState } from 'recoil'
-import { useEngine } from 'ui/hooks/use-game'
 import { useKeyHandler } from 'ui/hooks/use-key-handler'
 import { useWorld } from 'ui/hooks/use-world'
 import { getKeyMap } from 'ui/key-map'
@@ -39,7 +38,6 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
 
   const inSpeech = speech !== undefined && speech.speech.length > 0
 
-  const engine = useEngine()
   const world = useWorld()
   const updateExpedition = useSetRecoilState(expeditionState)
 
@@ -58,10 +56,11 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
     setInMenus(false)
   }, [])
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const executeCommand = useCallback((command: string) => {
     setEnteringCommand(false)
-    engine.executeCommand(command)
-  }, [engine])
+    // engine.executeCommand(command)
+  }, [])
 
   const executeTurn = useCallback((playerAction: Action) => {
     world.player.nextAction = playerAction

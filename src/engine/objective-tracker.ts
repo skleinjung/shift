@@ -6,6 +6,10 @@ import { ObjectiveTrackerEvents } from './events'
 import { Objective } from './objective'
 import { World } from './world'
 
+/**
+ * TODO: design of this is outdated
+ * @deprecated
+ */
 export class ObjectiveTracker extends TypedEventEmitter<ObjectiveTrackerEvents> {
   /** the world we are attached to */
   private _world: World | undefined
@@ -22,13 +26,13 @@ export class ObjectiveTracker extends TypedEventEmitter<ObjectiveTrackerEvents> 
     this.detach()
 
     this._world = world
-    this._world.on('creatureDeath', this._creatureDeathHandler)
+    // this._world.on('creatureDeath', this._creatureDeathHandler)
   }
 
   /** detaches this objective tracker from the world it is attached to, if any */
   public detach () {
     if (this._world !== undefined) {
-      this._world.off('creatureDeath', this._creatureDeathHandler)
+      // this._world.off('creatureDeath', this._creatureDeathHandler)
     }
   }
 

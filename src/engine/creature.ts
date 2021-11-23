@@ -1,6 +1,6 @@
 import { compact, find, flow, forEach, keys, map, reduce, values } from 'lodash/fp'
 
-import { CreatureScript } from './api/creature-script'
+import { CreatureScript } from './api/script-interfaces'
 import {
   Attack,
   Attackable,
