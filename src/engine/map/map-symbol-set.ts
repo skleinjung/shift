@@ -33,6 +33,10 @@ export const CreatureSymbols: { default: MapSymbol } & { [k in CreatureTypeId]?:
     ...ColorValues.AggressiveCreature,
     symbol: 'g',
   },
+  human: {
+    ...ColorValues.PassiveCreature,
+    symbol: '@',
+  },
   kobold: {
     ...ColorValues.PassiveCreature,
     symbol: 'k',
