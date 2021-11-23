@@ -1,4 +1,4 @@
-import { Engine } from 'engine/engine'
+import { World } from 'engine/world'
 import { enumerate } from 'enumerate'
 import { TypedEventEmitter } from 'typed-event-emitter'
 
@@ -7,9 +7,10 @@ import { TypedEventEmitter } from 'typed-event-emitter'
  * engine ready (once those are both complete).
  **/
 export type GameEvents = {
-  /** Emitted when the engine is ready (world is initialized, ui is ready, and the game loop has started.) */
-  engineReady: {
-    engine: Engine
+  /** Emitted when a new world has been created, when (for example) the user changes zones */
+  worldChange: {
+    /** reference to the new world */
+    world: World
   }
 }
 
@@ -18,10 +19,10 @@ export type GameEvents = {
  * The types guarantee this is an exhaustive list.
  */
 export const GameEventNames = enumerate<keyof GameEvents>()(
-  'engineReady'
+  'worldChange'
 )
 
-/** event emitter type for creatures */
+/** event emitter type for game events */
 export class GameEventEmitter extends TypedEventEmitter<{
   [k in keyof GameEvents]: (event: GameEvents[k]) => void
 }> {}

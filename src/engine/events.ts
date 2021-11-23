@@ -1,29 +1,5 @@
 import { Speech } from './api/ui-api'
-import { Creature } from './creature'
 import { Objective } from './objective'
-
-export interface WorldEvents {
-  /** Emitted when any creature is killed */
-  creatureDeath: (creature: Creature) => void
-
-  /** emitted when any creature is created */
-  creatureSpawn: (creature: Creature) => void
-
-  /**
-   * Emitted whenever a log message with meaningful content for the player has been generated.
-   **/
-  message: (message: string) => void
-
-  /**
-   * Emitted after all creatures have acted in a turn.
-   */
-  turn: () => void
-
-  /**
-   * Emitted after the state is updated.
-   */
-  update: () => void
-}
 
 export interface ObjectiveEvents {
   /** Emitted when the objective is completed. */

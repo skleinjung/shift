@@ -1,5 +1,6 @@
 import { Creature } from 'engine/creature'
 import { CreatureTypeId } from 'engine/creature-db'
+import { Player } from 'engine/player'
 
 export type CreatureApi = Readonly<{
   /**
@@ -13,7 +14,7 @@ export type CreatureApi = Readonly<{
   creatures: readonly Creature[]
 
   /** Retrieves the Creature corresponding to the player. */
-  player: Creature
+  player: Player
 
   /**
   * Moves the specified creature to the new (x, y) location. Will fail if the new space is occupied

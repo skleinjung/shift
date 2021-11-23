@@ -1,4 +1,4 @@
-import { CreatureScript } from 'engine/api/creature-script'
+import { CreatureScript } from 'engine/api/script-interfaces'
 import { Creature } from 'engine/creature'
 import { MapTile } from 'engine/map/map'
 import { compact, filter, map } from 'lodash/fp'
@@ -19,7 +19,7 @@ const initialize: CreatureScript = {
 /** 'Sensor' script that detects the presence of all other creatures in the game. */
 export const allCreaturesSensor: CreatureScript = {
   ...initialize,
-  onTurnStart: ({ creature }, api) => {
+  onTurnStart: ({ api, creature }) => {
     // filter ourself out of the detected creature list
     creature.setScriptData(KEY, filter((other) => other.id !== creature.id, api.creatures))
   },
@@ -32,7 +32,7 @@ export const allCreaturesSensor: CreatureScript = {
  */
 export const creaturesInFrontSensor = (distance: number): CreatureScript => ({
   ...initialize,
-  onMove: ({ creature }, api) => {
+  onMove: ({ api, creature }) => {
     const facing = getFacing(creature)
 
     const getTilesFromHorizontalEdge = (distance: number, xDirection: -1 | 0 | 1): MapTile[] => {

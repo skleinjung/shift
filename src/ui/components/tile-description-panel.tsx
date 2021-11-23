@@ -17,7 +17,7 @@ export const TileDescriptionPanel = ({ rows = 8, ...rest }: TileDescriptionPanel
   const map = world.map
   const tile = map.getMapTile(player.x, player.y)
   const name = tile?.terrain.name
-  const description = tile?.terrain.description ?? 'You see nothing of note here.'
+  const description = tile?.description ?? 'You see nothing of note here.'
 
   return (
     <Panel {...rest}

@@ -1,6 +1,6 @@
 import { compact, find, flow, forEach, keys, map, reduce, values } from 'lodash/fp'
 
-import { CreatureScript } from './api/creature-script'
+import { CreatureScript } from './api/script-interfaces'
 import {
   Attack,
   Attackable,
@@ -16,7 +16,7 @@ import { CreatureEventEmitter } from './events/creature'
 import { EquipmentSet, EquipmentSlot, EquipmentSlots, Item } from './item'
 import { newId } from './new-id'
 import { createSensors } from './sensors/create-sensors'
-import { Actor, Behavior, Combatant, Damageable, Moveable } from './types'
+import { Actor, Behavior, Combatant, Damageable, Moveable, Scriptable } from './types'
 import { World } from './world'
 
 export type Sensor<T> = {
@@ -64,7 +64,8 @@ export class Creature extends CreatureEventEmitter implements
   Combatant,
   CreatureAttributeSet,
   Damageable,
-  Moveable {
+  Moveable,
+  Scriptable {
   private _health: number
   private _id = newId()
   private _equipment: EquipmentSet = {}
@@ -116,7 +117,7 @@ export class Creature extends CreatureEventEmitter implements
   }
 
   /// ////////////////////////////////////////////
-  // Scriptable data
+  // Scriptable
 
   /**
    * Gets the script property with the given key from the creature. If the optional property is

@@ -7,7 +7,7 @@ import { CellCoordinate } from 'engine/map/map'
 import { Action } from 'engine/types'
 import { useCallback, useEffect, useState } from 'react'
 import { useRecoilValue, useSetRecoilState } from 'recoil'
-import { useEngine } from 'ui/hooks/use-game'
+import { useGame } from 'ui/hooks/use-game'
 import { useKeyHandler } from 'ui/hooks/use-key-handler'
 import { useWorld } from 'ui/hooks/use-world'
 import { getKeyMap } from 'ui/key-map'
@@ -17,9 +17,9 @@ import { speechState } from 'ui/state/speech'
 import { ScreenName } from './app'
 import { CommandInputBox } from './command-input-box'
 import { ExpeditionMenuController } from './expedition-menu-controller'
+import { InventoryPanel } from './inventory-panel'
 import { LogPanel } from './log-panel'
 import { MapPanel } from './map-panel'
-import { ObjectivePanel } from './objective-panel'
 import { PlayerStatusPanel } from './player-status-panel'
 import { SpeechWindow } from './speech-window'
 import { TileDescriptionPanel } from './tile-description-panel'
@@ -39,7 +39,7 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
 
   const inSpeech = speech !== undefined && speech.speech.length > 0
 
-  const engine = useEngine()
+  const game = useGame()
   const world = useWorld()
   const updateExpedition = useSetRecoilState(expeditionState)
 
@@ -58,10 +58,11 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
     setInMenus(false)
   }, [])
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const executeCommand = useCallback((command: string) => {
     setEnteringCommand(false)
-    engine.executeCommand(command)
-  }, [engine])
+    game.executeCommand(command)
+  }, [game])
 
   const executeTurn = useCallback((playerAction: Action) => {
     world.player.nextAction = playerAction
@@ -119,6 +120,7 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
     [keyMap.MoveLeft]: executePlayerMove(-1, 0),
     [keyMap.MoveRight]: executePlayerMove(1, 0),
     [keyMap.MoveUp]: executePlayerMove(0, -1),
+    [keyMap.Travel]: () => executeCommand('use portal'),
     [keyMap.Wait]: () => executeTurn(DoNothing),
   })
 
@@ -172,27 +174,27 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
           containerClass="expedition-panel"
         />
 
-        <ObjectivePanel
+        {/* <ObjectivePanel
           active={false}
           allowSelection={false}
           columns={SidebarColumns}
           containerClass="expedition-panel"
           rows={7}
           showDescriptions={false}
-        />
+        /> */}
 
-        {/* <InventoryPanel
+        <InventoryPanel
           active={false}
           allowSelection={false}
           columns={SidebarColumns}
           containerClass="expedition-panel"
           showSlot={true}
-        /> */}
+        />
 
         <LogPanel
           columns={SidebarColumns}
           containerClass="expedition-panel"
-          style={{ flex: 1 }}
+          rows={14}
           world={world}
         />
 

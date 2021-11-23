@@ -1,70 +1,112 @@
-import { Campaign, DemoCampaign } from 'engine/campaign'
+import { Commands } from 'engine/commands'
 import { Creature } from 'engine/creature'
 import { CreatureTypeId, CreatureTypes } from 'engine/creature-db'
-import { Engine } from 'engine/engine'
 import { CreatureEventNames, CreatureEvents } from 'engine/events/creature'
 import { EventManager, EventManagerEvents } from 'engine/events/event-manager'
 import { GameEventEmitter } from 'engine/events/game'
 import { EventHandlerName } from 'engine/events/types'
+import { WorldEventNames, WorldEvents } from 'engine/events/world'
 import { Item } from 'engine/item'
 import { MapCell, MapTile } from 'engine/map/map'
+import { Player } from 'engine/player'
 import { TerrainTypeId, TerrainTypes } from 'engine/terrain-db'
 import { World } from 'engine/world'
-import { forEach, random, stubTrue, upperFirst } from 'lodash/fp'
+import { Zone, ZoneId, Zones } from 'engine/zone-db'
+import { forEach, random, split, stubTrue, upperFirst } from 'lodash/fp'
 
 import { ScriptApi } from './script-api'
+import { WorldScript } from './script-interfaces'
 import { Speech, UiController } from './ui-api'
 
+const StaticWorldScripts: readonly WorldScript[] = [
+  {
+    onInitialize: ({ api }) => {
+      api.addCreature(new Player())
+    },
+  },
+] as const
+
 export class GameController extends GameEventEmitter implements ScriptApi {
-  private _engine: Engine
   private _eventManager: EventManager
+  private _ui: UiController
   private _world: World
-  private _campaign: Campaign
+
+  // flag used to indicate if the world has been marked as 'ready' or not
+  private _worldReady = false
 
   constructor (
-    private _ui: UiController
+    defaultZoneId: ZoneId,
+    ui: UiController
   ) {
     super()
 
     this._eventManager = new EventManager()
-    this._eventManager.on('registerCreature', this._handleCreatureEventRegistration.bind(this))
+    this._eventManager.on('registerCreature', this._registerCreatureScripts.bind(this))
 
-    this._campaign = new DemoCampaign()
-    this._engine = new Engine(this._campaign, this)
-    this._world = this._engine.world
-    this._engine.onInitialize()
-
-    this._ui.on('ready', () => {
-      this._engine.onUiReady()
-    })
-  }
-
-  /** Gets the active campaign */
-  public get campaign () {
-    return this._campaign
-  }
-
-  /** Gets the game engine */
-  public get engine () {
-    return this._engine
+    this._ui = ui
+    this._world = this.loadZone(defaultZoneId)
   }
 
   public get ui () {
     return this._ui
   }
 
-  /** @deprecated access to the world is being dropped soon */
   public get world () {
     return this._world
   }
 
-  public get creatures (): readonly Creature[] {
-    return this._world.creatures
+  /** Called when the game timer 'ticks'. */
+
+  public update (): void {
+    if (!this._worldReady) {
+      if (this._ui.ready) {
+        this.world.emit('ready', { world: this._world })
+        this._worldReady = true
+      }
+    } else {
+      this.world?.update()
+    }
   }
 
-  public get player (): Creature {
-    return this._world.player
+  /// ////////////////////////////////////////////
+  // CampaignApi
+
+  public loadZone (id: ZoneId): World {
+    this._world = new World()
+
+    // register new zone script listeners, and remove previous ones
+    this._registerZoneScripts(Zones[id])
+
+    // emit load zone event, letting scripts proceess it
+    this._worldReady = false
+    this.world.emit('initialize', { world: this._world })
+    this.emit('worldChange', { world: this._world })
+
+    return this._world
   }
+
+  /// ////////////////////////////////////////////
+  // ConsoleApi
+
+  public executeCommand (commandString: string): void {
+    this.showMessage(`> ${commandString}`)
+
+    const [commandName, ...commandArgs] = split(' ', commandString)
+
+    const command = Commands[commandName]
+    if (command !== undefined) {
+      command.execute(commandArgs, this)
+    } else {
+      this.showMessage('Unrecognized command. (Try "help")')
+    }
+  }
+
+  public showMessage (message: string): void {
+    this._world.logMessage(message)
+  }
+
+  /// ////////////////////////////////////////////
+  // CreatureApi
 
   /** Adds a new creature to the world. It will emit any 'on-spawn' type of events. */
   public addCreature (creatureOrType: Creature | CreatureTypeId, x = 0, y = 0): number {
@@ -79,11 +121,12 @@ export class GameController extends GameEventEmitter implements ScriptApi {
     return creature.id
   }
 
-  public getRandomLocation (filter: (tile: MapTile) => boolean = stubTrue): MapTile | undefined {
-    const matchingCells = this._world.map.getCells(filter)
-    return matchingCells.length === 0
-      ? undefined
-      : matchingCells[random(0, matchingCells.length - 1)]
+  public get creatures (): readonly Creature[] {
+    return this._world.creatures
+  }
+
+  public get player (): Player {
+    return this._world.player
   }
 
   /** todo: lots of duplication with MoveToAction */
@@ -124,17 +167,29 @@ export class GameController extends GameEventEmitter implements ScriptApi {
     }
   }
 
-  public getMapTile (x: number, y: number): MapTile | undefined {
-    return this._world.map.getMapTile(x, y)
-  }
+  /// ////////////////////////////////////////////
+  // MapApi
 
-  public setTerrain (x: number, y: number, terrain: TerrainTypeId): void {
-    this._world.map.setTerrain(x, y, TerrainTypes[terrain])
+  public getMapTile (x: number, y: number): MapTile | undefined
+  public getMapTile (x: number, y: number, forceCreate: true): MapTile
+  public getMapTile (x: number, y: number, forceCreate?: boolean): MapTile | undefined {
+    if (forceCreate) {
+      return this._world.map.getMapTile(x, y, true)
+    } else {
+      return this._world.map.getMapTile(x, y)
+    }
   }
 
   public addMapItem (item: Item, x: number, y: number): number {
     this._world.addItemToMap(item, x, y)
     return item.id
+  }
+
+  public getRandomLocation (filter: (tile: MapTile) => boolean = stubTrue): MapTile | undefined {
+    const matchingCells = this._world.map.getCells(filter)
+    return matchingCells.length === 0
+      ? undefined
+      : matchingCells[random(0, matchingCells.length - 1)]
   }
 
   public moveMapItem (id: number, x: number, y: number): void {
@@ -161,28 +216,56 @@ export class GameController extends GameEventEmitter implements ScriptApi {
     }
   }
 
+  public setTileDescription (x: number, y: number, description: string): void {
+    this._world.map.getCell(x, y).customDescription = description
+  }
+
+  public setTerrain (x: number, y: number, terrain: TerrainTypeId): void {
+    this._world.map.setTerrain(x, y, TerrainTypes[terrain])
+  }
+
+  /// ////////////////////////////////////////////
+  // UiApi
+
+  public showSpeech (speech: Speech[]): Promise<void> {
+    return this._ui.showSpeech(speech)
+  }
+
+  /// ////////////////////////////////////////////
+  // Event Listener Registration
+
+  private _registerZoneScripts ({ scripts }: Zone) {
+    // unbind previous scripts
+    forEach((event) => {
+      this.world.removeAllListeners(event)
+    }, WorldEventNames)
+
+    forEach((script) => {
+      forEach((eventName) => {
+        const handlerName = `on${upperFirst(eventName)}` as EventHandlerName<keyof WorldEvents>
+        const handler = script[handlerName]
+
+        if (handler !== undefined) {
+          this.world.on(eventName, (event: any) => {
+            handler({ ...event, api: this })
+          })
+        }
+      }, WorldEventNames)
+    }, [...StaticWorldScripts, ...scripts])
+  }
+
   /** When a creature is registered with the event manager, register all of it's script listeners */
-  private _handleCreatureEventRegistration ({ creature, eventEmitter }: EventManagerEvents['registerCreature']) {
+  private _registerCreatureScripts ({ creature, eventEmitter }: EventManagerEvents['registerCreature']) {
     forEach((script) => {
       forEach((eventName) => {
         const handlerName = `on${upperFirst(eventName)}` as EventHandlerName<keyof CreatureEvents>
         const handler = script[handlerName]
         if (handler !== undefined) {
           eventEmitter.on(eventName, (event: any) => {
-            handler(event, this)
+            handler({ ...event, api: this })
           })
         }
       }, CreatureEventNames)
     }, creature.scripts)
-  }
-
-  // UI API delegation
-
-  public showMessage (message: string): void {
-    this._engine.world.logMessage(message)
-  }
-
-  public showSpeech (speech: Speech[]): Promise<void> {
-    return this._ui.showSpeech(speech)
   }
 }

@@ -1,56 +1,56 @@
 import { MoveByAction } from 'engine/actions/move-by'
+import { ScriptApi } from 'engine/api/script-api'
 import { Command } from 'engine/types'
-import { World } from 'engine/world'
 
-const doMove = (byX: number, byY: number, world: World) => {
-  world.player.nextAction = new MoveByAction(world.player, byX, byY)
+const doMove = (byX: number, byY: number, api: ScriptApi) => {
+  api.player.nextAction = new MoveByAction(api.player, byX, byY)
 }
 
 export const move: Command = {
-  execute: (options, world) => {
+  execute: (options, api) => {
     if (options.length > 1) {
-      world.logMessage('Too many arguments.')
+      api.showMessage('Too many arguments.')
       return
     } else if (options.length < 1) {
-      world.logMessage('Move where?')
+      api.showMessage('Move where?')
       return
     }
 
     switch (options[0]) {
       case 'north':
       case 'n':
-        doMove(0, -1, world)
+        doMove(0, -1, api)
         return
 
       case 'south':
       case 's':
-        doMove(0, 1, world)
+        doMove(0, 1, api)
         return
 
       case 'east':
       case 'e':
-        doMove(1, 0, world)
+        doMove(1, 0, api)
         return
 
       case 'west':
       case 'w':
-        doMove(-1, 0, world)
+        doMove(-1, 0, api)
         return
 
       default:
-        world.logMessage(`Unrecognized direction: ${options[0]}`)
+        api.showMessage(`Unrecognized direction: ${options[0]}`)
     }
   },
 }
 
 export const createMovement = (direction: string): Command => ({
-  execute: (options, world) => {
+  execute: (options, api) => {
     if (options.length > 0) {
-      world.logMessage('Too many arguments.')
+      api.showMessage('Too many arguments.')
       return
     }
 
-    move.execute([direction], world)
+    move.execute([direction], api)
   },
 })
 

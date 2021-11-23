@@ -1,6 +1,5 @@
-import { CreatureScript } from 'engine/api/creature-script'
 import { ScriptApi } from 'engine/api/script-api'
-import { WorldScript } from 'engine/api/world-script'
+import { CreatureScript, WorldScript } from 'engine/api/script-interfaces'
 import { Item } from 'engine/item'
 import { getAdjacentCoordinates } from 'engine/map/map-utils'
 import { random } from 'engine/random'
@@ -49,7 +48,7 @@ const nextToHeavyBrush = (api: ScriptApi, x: number, y: number): boolean => {
 
 export const dartLizard: CreatureScript & WorldScript = {
   // move the tail with the lizard
-  onMove: ({ creature, x, y }, api) => {
+  onMove: ({ api, creature, x, y }) => {
     const direction = getFacing(creature)
 
     const tailId = creature.getScriptData<number>('tailId')
@@ -91,7 +90,7 @@ export const dartLizard: CreatureScript & WorldScript = {
     }
   },
   // add the lizard's tail to the map when a lizard created
-  onCreate: ({ creature }, api) => {
+  onCreate: ({ api, creature }) => {
     const tail = new Item({
       name: 'dart lizard tail',
     })
@@ -99,12 +98,12 @@ export const dartLizard: CreatureScript & WorldScript = {
     const tailId = api.addMapItem(tail, creature.x, creature.y + 1)
     creature.setScriptData('tailId', tailId)
   },
-  onDeath: ({ creature }, api) => {
+  onDeath: ({ api, creature }) => {
     const tailId = creature.getScriptData<number>('tailId')
     api.removeMapItem(tailId)
     creature.setScriptData('tailId', undefined)
   },
-  onTurn: (api) => {
+  onTurn: ({ api }) => {
     const countsByTypeId = countBy(get(['type', 'id']), api.creatures)
     if ((countsByTypeId.dart_lizard ?? 0) < 1) {
       if (random(0, 99) < SpawnChance) {
@@ -125,7 +124,7 @@ export const dartLizard: CreatureScript & WorldScript = {
       }
     }
   },
-  onTurnStart: ({ creature }, api) => {
+  onTurnStart: ({ api, creature }) => {
     if (isStartled(creature)) {
       if (getStartledTurns(creature) === 1) {
         // the first turn of a startle, show a message
@@ -137,7 +136,7 @@ export const dartLizard: CreatureScript & WorldScript = {
       creature.speed = DefaultDartLizardSpeed
     }
   },
-  onTurnEnd: ({ creature }, api) => {
+  onTurnEnd: ({ api, creature }) => {
     // after a few turns, each turn a lizard is near heavy brush, there is a chance they dash into it
     if (getAge(creature) > MinimumAgeBeforeDisappearing && random(0, 99) < DisappearChance) {
       if (nextToHeavyBrush(api, creature.x, creature.y)) {

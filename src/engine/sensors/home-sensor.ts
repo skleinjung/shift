@@ -1,4 +1,4 @@
-import { CreatureScript } from 'engine/api/creature-script'
+import { CreatureScript } from 'engine/api/script-interfaces'
 import { Creature } from 'engine/creature'
 import { CellCoordinate } from 'engine/map/map'
 import { distance } from 'math'

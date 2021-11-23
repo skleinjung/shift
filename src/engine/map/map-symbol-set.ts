@@ -119,6 +119,11 @@ export const TerrainSymbols: { [k in TerrainTypeId]: MapSymbol } = {
     color: 0x215225,
     symbol: '=',
   },
+  portal: {
+    background: 0xff00ff,
+    color: 0xffff00,
+    symbol: '@',
+  },
   water: {
     background: 0x172c99,
     color: 0x002244,

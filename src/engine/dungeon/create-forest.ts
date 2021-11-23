@@ -1,29 +1,14 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { getAsset } from 'engine/assets'
 import { ExpeditionMap } from 'engine/map/map'
 import { PathCostFunction } from 'engine/map/path-cost-functions'
 import { random } from 'engine/random'
 import { TerrainTypes } from 'engine/terrain-db'
-import { forEach, noop, times } from 'lodash/fp'
+import { forEach, times } from 'lodash/fp'
 
 import { Dungeon } from './dungeon'
 import { OrganicRegion } from './organic-region'
-import { BasicRegion, Region, TerrainTypeProvider } from './region'
+import { BasicRegion, Region } from './region'
 import { StaticRegion } from './static-region'
-import { generateRoomDimensions } from './utils'
-
-const ForestTerrainTypes: TerrainTypeProvider = {
-  door: () => TerrainTypes.brambles,
-  floor: () => {
-    switch (random(1, 2)) {
-      case 1:
-        return TerrainTypes.light_brush_1
-      default:
-        return TerrainTypes.light_brush_2
-    }
-  },
-  wall: () => TerrainTypes.light_brush_3,
-}
 
 const cellCosts: Record<string, number> = {}
 
@@ -76,15 +61,12 @@ class ForestPathRegion extends BasicRegion {
 
     const createClearedArea = (x: number, y: number) => {
       if (map.getTerrain(x, y) === TerrainTypes.heavy_brush) {
-        const extension = random(0, 99)
         // map.setTerrain(x, y, extension < 80 ? TerrainTypes.light_brush_3 : ForestTerrainTypes.floor())
         map.setTerrain(x, y, TerrainTypes.light_brush_2)
       }
     }
 
     forEach((cell) => {
-      const extension = random(0, 99)
-
       const extendOne = (x: number, y: number) => {
         const extension = random(0, 99)
         if (extension < 75) {
@@ -125,14 +107,21 @@ export const createForest = () => {
     const y = baseMap.top + random(0, baseMap.height) + 1
 
     return new OrganicRegion(x, y, size)
-  }, 2)
+  }, 30)
 
   const paths = times(() => {
     return new ForestPathRegion(
       clearings[random(0, clearings.length - 1)],
       clearings[random(0, clearings.length - 1)]
     )
-  }, 4)
+  }, 2)
+
+  const clueRegion = new BasicRegion({
+    left: -15,
+    top: -40,
+    width: 1,
+    height: 1,
+  })
 
   paths.push(new ForestPathRegion(
     new BasicRegion({
@@ -141,7 +130,17 @@ export const createForest = () => {
       width: 1,
       height: 1,
     }),
-    clearings[random(0, clearings.length - 1)]
+    clueRegion
+  ))
+
+  paths.push(new ForestPathRegion(
+    clueRegion,
+    new BasicRegion({
+      left: clueRegion.left,
+      top: clueRegion.top - 11,
+      width: 1,
+      height: 1,
+    })
   ))
 
   return new Dungeon(
