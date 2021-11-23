@@ -66,12 +66,14 @@ export class Creature extends CreatureEventEmitter implements
   Damageable,
   Moveable,
   Scriptable {
-  private _health: number
   private _id = newId()
+  private _health: number
   private _equipment: EquipmentSet = {}
 
   /** inventory of items held by this creature */
   public readonly inventory: Inventory
+
+  public name: string
 
   /** custom scripts for this creature */
   public readonly scripts: CreatureScript[]
@@ -96,6 +98,7 @@ export class Creature extends CreatureEventEmitter implements
   ) {
     super()
 
+    this.name = this._type.name
     this._health = this._type.healthMax
     this.inventory = new Inventory()
     this.speed = this._type.speed
@@ -245,10 +248,7 @@ export class Creature extends CreatureEventEmitter implements
     return this._id
   }
 
-  /** name of this creature */
-  public get name () {
-    return this._type.name
-  }
+  // name is a public field
 
   /// ////////////////////////////////////////////
   // Actor

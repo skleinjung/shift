@@ -226,7 +226,7 @@ export class World extends TypedEventEmitter<WorldEvents> implements Updateable 
       // remove any dead creatures
       forEach((creature) => {
         this._removeCreature(creature)
-        this.logMessage(`${creature.type.name} is dead!`)
+        this.logMessage(`${creature.name} is dead!`)
 
         // drop the creatures inventory
         // we clone the inventory item array, since moving items out of it will mess up iteration
