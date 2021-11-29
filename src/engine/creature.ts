@@ -70,13 +70,13 @@ export class Creature extends CreatureEventEmitter implements
   private _health: number
   private _equipment: EquipmentSet = {}
 
+  /** custom scripts for this creature */
+  private _scripts: CreatureScript[]
+
   /** inventory of items held by this creature */
   public readonly inventory: Inventory
 
   public name: string
-
-  /** custom scripts for this creature */
-  public readonly scripts: CreatureScript[]
 
   /** sensors that can be used by behaviors */
   public readonly sensors = createSensors(this)
@@ -103,7 +103,7 @@ export class Creature extends CreatureEventEmitter implements
     this.inventory = new Inventory()
     this.speed = this._type.speed
     this._behavior = this._type.createBehavior()
-    this.scripts = this._type.scripts ?? []
+    this._scripts = this._type.scripts ?? []
 
     const loot = this._type.lootTable?.collect() ?? []
     forEach((itemTemplate) => {
@@ -117,6 +117,14 @@ export class Creature extends CreatureEventEmitter implements
 
   public get behavior (): Behavior {
     return this._behavior
+  }
+
+  public get scripts (): CreatureScript[] {
+    return this._scripts
+  }
+
+  public addScript (script: CreatureScript): void {
+    this._scripts.push(script)
   }
 
   /// ////////////////////////////////////////////
