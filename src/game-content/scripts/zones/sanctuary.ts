@@ -20,7 +20,7 @@ export const sanctuary: WorldScript = {
     createPortal({
       api,
       description: createDefaultPortalDescription('This portal will take you to the troll\'s lair.'),
-      destination: 'forest',
+      destination: 'troll_lair',
       terrain: 'portal',
       x: 3,
       y: -3,

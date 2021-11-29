@@ -1,10 +1,7 @@
+import { Dungeon } from 'engine/dungeon/dungeon'
+import { BasicRegion, Region } from 'engine/dungeon/region'
+import { generateRoomDimensions } from 'engine/dungeon/utils'
 import { random } from 'engine/random'
-import { tail } from 'lodash/fp'
-
-import { Dungeon } from './dungeon'
-import { BasicRegion, ForestClearing, ForestPath, Region } from './region'
-import { RoomSpawnTable } from './spawn-tables'
-import { generateRoomDimensions } from './utils'
 
 export interface CreateDungeonOptions {
   /** maximum number of room placements that can fail before a level is terminated */
@@ -167,11 +164,12 @@ const createDungeonRecursive = (
 
   const newRoom = createRoom(doorwayX, doorwayY, originRoom, options)
 
-  const newTunnel: Region = new ForestPath({
+  const newTunnel: Region = new BasicRegion({
     left: tunnelX1,
     top: tunnelY1,
     width: Math.abs(tunnelX2 - tunnelX1) + 1,
     height: Math.abs(tunnelY2 - tunnelY1) + 1,
+    type: 'tunnel',
   })
 
   return !dungeon.wouldFit(newRoom, options.minimumHallwayLength + 1)
@@ -181,32 +179,19 @@ const createDungeonRecursive = (
     ))
 }
 
-const populate = (dungeon: Dungeon, _: CreateDungeonOptions) => {
-  // populate every room except starting room
-  for (const room of tail(dungeon.rooms)) {
-    const contents = RoomSpawnTable.collect()
-
-    for (const spawner of contents) {
-      spawner(dungeon, room)
-    }
-  }
-}
-
-export const createDungeon = (options: Partial<CreateDungeonOptions> = {}) => {
+export const createTrollLair = (options: Partial<CreateDungeonOptions> = {}) => {
   const optionsWithDefaults = withDefaults(options)
 
   const { width, height } = generateRoomDimensions(optionsWithDefaults)
 
   const dungeon = createDungeonRecursive(0, optionsWithDefaults, new Dungeon(
-    [new ForestClearing({
+    [new BasicRegion({
       left: Math.floor(-(width - 1) / 2),
       top: Math.floor(-(height - 1) / 2),
       width,
       height,
     })]
   ))
-
-  populate(dungeon, optionsWithDefaults)
 
   return dungeon
 }

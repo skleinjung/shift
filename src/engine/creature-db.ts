@@ -73,7 +73,14 @@ const creatureTypeArray = [
 At rest, its mouth tilts upward giving you a clear view of the dual, fin-like crests atop it's head.`,
     healthMax: 2,
     id: 'dart_lizard',
-    lootTable: MonsterLootTables[1],
+    lootTable: ProductGroup.rollOne([[100, {
+      id: 'dart_lizard_corpse',
+      create: () => new Item({
+        description: `The dual-crested head and yellow-green scale pattern 
+clearly identify this corpse as that of a dart lizard`,
+        name: 'dart lizard corpse',
+      }),
+    }]]),
     melee: 1,
     name: 'Dart Lizard',
     scripts: [
@@ -185,6 +192,16 @@ At rest, its mouth tilts upward giving you a clear view of the dual, fin-like cr
       allCreaturesSensor,
       thornGremlin,
     ],
+    speed: 100,
+  },
+  {
+    createBehavior: () => BehaviorChain(retaliate, attackPlayer, moveRandom20Percent),
+    defense: 2,
+    healthMax: 8,
+    id: 'troll',
+    lootTable: MonsterLootTables[2],
+    melee: 3,
+    name: 'Troll',
     speed: 100,
   },
   {
