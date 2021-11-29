@@ -240,6 +240,11 @@ export class GameController extends GameEventEmitter implements ScriptApi {
 
   public showSpeech (speech: Speech[]): Promise<void> {
     return this._ui.showSpeech(speech)
+      .then(() => {
+        forEach((speechItem) => {
+          this.showMessage(`${speechItem.speaker}: "${speechItem.message}"`)
+        }, speech)
+      })
   }
 
   /// ////////////////////////////////////////////
