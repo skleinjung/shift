@@ -5,6 +5,7 @@ import { filter, findIndex, flow, keys, map, reduce } from 'lodash/fp'
 import { dartLizard, DefaultDartLizardSpeed } from '../game-content/scripts/creatures/dart-lizard'
 import { commandHints, player } from '../game-content/scripts/creatures/player'
 
+import { DoNothing } from './actions/do-nothing'
 import { CreatureScript } from './api/script-interfaces'
 import { attackPlayer } from './behaviors/attack'
 import { BehaviorChain } from './behaviors/behavior-chain'
@@ -104,6 +105,15 @@ At rest, its mouth tilts upward giving you a clear view of the dual, fin-like cr
     melee: 1,
     name: 'Kobold',
     speed: 75,
+  },
+  {
+    createBehavior: () => () => DoNothing,
+    defense: 0,
+    healthMax: 3,
+    id: 'human',
+    melee: 1,
+    name: 'Human',
+    speed: 100,
   },
   {
     createBehavior: () => BehaviorChain(retaliate, attackPlayer, moveRandom20Percent),

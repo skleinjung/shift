@@ -33,6 +33,10 @@ export const CreatureSymbols: { default: MapSymbol } & { [k in CreatureTypeId]?:
     ...ColorValues.AggressiveCreature,
     symbol: 'g',
   },
+  human: {
+    ...ColorValues.PassiveCreature,
+    symbol: '@',
+  },
   kobold: {
     ...ColorValues.PassiveCreature,
     symbol: 'k',
@@ -122,7 +126,7 @@ export const TerrainSymbols: { [k in TerrainTypeId]: MapSymbol } = {
   portal: {
     background: 0xff00ff,
     color: 0xffff00,
-    symbol: '@',
+    symbol: '^',
   },
   water: {
     background: 0x172c99,

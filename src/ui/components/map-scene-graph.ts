@@ -166,6 +166,7 @@ export class MapSceneGraph {
 
   /** Called when the world instance changes. Will clear all tile data in preparation for new data. */
   public onWorldChange () {
+    this._cellHighlight = undefined
     this._app.stage.removeChild(this._root)
     this._root.destroy({ children: true })
 
