@@ -195,6 +195,16 @@ clearly identify this corpse as that of a dart lizard`,
     speed: 100,
   },
   {
+    createBehavior: () => BehaviorChain(retaliate, attackPlayer, moveRandom20Percent),
+    defense: 2,
+    healthMax: 8,
+    id: 'troll',
+    lootTable: MonsterLootTables[2],
+    melee: 3,
+    name: 'Troll',
+    speed: 100,
+  },
+  {
     // player creates its own behavior, so implement a noop here
     createBehavior: () => () => undefined,
     defense: 0,

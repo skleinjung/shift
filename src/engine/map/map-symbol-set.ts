@@ -53,6 +53,10 @@ export const CreatureSymbols: { default: MapSymbol } & { [k in CreatureTypeId]?:
     ...ColorValues.AggressiveCreature,
     symbol: 'i',
   },
+  troll: {
+    ...ColorValues.AggressiveCreature,
+    symbol: 't',
+  },
   player: {
     background: 0x002200,
     color: 0xffffff,
