@@ -57,6 +57,8 @@ export class Item implements Entity {
   /** detailed description */
   public readonly description: string | undefined
 
+  public droppable = true
+
   /** the slots in which this item can be equipped, which may be an empty list */
   public readonly equipmentSlots: EquipmentSlot[]
 
@@ -89,9 +91,17 @@ export class Item implements Entity {
 
   /** ItemInventoryActions that apply to this item */
   public get inventoryActions () {
-    return this.equipmentSlots.length > 0
-      ? [equip, unequip, drop]
-      : [drop]
+    const actions = []
+
+    if (this.equipmentSlots.length > 0) {
+      actions.push(equip, unequip)
+    }
+
+    if (this.droppable) {
+      actions.push(drop)
+    }
+
+    return actions
   }
 
   /** gets a specific inventory action by name, or undefined if there is none */
