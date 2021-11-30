@@ -1,13 +1,12 @@
 import { CreatureScript, WorldScript } from 'engine/api/script-interfaces'
 import { Creature } from 'engine/creature'
 import { CreatureTypes } from 'engine/creature-db'
-import { Item } from 'engine/item'
 import { random } from 'engine/random'
 import { createTrollLair } from 'game-content/map-generators/create-troll-lair'
 import { createDefaultPortalDescription, createPortal } from 'game-content/portal'
 import { findIndex } from 'lodash/fp'
 
-const TROLL_BLOOD_SPLATTER_NAME = 'splatter of troll\'s blood'
+import { createTrollBloodSplatter, TROLL_BLOOD_SPLATTER_NAME } from '../items/troll-blood'
 
 /**
  * Creature script that (conditionally) creates an item from a template in the attacker's inventory
@@ -22,11 +21,7 @@ export const createBloodSplatterWhenDamaged: CreatureScript = {
       }, source.inventory.items) !== -1
 
       if (!alreadySplattered) {
-        const blood = new Item({
-          description: `You and your equipment are covered in the blood of a troll. It will take hours
-to clean it off, but you suspect the smell of moss and urine will linger for days.`,
-          name: TROLL_BLOOD_SPLATTER_NAME,
-        })
+        const blood = createTrollBloodSplatter()
         blood.droppable = false
 
         source.inventory.addItem(blood)
@@ -66,16 +61,14 @@ export const trollLair: WorldScript = {
       y: 0,
     })
   },
-//   onReady: async ({ api }) => {
-//     await api.showSpeech([
-//       {
-//         message: `The winding path from the village opens into a large clearing filled with ice-blue flowers.
-//               The sickly-sweet smell of decaying fall leaves is thick in the air here.`,
-//       },
-//       {
-//         message: `The clearing itself is quiet,      but you can hear the sound
-// of running water somewhere off to the north.`,
-//       },
-//     ])
-//   },
+  onReady: async ({ api }) => {
+    if (api.getTimesVisited('troll_lair') === 1) {
+      await api.showSpeech([
+        {
+          message: 'The air is foul and dank here.          Only a true monster could call such a place home.',
+          speaker: 'Narrator',
+        },
+      ])
+    }
+  },
 }

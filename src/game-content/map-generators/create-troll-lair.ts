@@ -1,7 +1,9 @@
 import { Dungeon } from 'engine/dungeon/dungeon'
 import { BasicRegion, Region } from 'engine/dungeon/region'
+import { RoomSpawnTable } from 'engine/dungeon/spawn-tables'
 import { generateRoomDimensions } from 'engine/dungeon/utils'
 import { random } from 'engine/random'
+import { tail } from 'lodash'
 
 export interface CreateDungeonOptions {
   /** maximum number of room placements that can fail before a level is terminated */
@@ -47,7 +49,7 @@ export interface CreateDungeonOptions {
 const withDefaults = (options: Partial<CreateDungeonOptions>): CreateDungeonOptions => ({
   maximumPlacementFailures: 500,
   maximumRoomArea: 50,
-  maximumRoomCount: 20,
+  maximumRoomCount: 10,
   maximumHallwayLength: 5,
   minimumRoomArea: 4,
   minimumHallwayLength: 1,
@@ -179,6 +181,17 @@ const createDungeonRecursive = (
     ))
 }
 
+const populate = (dungeon: Dungeon, _: CreateDungeonOptions) => {
+  // populate every room except starting room
+  for (const room of tail(dungeon.rooms)) {
+    const contents = RoomSpawnTable.collect()
+
+    for (const spawner of contents) {
+      spawner(dungeon, room)
+    }
+  }
+}
+
 export const createTrollLair = (options: Partial<CreateDungeonOptions> = {}) => {
   const optionsWithDefaults = withDefaults(options)
 
@@ -192,6 +205,8 @@ export const createTrollLair = (options: Partial<CreateDungeonOptions> = {}) => 
       height,
     })]
   ))
+
+  populate(dungeon, optionsWithDefaults)
 
   return dungeon
 }

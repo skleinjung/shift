@@ -9,7 +9,7 @@ import { loadFonts } from '../fonts'
 import { GameRoot } from './game-root'
 import { TitleScreen } from './title-screen'
 
-export type ScreenName = 'dungeon' | 'expedition-ended' | 'title'
+export type ScreenName = 'dungeon' | 'expedition-ended' | 'title' | 'victory'
 
 function App () {
   const [ready, setReady] = useState(false)
@@ -30,6 +30,7 @@ function App () {
     switch (activeScreen) {
       case 'dungeon':
       case 'expedition-ended':
+      case 'victory':
         return <GameRoot navigateTo={handleNavigate} screen={activeScreen} />
 
       default:

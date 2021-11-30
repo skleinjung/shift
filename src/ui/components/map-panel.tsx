@@ -4,7 +4,6 @@ import { CellCoordinate } from 'engine/map/map'
 import { isArray, noop } from 'lodash/fp'
 import * as PIXI from 'pixi.js'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
-import { useGame } from 'ui/hooks/use-game'
 import { useWorld } from 'ui/hooks/use-world'
 
 import { FontNames } from '../fonts'
@@ -86,7 +85,6 @@ export const MapPanel = ({
   onViewportSizeChanged = noop,
   ...panelProps
 }: MapPanelProps) => {
-  const game = useGame()
   const world = useWorld()
   const sceneGraphRef = useRef<MapSceneGraph | undefined>()
 
@@ -133,18 +131,6 @@ export const MapPanel = ({
       onViewportSizeChanged(viewportSize.width, viewportSize.height)
     }
   }, [onViewportSizeChanged, viewportSize])
-
-  // listen for when new world are ready, and recreate our scene graph tiles
-  useEffect(() => {
-    const worldChangeHandler = () => {
-      sceneGraphRef.current?.onWorldChange()
-    }
-
-    game.on('worldChange', worldChangeHandler)
-    return () => {
-      game.off('worldChange', worldChangeHandler)
-    }
-  }, [game])
 
   // update cell contents on every render (when the world is updated)
   useEffect(() => {

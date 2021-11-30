@@ -1,5 +1,5 @@
 import { useCallback } from 'react'
-import { useRecoilValue, useResetRecoilState } from 'recoil'
+import { useResetRecoilState } from 'recoil'
 import { useGlobalKeyHandler } from 'ui/hooks/use-global-key-handler'
 import { useWorld } from 'ui/hooks/use-world'
 import { expeditionState } from 'ui/state/expedition'
@@ -12,11 +12,20 @@ import { PreFormattedText } from './pre-formatted-text'
 export interface ExpeditionEndedScreenProps {
   /** function that allows inter-screen navigation */
   navigateTo: (screen: ScreenName) => void
+
+  /** main title to show */
+  title: string
+
+  /** true if the mission was successful */
+  victory?: boolean
 }
 
-export const ExpeditionEndedScreen = ({ navigateTo }: ExpeditionEndedScreenProps) => {
+export const ExpeditionEndedScreen = ({
+  navigateTo,
+  title,
+  victory = false,
+}: ExpeditionEndedScreenProps) => {
   const player = useWorld().player
-  const expedition = useRecoilValue(expeditionState)
   const resetExpedition = useResetRecoilState(expeditionState)
 
   // update the focus when a new UL element is created
@@ -35,7 +44,9 @@ export const ExpeditionEndedScreen = ({ navigateTo }: ExpeditionEndedScreenProps
     navigateTo('title')
   }, [resetExpedition, navigateTo])
 
-  const fate = player.dead ? 'was killed' : 'lost his connection to this world'
+  const fate = victory
+    ? 'completed the mission'
+    : player.dead ? 'was killed' : 'lost his connection to this world'
 
   useGlobalKeyHandler({
     Escape: returnToTitle,
@@ -44,7 +55,7 @@ export const ExpeditionEndedScreen = ({ navigateTo }: ExpeditionEndedScreenProps
   const expeditionSummary =
     `${player.name} ${fate}.
     
-Turns: ${expedition.turn - 1}`
+Turns: ${player.turn}`
 
   return (
     <div
@@ -54,7 +65,7 @@ Turns: ${expedition.turn - 1}`
       ref={refCallback}
       tabIndex={0}
     >
-      <h1 className="screen-title">Your Expedition has Ended</h1>
+      <h1 className="screen-title">{title}</h1>
       <div className="screen-content-container">
         <Panel
           rows={25}

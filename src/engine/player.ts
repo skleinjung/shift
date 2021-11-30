@@ -4,7 +4,7 @@ import { CreatureTypes } from './creature-db'
 import { CellCoordinate } from './map/map'
 import { Action } from './types'
 
-export const InitialLinkValue = 5000
+export const InitialLinkValue = Number.MAX_SAFE_INTEGER
 
 export class Player extends Creature {
   private _link = InitialLinkValue
@@ -14,6 +14,9 @@ export class Player extends Creature {
 
   /** next action the player has selected */
   public nextAction: Action | undefined
+
+  /** the current turn number */
+  private _turn = 1
 
   constructor () {
     super(CreatureTypes.player, 0, 0)
@@ -31,6 +34,12 @@ export class Player extends Creature {
   public onTurnEnd (): void {
     super.onTurnEnd()
     this._link--
+    this._turn++
+  }
+
+  // hack! end of jam! -- the initial world loads make us start at 3
+  public get turn (): number {
+    return this._turn - 2
   }
 }
 

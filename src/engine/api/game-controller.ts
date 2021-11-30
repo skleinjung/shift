@@ -1,3 +1,4 @@
+import { DoNothing } from 'engine/actions/do-nothing'
 import { Campaign } from 'engine/campaign'
 import { Commands } from 'engine/commands'
 import { Creature } from 'engine/creature'
@@ -17,7 +18,7 @@ import { forEach, random, split, stubTrue, upperFirst } from 'lodash/fp'
 
 import { ScriptApi } from './script-api'
 import { WorldScript } from './script-interfaces'
-import { Speech, UiController } from './ui-api'
+import { MenuName, Speech, UiController } from './ui-api'
 
 export class GameController extends GameEventEmitter implements ScriptApi {
   private _campaign: Campaign
@@ -83,6 +84,8 @@ export class GameController extends GameEventEmitter implements ScriptApi {
   }
 
   public loadZone (id: ZoneId): World {
+    this._world?.removeAllListeners()
+
     this._world = new World()
 
     // register new zone script listeners, and remove previous ones
@@ -93,7 +96,14 @@ export class GameController extends GameEventEmitter implements ScriptApi {
     this.world.emit('initialize', { world: this._world })
     this.emit('worldChange', { world: this._world })
 
+    // TODO: hack, a race condition keeps the world from updating. forcing it to take a turn fixes this
+    this.player.nextAction = DoNothing
+
     return this._world
+  }
+
+  public win () {
+    this._campaign.victory = true
   }
 
   /// ////////////////////////////////////////////
@@ -238,11 +248,15 @@ export class GameController extends GameEventEmitter implements ScriptApi {
   /// ////////////////////////////////////////////
   // UiApi
 
+  public showMenu (menu: MenuName | undefined): Promise<void> {
+    return this._ui.showMenu(menu)
+  }
+
   public showSpeech (speech: Speech[]): Promise<void> {
     return this._ui.showSpeech(speech)
       .then(() => {
         forEach((speechItem) => {
-          this.showMessage(`${speechItem.speaker}: "${speechItem.message}"`)
+          this.showMessage(`${speechItem.speaker}: ${speechItem.message}`)
         }, speech)
       })
   }

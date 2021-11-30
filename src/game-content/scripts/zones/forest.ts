@@ -46,15 +46,28 @@ the southwest. Clawed tracks head off again in that direction, although they app
     }
   },
   onReady: async ({ api }) => {
-    await api.showSpeech([
-      {
-        message: `The winding path from the village opens into a large clearing filled with ice-blue flowers.
+    if (api.getTimesVisited('sanctuary') === 1) {
+      await api.showSpeech([
+        {
+          message: `The winding path from the village opens into a large clearing filled with ice-blue flowers.
               The sickly-sweet smell of decaying fall leaves is thick in the air here.`,
-      },
-      {
-        message: `The clearing itself is quiet,      but you can hear the sound 
+          speaker: 'Narrator',
+        },
+        {
+          message: `The clearing itself is quiet,      but you can hear the sound 
 of running water somewhere off to the north.`,
-      },
-    ])
+          speaker: 'Narrator',
+
+        },
+      ])
+    } else if (api.getTimesVisited('sanctuary') === 2) {
+      await api.showSpeech([
+        {
+          message: `This forest is familiar to the one you've visited before, yet subtly different.
+          A result of the wizard's teleportation magic, no doubt.`,
+          speaker: 'Narrator',
+        },
+      ])
+    }
   },
 }

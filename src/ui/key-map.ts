@@ -3,6 +3,7 @@ export interface KeyMap {
   Confirm: string
   EnterCommand: string
   Get: string
+  Give: string
   MoveUp: string
   MoveDown: string
   MoveLeft: string
@@ -19,6 +20,7 @@ const KeyMaps = {
     Confirm: 'Enter',
     EnterCommand: 'Enter',
     Get: 'g',
+    Give: 't',
     MoveUp: 'e',
     MoveDown: 'd',
     MoveLeft: 's',
@@ -33,6 +35,7 @@ const KeyMaps = {
     Confirm: 'Enter',
     EnterCommand: 'Enter',
     Get: 'g',
+    Give: 't',
     MoveUp: 'w',
     MoveDown: 's',
     MoveLeft: 'a',

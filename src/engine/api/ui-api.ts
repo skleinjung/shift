@@ -7,10 +7,17 @@ export interface Speech {
   message: string
 }
 
+export type MenuName = 'inventory-item'
+
 export type UiApi = Readonly<{
   /**
-    * Show the supplied speech content to the user.
-    */
+   * Request that the user select an entry from the named menu.
+   */
+  showMenu: (menu: MenuName | undefined) => Promise<void>
+
+  /**
+   * Show the supplied speech content to the user.
+   */
   showSpeech (speech: Speech[]): Promise<void>
 }>
 

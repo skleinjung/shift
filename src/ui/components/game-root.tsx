@@ -5,6 +5,7 @@ import { useEffect, useRef } from 'react'
 import { useResetRecoilState } from 'recoil'
 import { GameControllerContext } from 'ui/context-game'
 import { expeditionState } from 'ui/state/expedition'
+import { uiState } from 'ui/state/ui'
 
 import { ScreenName } from './app'
 import { ExpeditionEndedScreen } from './expedition-ended-screen'
@@ -24,9 +25,11 @@ export const GameRoot = ({ navigateTo, screen }: GameProps) => {
   const gameRef = useRef(new GameController(uiRef.current, new DemoCampaign()))
   const engineRef = useRef(new Engine(gameRef.current))
   const resetExpedition = useResetRecoilState(expeditionState)
+  const resetUi = useResetRecoilState(uiState)
 
   useEffect(() => {
     resetExpedition()
+    resetUi()
 
     const currentEngine = engineRef.current
     currentEngine.start()
@@ -34,12 +37,19 @@ export const GameRoot = ({ navigateTo, screen }: GameProps) => {
     return () => {
       currentEngine.stop()
     }
-  }, [resetExpedition])
+  }, [resetExpedition, resetUi])
 
   const getActiveScreen = () => {
     switch (screen) {
       case 'expedition-ended':
-        return <ExpeditionEndedScreen navigateTo={navigateTo} />
+        return <ExpeditionEndedScreen navigateTo={navigateTo} title="Your Expedition has Ended" />
+
+      case 'victory':
+        return (<ExpeditionEndedScreen
+          navigateTo={navigateTo}
+          title="You made it back home!"
+          victory={true}
+        />)
 
       default:
         return <ExpeditionScreen navigateTo={navigateTo}/>
