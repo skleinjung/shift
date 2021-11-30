@@ -115,22 +115,22 @@ export const hardAndMediumTreasure = ProductGroup.rollMany(
 export const easyMonster = ProductGroup.rollOne(
   [
     [80, monsterSpawner('kobold')],
-    [20, monsterSpawner('goblin')],
+    [20, monsterSpawner('kobold')],
   ]
 )
 
 export const mediumMonster = ProductGroup.rollOne(
   [
     [20, monsterSpawner('kobold')],
-    [60, monsterSpawner('goblin')],
-    [20, monsterSpawner('orc')],
+    [60, monsterSpawner('kobold')],
+    [20, monsterSpawner('goblin')],
   ]
 )
 
 export const hardMonster = ProductGroup.rollOne(
   [
     [80, monsterSpawner('goblin')],
-    [20, monsterSpawner('orc')],
+    [20, monsterSpawner('kobold')],
   ]
 )
 
@@ -348,6 +348,6 @@ const RoomContents = ProductGroup.rollOne(
 /** rooms have a 25% chance for contents of any kind */
 export const RoomSpawnTable = ProductGroup.rollMany(
   [
-    [66, RoomContents],
+    [33, RoomContents],
   ]
 )

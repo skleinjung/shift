@@ -1,7 +1,6 @@
 import { CreatureScript, WorldScript } from 'engine/api/script-interfaces'
 import { Creature } from 'engine/creature'
 import { CreatureTypes } from 'engine/creature-db'
-import { Item } from 'engine/item'
 import { random } from 'engine/random'
 import { createTrollLair } from 'game-content/map-generators/create-troll-lair'
 import { createDefaultPortalDescription, createPortal } from 'game-content/portal'

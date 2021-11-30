@@ -22,6 +22,9 @@ export class Campaign {
   public defaultZone: ZoneId | undefined
   private _zones: Record<ZoneId, Zone> = {}
 
+  // flag indicating if the player has won or not
+  public victory = false
+
   private _injectPlayer: WorldScript = {
     onInitialize: ({ api }) => {
       // TODO: force removing all events here is a hack required because player wasn't persistent until 11th hour

@@ -12,4 +12,10 @@ export type CampaignApi = Readonly<{
    * world.
    */
   loadZone: (id: ZoneId) => void
+
+  /**
+   * Called when the player should be shown the victory screen.
+   * TODO: temp hack for the crunchless challenge
+   */
+  win: () => void
 }>

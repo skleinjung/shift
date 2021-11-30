@@ -3,16 +3,18 @@ import { CreatureScript } from 'engine/api/script-interfaces'
 import { TROLL_BLOOD_SPLATTER_NAME } from '../items/troll-blood'
 
 export const wizard: CreatureScript = {
-  onTrade: ({ accept, api, creature, item }) => {
+  onTrade: async ({ accept, api, creature, item }) => {
     if (item.name === TROLL_BLOOD_SPLATTER_NAME) {
       accept()
 
-      api.showSpeech([
+      await api.showSpeech([
         {
-          message: 'Thank you!',
+          message: 'Finally! We can get out of this wretched forest. Come, then. Let\'s get back to to the tower.',
           speaker: creature.name,
         },
-      ])
+      ]).then(() => {
+        api.win()
+      })
     }
   },
 }

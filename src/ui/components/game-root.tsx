@@ -42,7 +42,14 @@ export const GameRoot = ({ navigateTo, screen }: GameProps) => {
   const getActiveScreen = () => {
     switch (screen) {
       case 'expedition-ended':
-        return <ExpeditionEndedScreen navigateTo={navigateTo} />
+        return <ExpeditionEndedScreen navigateTo={navigateTo} title="Your Expedition has Ended" />
+
+      case 'victory':
+        return (<ExpeditionEndedScreen
+          navigateTo={navigateTo}
+          title="You made it back home!"
+          victory={true}
+        />)
 
       default:
         return <ExpeditionScreen navigateTo={navigateTo}/>

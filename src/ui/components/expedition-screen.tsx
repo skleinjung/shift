@@ -4,7 +4,7 @@ import { CellCoordinate } from 'engine/map/map'
 import { Action } from 'engine/types'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { useRecoilValue, useSetRecoilState } from 'recoil'
-import { useGame } from 'ui/hooks/use-game'
+import { useCampaign, useGame } from 'ui/hooks/use-game'
 import { useWorld } from 'ui/hooks/use-world'
 import { InputManager } from 'ui/input/input-manager'
 import { DefaultState } from 'ui/input/states'
@@ -40,6 +40,7 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
 
   const inSpeech = speech !== undefined && speech.speech.length > 0
 
+  const campaign = useCampaign()
   const game = useGame()
   const world = useWorld()
   const updateExpedition = useSetRecoilState(expeditionState)
@@ -48,6 +49,13 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
 
   const isPaused = inMenus || inSpeech || enteringCommand || world.paused
   const isComplete = world.expeditionEnded
+
+  // whenever we rerender, check if we have won
+  useEffect(() => {
+    if (campaign.victory) {
+      navigateTo('victory')
+    }
+  })
 
   const handleQuitExpedition = useCallback(() => {
     navigateTo('title')

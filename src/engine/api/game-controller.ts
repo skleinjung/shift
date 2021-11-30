@@ -102,6 +102,10 @@ export class GameController extends GameEventEmitter implements ScriptApi {
     return this._world
   }
 
+  public win () {
+    this._campaign.victory = true
+  }
+
   /// ////////////////////////////////////////////
   // ConsoleApi
 

@@ -38,11 +38,11 @@ export const sanctuary: WorldScript = {
   onReady: async ({ api }) => {
     if (api.getTimesVisited('sanctuary') === 1) {
       await api.showSpeech([
-        {
-          message: `Just as you begin to read the instructions he gave you, 
-the wizard calls out some final words of advice.`,
-          speaker: 'Narrator',
-        },
+        //         {
+        //           message: `Just as you begin to read the instructions he gave you,
+        // the wizard calls out some final words of advice.`,
+        //           speaker: 'Narrator',
+        //         },
         {
           message: `"To finish the spell that can get us home again, I'll need some troll's blood.
           I've opened a portal to the home of such a creature on your right.               I'm sure he'll oblige."`,
