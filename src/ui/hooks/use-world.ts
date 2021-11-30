@@ -9,18 +9,21 @@ export type WorldSelector<T extends any = any> = (world: World) => T
 /** Returns the current world state or, optionally, a subset of it. Will rerender each turn. */
 export const useWorld = () => {
   const [rerender] = useRerenderTrigger()
-  const world = useGame().world
+  const game = useGame()
+  const world = game.world
 
   useEffect(() => {
-    const handleTurnEvent = () => {
+    const doRerender = () => {
       rerender()
     }
 
-    world.on('update', handleTurnEvent)
+    game.on('worldChange', doRerender)
+    world.on('update', doRerender)
     return () => {
-      world.off('update', handleTurnEvent)
+      game.off('worldChange', doRerender)
+      world.off('update', doRerender)
     }
-  }, [rerender, world])
+  }, [game, rerender, world])
 
   return world
 }

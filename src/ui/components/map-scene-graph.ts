@@ -150,6 +150,11 @@ export class MapSceneGraph {
 
   private _backgroundTexture!: PIXI.RenderTexture
 
+  // since we have pixi objects that are cached based on a specific world, we keep a reference
+  // to that world so we can flush our cache if a new world is used to update
+  // this is gross, but I have 2 hours now :D
+  private _world: World | undefined
+
   constructor (
     private _app: PIXI.Application,
     private _cellWidth: number,
@@ -208,6 +213,11 @@ export class MapSceneGraph {
    * Update all creature tiles, and map cell tiles inside the specified rectangle
    */
   public onWorldUpdate (world: World, xOffset: number, yOffset: number, viewWidth: number, viewHeight: number) {
+    if (world !== this._world) {
+      this.onWorldChange()
+      this._world = world
+    }
+
     this.setOffset(xOffset, yOffset)
 
     const map = world.map

@@ -1,22 +1,22 @@
 import './expedition-screen.css'
 
-import { AttackAction } from 'engine/actions/attack'
-import { DoNothing } from 'engine/actions/do-nothing'
-import { MoveByAction } from 'engine/actions/move-by'
 import { CellCoordinate } from 'engine/map/map'
 import { Action } from 'engine/types'
-import { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { useRecoilValue, useSetRecoilState } from 'recoil'
 import { useGame } from 'ui/hooks/use-game'
-import { useKeyHandler } from 'ui/hooks/use-key-handler'
 import { useWorld } from 'ui/hooks/use-world'
-import { getKeyMap } from 'ui/key-map'
+import { InputManager } from 'ui/input/input-manager'
+import { DefaultState } from 'ui/input/states'
+import { InputCommand } from 'ui/input/types'
 import { endTurn, expeditionState } from 'ui/state/expedition'
 import { speechState } from 'ui/state/speech'
+import { uiState } from 'ui/state/ui'
 
 import { ScreenName } from './app'
 import { CommandInputBox } from './command-input-box'
 import { ExpeditionMenuController } from './expedition-menu-controller'
+import { InventoryItemMenu } from './inventory-item-menu'
 import { InventoryPanel } from './inventory-panel'
 import { LogPanel } from './log-panel'
 import { MapPanel } from './map-panel'
@@ -35,6 +35,7 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
   const [inMenus, setInMenus] = useState(false)
   const [enteringCommand, setEnteringCommand] = useState(false)
   const speech = useRecoilValue(speechState)
+  const ui = useRecoilValue(uiState)
   const [focusedCell, setFocusedCell] = useState<CellCoordinate | undefined>()
 
   const inSpeech = speech !== undefined && speech.speech.length > 0
@@ -42,6 +43,8 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
   const game = useGame()
   const world = useWorld()
   const updateExpedition = useSetRecoilState(expeditionState)
+
+  const inputManagerRef = useRef<InputManager>(new InputManager(new DefaultState()))
 
   const isPaused = inMenus || inSpeech || enteringCommand || world.paused
   const isComplete = world.expeditionEnded
@@ -71,25 +74,19 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
     updateExpedition(endTurn)
   }, [updateExpedition, world.player])
 
-  const executePlayerMove = useCallback((x: number, y: number) => () => {
-    if (!isPaused) {
-      const player = world.player
-
-      // stop auto-pathfinding, if we were in the middle of it
-      player.destination = undefined
-
-      const creature = world.map.getCreature(player.x + x, player.y + y)
-      if (creature === undefined) {
-        executeTurn(new MoveByAction(player, x, y))
-      } else {
-        executeTurn(new AttackAction(player, creature))
-      }
+  // add listeners for input manager events
+  useEffect(() => {
+    const commandListener = (command: InputCommand) => {
+      command(game)
     }
-  }, [executeTurn, isPaused, world.map, world.player])
 
-  const beginCommandEntry = useCallback(() => {
-    setEnteringCommand(true)
-  }, [setEnteringCommand])
+    const currentInputManager = inputManagerRef.current
+    currentInputManager.addListener('command', commandListener)
+
+    return () => {
+      currentInputManager.removeListener('command', commandListener)
+    }
+  }, [executeTurn, game])
 
   const cancelCommandEntry = useCallback(() => {
     setEnteringCommand(false)
@@ -113,16 +110,22 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
     })
   }, [])
 
-  const keyMap = getKeyMap()
-  const mapKeyHandler = useKeyHandler({
-    [keyMap.EnterCommand]: beginCommandEntry,
-    [keyMap.MoveDown]: executePlayerMove(0, 1),
-    [keyMap.MoveLeft]: executePlayerMove(-1, 0),
-    [keyMap.MoveRight]: executePlayerMove(1, 0),
-    [keyMap.MoveUp]: executePlayerMove(0, -1),
-    [keyMap.Travel]: () => executeCommand('use portal'),
-    [keyMap.Wait]: () => executeTurn(DoNothing),
-  })
+  const handleKeyDown = useCallback((event: KeyboardEvent) => {
+    if (!isPaused) {
+      inputManagerRef.current.onKeyPress(game, event.key)
+    }
+  }, [game, isPaused])
+
+  const handleMenuSelection = useCallback((selectedValue: number) => {
+    inputManagerRef.current.onMenuSelection(game, selectedValue)
+  }, [game])
+
+  useEffect(() => {
+    window.addEventListener('keydown', handleKeyDown)
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [handleKeyDown])
 
   useEffect(() => {
     if (isComplete) {
@@ -130,16 +133,28 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
     }
   }, [isComplete, navigateTo])
 
+  const getMenu = () => {
+    switch (ui.activeMenu) {
+      case 'inventory-item':
+        return <InventoryItemMenu
+          onItemSelected={handleMenuSelection}
+          title="Which Item?"
+        />
+
+      default:
+        return undefined
+    }
+  }
+
   return (
     <div className="dungeon-screen">
       <div className="main-content">
         <MapPanel
-          active={!isPaused}
+          active={!isPaused && ui.activeMenu === undefined}
           containerClass="expedition-panel map-canvas"
           focusedCell={focusedCell}
           onCellFocus={handleCellFocus}
           onMapClick={handleMapClick}
-          onKeyDown={mapKeyHandler}
         />
 
         {!inSpeech && !enteringCommand && (
@@ -150,6 +165,8 @@ export const ExpeditionScreen = ({ navigateTo }: ExpeditionScreenProps) => {
             onShowMenu={handleShowMenu}
           />
         )}
+
+        {getMenu()}
 
         <div className='main-content-footer'>
           <SpeechWindow classes={inSpeech ? ['fade-in'] : ['fade-out']} />

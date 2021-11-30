@@ -73,6 +73,7 @@ export class DemoCampaign extends Campaign {
 
     this.addZone(Zones.sanctuary)
     this.addZone(Zones.forest)
+    this.addZone(Zones.troll_lair)
     this.defaultZone = Zones.sanctuary.id
   }
 }

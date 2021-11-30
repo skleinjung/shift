@@ -17,7 +17,7 @@ import { forEach, random, split, stubTrue, upperFirst } from 'lodash/fp'
 
 import { ScriptApi } from './script-api'
 import { WorldScript } from './script-interfaces'
-import { Speech, UiController } from './ui-api'
+import { MenuName, Speech, UiController } from './ui-api'
 
 export class GameController extends GameEventEmitter implements ScriptApi {
   private _campaign: Campaign
@@ -237,6 +237,10 @@ export class GameController extends GameEventEmitter implements ScriptApi {
 
   /// ////////////////////////////////////////////
   // UiApi
+
+  public showMenu (menu: MenuName | undefined): Promise<void> {
+    return this._ui.showMenu(menu)
+  }
 
   public showSpeech (speech: Speech[]): Promise<void> {
     return this._ui.showSpeech(speech)
