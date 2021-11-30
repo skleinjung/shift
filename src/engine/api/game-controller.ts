@@ -1,3 +1,4 @@
+import { DoNothing } from 'engine/actions/do-nothing'
 import { Campaign } from 'engine/campaign'
 import { Commands } from 'engine/commands'
 import { Creature } from 'engine/creature'
@@ -94,6 +95,9 @@ export class GameController extends GameEventEmitter implements ScriptApi {
     this._worldReady = false
     this.world.emit('initialize', { world: this._world })
     this.emit('worldChange', { world: this._world })
+
+    // TODO: hack, a race condition keeps the world from updating. forcing it to take a turn fixes this
+    this.player.nextAction = DoNothing
 
     return this._world
   }
