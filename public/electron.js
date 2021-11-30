@@ -9,11 +9,15 @@ function createWindow () {
   const mainWindow = new BrowserWindow({
     width: 1600,
     height: 1200,
+    title: 'Shift: Prelude',
     webPreferences: {
       nodeIntegration: true,
       preload: path.join(__dirname, 'preload.js'),
     },
   })
+
+  mainWindow.setTitle('Shift: Prelude')
+  mainWindow.removeMenu()
 
   // In production, set the initial browser path to the local bundle generated
   // by the Create React App build process.
