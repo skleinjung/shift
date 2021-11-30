@@ -35,16 +35,30 @@ export const sanctuary: WorldScript = {
     wizard.addScript(wizardScript)
     api.addCreature(wizard)
   },
-//   onReady: async ({ api }) => {
-//     await api.showSpeech([
-//       {
-//         message: `The winding path from the village opens into a large clearing filled with ice-blue flowers.
-//               The sickly-sweet smell of decaying fall leaves is thick in the air here.`,
-//       },
-//       {
-//         message: `The clearing itself is quiet,      but you can hear the sound
-// of running water somewhere off to the north.`,
-//       },
-//     ])
-//   },
+  onReady: async ({ api }) => {
+    if (api.getTimesVisited('sanctuary') === 1) {
+      await api.showSpeech([
+        {
+          message: `Just as you begin to read the instructions he gave you, 
+the wizard calls out some final words of advice.`,
+          speaker: 'Narrator',
+        },
+        {
+          message: `"To finish the spell that can get us home again, I'll need some troll's blood.
+          I've opened a portal to the home of such a creature on your right.               I'm sure he'll oblige."`,
+          speaker: 'The Wizard',
+        },
+        {
+          message: `"Just in case he doesn't, though,               you might want to find some equipment.
+I'm sure you'll figure something out."`,
+          speaker: 'The Wizard',
+        },
+        {
+          message: `The wizard turns back to his rune-covered scrolls, 
+ignoring any requests for more information.`,
+          speaker: 'Narrator',
+        },
+      ])
+    }
+  },
 }

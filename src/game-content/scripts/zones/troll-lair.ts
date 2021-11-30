@@ -62,16 +62,14 @@ export const trollLair: WorldScript = {
       y: 0,
     })
   },
-//   onReady: async ({ api }) => {
-//     await api.showSpeech([
-//       {
-//         message: `The winding path from the village opens into a large clearing filled with ice-blue flowers.
-//               The sickly-sweet smell of decaying fall leaves is thick in the air here.`,
-//       },
-//       {
-//         message: `The clearing itself is quiet,      but you can hear the sound
-// of running water somewhere off to the north.`,
-//       },
-//     ])
-//   },
+  onReady: async ({ api }) => {
+    if (api.getTimesVisited('troll_lair') === 1) {
+      await api.showSpeech([
+        {
+          message: 'The air is foul and dank here.          Only a true monster could call such a place home.',
+          speaker: 'Narrator',
+        },
+      ])
+    }
+  },
 }
