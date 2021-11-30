@@ -31,7 +31,7 @@ export const sanctuary: WorldScript = {
     api.addMapItem(new Item({ name: 'meat' }), 0, -3)
 
     const wizard = new Creature(CreatureTypes.human, 0, -10)
-    wizard.name = 'Wizardo'
+    wizard.name = 'The Wizard'
     wizard.addScript(wizardScript)
     api.addCreature(wizard)
   },
