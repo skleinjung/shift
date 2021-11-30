@@ -7,7 +7,7 @@ import { createTrollLair } from 'game-content/map-generators/create-troll-lair'
 import { createDefaultPortalDescription, createPortal } from 'game-content/portal'
 import { findIndex } from 'lodash/fp'
 
-const TROLL_BLOOD_SPLATTER_NAME = 'splatter of troll\'s blood'
+import { createTrollBloodSplatter, TROLL_BLOOD_SPLATTER_NAME } from '../items/troll-blood'
 
 /**
  * Creature script that (conditionally) creates an item from a template in the attacker's inventory
@@ -22,11 +22,7 @@ export const createBloodSplatterWhenDamaged: CreatureScript = {
       }, source.inventory.items) !== -1
 
       if (!alreadySplattered) {
-        const blood = new Item({
-          description: `You and your equipment are covered in the blood of a troll. It will take hours
-to clean it off, but you suspect the smell of moss and urine will linger for days.`,
-          name: TROLL_BLOOD_SPLATTER_NAME,
-        })
+        const blood = createTrollBloodSplatter()
         blood.droppable = false
 
         source.inventory.addItem(blood)

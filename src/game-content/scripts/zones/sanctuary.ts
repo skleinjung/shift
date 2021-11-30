@@ -4,6 +4,7 @@ import { CreatureTypes } from 'engine/creature-db'
 import { Item } from 'engine/item'
 import { createSanctuary } from 'game-content/map-generators/create-sanctuary'
 import { createDefaultPortalDescription, createPortal } from 'game-content/portal'
+import { wizard as wizardScript } from 'game-content/scripts/creatures/wizard'
 
 export const sanctuary: WorldScript = {
   onInitialize: ({ api, world }) => {
@@ -31,6 +32,7 @@ export const sanctuary: WorldScript = {
 
     const wizard = new Creature(CreatureTypes.human, 0, -10)
     wizard.name = 'Wizardo'
+    wizard.addScript(wizardScript)
     api.addCreature(wizard)
   },
 //   onReady: async ({ api }) => {
