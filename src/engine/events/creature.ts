@@ -1,5 +1,6 @@
 import { Attack, AttackResult } from 'engine/combat'
 import { Creature } from 'engine/creature'
+import { Item } from 'engine/item'
 import { Entity } from 'engine/types'
 import { enumerate } from 'enumerate'
 import { TypedEventEmitter } from 'typed-event-emitter'
@@ -64,6 +65,23 @@ export type CreatureEvents = {
     yOld: number
   }
 
+  trade: {
+    /**
+     * Function that should be called if the trade is accepted. If called, the item
+     * will be placed in our inventory and taken from the giver. If no handler calls this,
+     * then the trade will be rejected.
+     */
+    accept: () => void
+
+    creature: Creature
+
+    /** item being given */
+    item: Item
+
+    /** creature that is attempting to give us the item */
+    source: Creature
+  }
+
   turnEnd: {
     /** emitted by a creature after each of its turns completes */
     creature: Creature
@@ -86,6 +104,7 @@ export const CreatureEventNames = enumerate<keyof CreatureEvents>()(
   'death',
   'defend',
   'move',
+  'trade',
   'turnEnd',
   'turnStart'
 )

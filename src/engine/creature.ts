@@ -127,6 +127,29 @@ export class Creature extends CreatureEventEmitter implements
     this._scripts.push(script)
   }
 
+  /**
+   * Handle a trade request, where the source creature is attempting to give us an item.
+   * Will return a boolean that is true if the trade was accepted, or false if it was rejected.`s
+   */
+  public trade (item: Item, source: Creature): boolean {
+    let accepted = false
+
+    this.emit('trade', {
+      accept: () => {
+        accepted = true
+      },
+      creature: this,
+      item,
+      source,
+    })
+
+    if (accepted) {
+      this.inventory.addItem(item)
+    }
+
+    return accepted
+  }
+
   /// ////////////////////////////////////////////
   // Scriptable
 

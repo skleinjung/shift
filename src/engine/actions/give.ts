@@ -11,7 +11,8 @@ export class GiveAction implements Action {
   ) { }
 
   public execute (world: World) {
-    world.logMessage('giving item: ' + this._item.name + ' to ' + this._recipient.name)
-    this._creature.inventory.removeItem(this._item)
+    if (!this._recipient.trade(this._item, this._creature)) {
+      world.logMessage(`> Trade: ${this._recipient.name} does not want that.`)
+    }
   }
 }
