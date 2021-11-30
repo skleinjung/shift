@@ -42,6 +42,15 @@ export const SpeechPanel = ({
     }
   }, [content, contentIndex, onComplete])
 
+  // callback invoked when the user indicates they want to advance the content
+  const handleAdvanceContent = useCallback(() => {
+    if (currentCharacter < (content[contentIndex]?.message?.length ?? 0)) {
+      setCurrentCharacter(content[contentIndex]?.message?.length ?? 0)
+    } else {
+      handleNextPage()
+    }
+  }, [content, contentIndex, currentCharacter, handleNextPage])
+
   // if the message changes, reset the "typing" animation
   useEffect(() => {
     setCurrentCharacter(1)
@@ -62,7 +71,7 @@ export const SpeechPanel = ({
 
   const keyMap = getKeyMap()
   const handleKeyDown = useKeyHandler({
-    [keyMap.Confirm]: handleNextPage,
+    [keyMap.Confirm]: handleAdvanceContent,
   })
 
   const lastPage = contentIndex >= content.length - 1
@@ -79,7 +88,7 @@ export const SpeechPanel = ({
       title={content[contentIndex].speaker}
     >
       <div className="speech-panel-message">{getText()}</div>
-      <div className="speech-panel-controls" onClick={handleNextPage}>{lastPage ? '(close)' : '(more)'}</div>
+      <div className="speech-panel-controls" onClick={handleAdvanceContent}>{lastPage ? '(close)' : '(more)'}</div>
     </Panel>
   )
 }
