@@ -1,5 +1,6 @@
 import { CreatureScript, WorldScript } from 'engine/api/script-interfaces'
-import { get, initial, join, last, map } from 'lodash/fp'
+import { getAdjacentCoordinates } from 'engine/map/map-utils'
+import { find, get, initial, join, last, map } from 'lodash/fp'
 import { getKeyMap } from 'ui/key-map'
 
 /**
@@ -29,6 +30,15 @@ export const commandHints: CreatureScript = {
   onMove: ({ api, x, y }) => {
     if (api.getMapTile(x, y)?.terrain.id === 'portal') {
       api.showMessage(`To use a portal, press "${getKeyMap().Travel}".`)
+    }
+
+    const neighbors = getAdjacentCoordinates({ x, y })
+    const wizardLocation = find(({ x, y }) => {
+      return api.getMapTile(x, y)?.creature?.name === 'The Wizard'
+    }, neighbors)
+
+    if (wizardLocation !== undefined) {
+      api.showMessage(`To trade with the Wizard, press "${getKeyMap().Give}".`)
     }
   },
 }
