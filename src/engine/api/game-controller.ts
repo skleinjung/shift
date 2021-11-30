@@ -83,6 +83,8 @@ export class GameController extends GameEventEmitter implements ScriptApi {
   }
 
   public loadZone (id: ZoneId): World {
+    this._world?.removeAllListeners()
+
     this._world = new World()
 
     // register new zone script listeners, and remove previous ones
