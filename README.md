@@ -1,20 +1,30 @@
 # Shift: Prelude
 
+![Shift banner](./docs/images/banner.png)
+
     Perhaps all the dragons in our lives are princesses who are only waiting to see us act, just 
     once, with beauty and courage. Perhaps everything that frightens us is, in its deepest essence,
     something helpless that wants our love.
 
 ## Overview
 
-Shift is a hack-and-slash RPG that allows a player to search procedurally generated dungeons for adventure and treasure while uncovering a story of loss and redemption.
+Shift is a snack-sized, hack-and-slash adventure that serves as an introduction to the larger world of _Shift_. In preparation for their subsequent story of loss and redemption, _Prelude_ provides an introduction to the Shifter and the wizard he works for. This introduction is made as the player helps the pair complete a spell they need to escape an enchanted forest and return safely to the wizard's tower.
 
 This is the first project in "a game a month" series I've undertaken to experiment with different game concepts.
 
-### Screenshots
+## Download Now Available
+
+Shift is [available for download now](https://skleinjung.itch.io/shift-prelude-crunchless), with an optional donation to support my future work!
+
+## Screenshots
+
+![Forest screenshot](./docs/images/forest-screenshot.png)
+
+![Dungeon screenshot](./docs/images/dungeon-screenshot.png)
+
+![Gremlin screenshot](./docs/images/gremlin-screenshot.png)
 
 ![UI Elements](https://thrashplay.com/assets/shift/week_three/ui_elements.png)
-
-![Map examples](https://thrashplay.com/assets/shift/week_three/map_examples.png)
 
 ## Design
 
@@ -23,6 +33,22 @@ Shift borrows the visual styling and random elements from classic Rogue-like gam
 * [Design Document](docs/design.md)
 
 ## Progress
+
+### Iteration 4 ([v0.0.10](https://github.com/skleinjung/shift/releases/tag/v0.0.10))
+
+This version was submitted to the [Crunchless Challenge](https://itch.io/jam/crunchless-challenge) on itch.io!
+
+#### New Features
+
+* Add support for multiple maps and the ability to travel between them
+* Implement a basic "main quest" that can be completed to win the game
+* Cleanup window appearance (remove unused menus, add correct title, etc.)
+
+### Iteration 3 ([v0.0.9](https://github.com/skleinjung/shift/releases/tag/v0.0.9))
+
+* Introductory narration plays when entering zones
+* Added new creature types: dart lizards, river toads, thorn gremlins
+* Visibility is now limited by terrain features
 
 ### Iteration 2 ([v0.0.8](https://github.com/skleinjung/shift/releases/tag/v0.0.8))
 
