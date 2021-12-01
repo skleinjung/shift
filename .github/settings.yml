@@ -5,8 +5,8 @@ repository:
   allow_squash_merge: true
   default_branch: main
   delete_branch_on_merge: true
-  description: Uncover a story of loss and redemption in this hack-and-slash RPG where the dungeon -- not the hero -- experiences permadeath.
-
+  description: A snack-sized, hack-and-slash adventure with roguelike sensibilities.
+ 
 branches:
   - name: main
     protection:
